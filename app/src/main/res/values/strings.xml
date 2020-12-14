@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">确认仪</string>
+    <string name="title_activity_login">登录界面</string>
+    <string name="prompt_email">用户名</string>
+    <string name="prompt_password">密码</string>
+    <string name="action_sign_in">登录或注册</string>
+    <string name="action_sign_in_short">登录</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">无效的用户名</string>
+    <string name="invalid_password">密码必须大于5个字符</string>
+    <string name="login_failed">"登录失败"</string>
+
+
+    <string name="select_function">功能选择</string>
+    <string name="ble_not_supported">设备不支持BLE</string>
+    <string name="error_bluetooth_not_supported">设备不支持蓝牙</string>
+    <string name="ble_need_location">需要开启蓝牙</string>
+
+    <string name="device_connected">已连接</string>
+    <string name="device_discovery">检测到%1$1d个装置</string>
+    <string name="function_down_load">下载数据</string>
+    <string name="function_update_unit">更新单元软件</string>
+    <string name="function_set_car_numb">设置车号</string>
+    <string name="function_device_discovery">设备检测</string>
+
+
+</resources>

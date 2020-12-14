@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.MainActivity">
+<TextView
+    android:gravity="center"
+    android:textColor="@color/white"
+    android:textSize="16sp"
+    android:text="@string/select_function"
+    android:background="@color/colorPrimary"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"/>
+
+
+    <Button
+        android:layout_marginHorizontal="12dp"
+        android:id="@+id/view_discovery"
+        android:layout_marginTop="80dp"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:text="@string/function_device_discovery"
+        android:background="@color/teal_200"
+        android:layout_height="60dp"/>
+
+    <Button
+        android:layout_marginHorizontal="12dp"
+        android:id="@+id/view_set_car_numb"
+        android:layout_marginTop="2dp"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:text="@string/function_set_car_numb"
+        android:background="@color/teal_200"
+        android:layout_height="60dp"/>
+
+
+    <Button
+        android:layout_marginHorizontal="12dp"
+        android:id="@+id/view_update"
+        android:layout_marginTop="2dp"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:text="@string/function_update_unit"
+        android:background="@color/purple_200"
+        android:layout_height="60dp"/>
+
+    <Button
+        android:layout_marginHorizontal="12dp"
+        android:id="@+id/view_download"
+        android:layout_marginTop="2dp"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:text="@string/function_down_load"
+        android:background="@color/purple_500"
+        android:layout_height="60dp"/>
+
+</LinearLayout>

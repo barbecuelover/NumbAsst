@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="unit_types">
+        <item>存储单元</item>
+        <item>主控单元</item>
+        <item>指示单元</item>
+    </string-array>
+
+
+</resources>

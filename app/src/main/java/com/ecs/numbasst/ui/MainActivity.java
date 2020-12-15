@@ -7,7 +7,7 @@ import android.widget.Button;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.manager.BleManager;
+import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.SetCarNumberActivity;
@@ -38,7 +38,7 @@ public class MainActivity extends BaseActivity{
 
     @Override
     protected void initData() {
-        BleManager.getInstance().initService(this);
+        BleServiceManager.getInstance().initManager(this);
     }
 
     @Override

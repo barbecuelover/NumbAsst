@@ -8,69 +8,70 @@
 
     <include
         android:id="@+id/action_bar_data_download"
-        layout="@layout/action_bar"/>
+        layout="@layout/action_bar" />
 
     <TextView
-        app:layout_constraintTop_toBottomOf="@+id/action_bar_data_download"
         android:id="@+id/select_download_start_time"
-        android:layout_marginTop="6dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:layout_marginTop="6dp"
         android:text="当前车号："
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintTop_toBottomOf="@+id/action_bar_data_download" />
 
 
     <TextView
         android:id="@+id/spinner_select_unit"
-        app:layout_constraintTop_toBottomOf="@+id/select_download_start_time"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="6dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="6dp"
         android:text="FXD1-123456"
         android:textSize="18sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/select_download_start_time" />
 
 
     <ImageButton
-        app:layout_constraintTop_toTopOf="@+id/select_download_start_time"
-        app:layout_constraintBottom_toBottomOf="@+id/view_split"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/ib_get_car_number_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginEnd="24dp"
         android:background="@null"
         android:src="@drawable/selector_button_device_refresh"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"/>
+        app:layout_constraintBottom_toBottomOf="@+id/view_split"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/select_download_start_time" />
 
     <View
         android:id="@+id/view_split"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_select_unit"
-        android:background="@color/black"
         android:layout_width="match_parent"
-        android:layout_marginVertical="12dp"
+        android:layout_height="2dp"
         android:layout_marginHorizontal="4dp"
-        android:layout_height="2dp"/>
+        android:layout_marginVertical="12dp"
+        android:background="@color/black"
+        app:layout_constraintTop_toBottomOf="@+id/spinner_select_unit" />
 
     <TextView
         android:id="@+id/tv_set_new_numb_title"
-        app:layout_constraintStart_toStartOf="@+id/select_download_start_time"
-        app:layout_constraintTop_toBottomOf="@+id/view_split"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="12dp"
         android:text="输入新的车号："
         android:textSize="18sp"
-        android:layout_marginVertical="12dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintStart_toStartOf="@+id/select_download_start_time"
+        app:layout_constraintTop_toBottomOf="@+id/view_split" />
 
     <EditText
-        android:text="FXD1-123456"
         android:id="@+id/et_new_numb"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
         android:layout_marginTop="12dp"
         android:selectAllOnFocus="true"
-        android:layout_marginHorizontal="32dp"
+        android:text="FXD1-123456"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_set_new_numb_title" />
@@ -80,31 +81,40 @@
         android:id="@+id/btn_download"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="true"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="36dp"
+        android:enabled="true"
         android:text="设置"
-        app:layout_constraintTop_toBottomOf="@+id/et_new_numb"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_new_numb"
         app:layout_constraintVertical_bias="0.2" />
-
 
 
     <TextView
         android:id="@+id/tv_car_numb_status"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="12dp"
+        android:layout_marginVertical="12dp"
         android:background="@drawable/shape_text_view_status"
+        android:gravity="center"
+        android:minHeight="160dp"
         android:text="车号状态"
         android:textSize="18sp"
-        android:gravity="center"
-        android:layout_marginVertical="12dp"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:minHeight="160dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
+
+    <ProgressBar
+        android:id="@+id/progress_bar_set_car_number"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

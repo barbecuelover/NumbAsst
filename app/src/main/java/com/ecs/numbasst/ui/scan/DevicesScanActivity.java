@@ -30,7 +30,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.manager.BleManager;
+import com.ecs.numbasst.manager.BleDeviceInfo;
+import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.callback.StatusCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,19 +43,21 @@ public class DevicesScanActivity extends BaseActivity {
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10 *1000;
     private static final long CONNECT_TIME_OUT = 12 *1000;
-    private BluetoothAdapter mBluetoothAdapter;
-    private boolean mScanning;
-    private Handler mHandler;
 
+    private BluetoothAdapter mBluetoothAdapter;
+    private Handler mHandler;
     private DeviceListAdapter adapter;
     private RecyclerView recyclerViewDeviceList;
-    private List<BluetoothDevice> deviceList = new ArrayList<>();
+    private List<BleDeviceInfo> deviceList = new ArrayList<>();
+
     private TextView tvDeviceCount;
     private TextView tvTitle;
     private ImageButton btnBack;
     private ImageButton btnRefresh;
     private ProgressBar progressBar;
     private BluetoothLeScanner mLeScanner;
+    private boolean mScanning;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,37 +82,6 @@ public class DevicesScanActivity extends BaseActivity {
         }
         deviceList.clear();
         scanLeDevice(true);
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // User chose not to enable Bluetooth.
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            finish();
-        }else if(requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK){
-            scanLeDevice(true);
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        scanLeDevice(false);
-        if (mHandler != null){
-            mHandler.removeCallbacksAndMessages(null);
-        }
-        adapter.clear();
-    }
-
-
-    private void checkNeeded() {
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) || mBluetoothAdapter == null || mLeScanner == null) {
-            showToast(getString(R.string.ble_not_supported));
-            finish();
-        }
-        checkBLEPermission();
     }
 
 
@@ -128,7 +101,6 @@ public class DevicesScanActivity extends BaseActivity {
         btnRefresh= findViewById(R.id.ib_device_scan_refresh);
         progressBar = findViewById(R.id.progress_bar_device_search);
         updateDeviceCountView();
-
     }
 
     @Override
@@ -138,93 +110,76 @@ public class DevicesScanActivity extends BaseActivity {
         adapter = new DeviceListAdapter(deviceList);
         recyclerViewDeviceList.setAdapter(adapter);
         tvTitle.setText(getTitle());
+
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         if (mBluetoothAdapter!=null){
             mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
         }
+
     }
+
 
     @Override
     protected void initEvent() {
-
         btnBack.setOnClickListener(this);
         btnRefresh.setOnClickListener(this);
-
         adapter.setItemClickListener(new DeviceListAdapter.OnItemPressedListener() {
             @Override
             public void onItemViewClicked(int position) {
-                BluetoothDevice  device = deviceList.get(position);
+
                 //TODO 连接设备，更改item显示状态
             }
 
             @Override
             public void onItemViewLongClicked(int position) {
-                BluetoothDevice device = deviceList.get(position);
-                showConnectDialog(device.getName(),device.getAddress());
+                showConnectDialog(deviceList.get(position));
             }
         });
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.ib_device_scan_refresh:
-                Log.d(TAG,"scan refresh button clicked");
-                scanLeDevice(true);
-                break;
-            case R.id.ib_device_scan_back:
-                finish();
-                break;
+
+    private void handleConnectionFailed(String reason) {
+        for (BleDeviceInfo deviceInfo :deviceList){
+            deviceInfo.resetStatus();
+        }
+        resetConnectionStatus();
+    }
+
+    private void handleConnectionSucceed(String mac) {
+        for (int i =0; i<deviceList.size();i++){
+            BleDeviceInfo device = deviceList.get(i);
+            if (device.getAddress().equals(mac)){
+                device.setStatus(DeviceListAdapter.STATUS_CONNECTED);
+                BleDeviceInfo temp = deviceList.set(0,device);
+                deviceList.set(i,temp);
+            }else {
+                device.resetStatus();
+            }
+        }
+        resetConnectionStatus();
+    }
+
+    private void resetConnectionStatus(){
+        adapter.notifyDataSetChanged();
+        //mHandler.removeCallbacksAndMessages(null);
+        if (!mScanning){
+            progressBar.setVisibility(View.GONE);
         }
     }
 
-
-    private void showConnectDialog(String deviceName,String mac){
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("连接设备");
-        builder.setMessage("是否要连接设备：" +deviceName);
-        builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                if (!BleManager.getInstance().connect(mac)){
-                    showToast("连接失败");
-                    return;
-                }
-                progressBar.setVisibility(View.VISIBLE);
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                    }
-                },CONNECT_TIME_OUT);
-
-            }
-        });
-        builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builder.setCancelable(false);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-    }
-
-
-    private void checkBLEPermission() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
-            if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
-                //判断是否需要 向用户解释，为什么要申请该权限
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            }
+    private StatusCallback connectionCallback = new StatusCallback() {
+        @Override
+        public void onSucceed(String msg) {
+            handleConnectionSucceed(msg);
         }
-    }
+
+        @Override
+        public void onFailed(String reason) {
+            handleConnectionFailed(reason);
+        }
+    };
 
 
     // Device scan callback.
@@ -237,21 +192,22 @@ public class DevicesScanActivity extends BaseActivity {
             if (device.getType() == BluetoothDevice.DEVICE_TYPE_LE) {
                 Log.d(TAG, "name = " + device.getName() + ", address = "
                         + device.getAddress());
-                if (!deviceList.contains(device)){
-                    deviceList.add(device);
-                    adapter.notifyDataSetChanged();
-                    updateDeviceCountView();
+                for (BleDeviceInfo deviceInfo :deviceList){
+                    if (deviceInfo.getAddress().equals(device.getAddress())){
+                        return;
+                    }
                 }
+                BleDeviceInfo  bleDeviceInfo = new BleDeviceInfo(device.getAddress(),device.getName());
+                if (device.getAddress().equals(BleServiceManager.getInstance().getConnectedDeviceMac())){
+                    bleDeviceInfo.setStatus(DeviceListAdapter.STATUS_CONNECTING);
+                    BleServiceManager.getInstance().connect(device.getAddress(),connectionCallback);
+                }
+                deviceList.add(bleDeviceInfo);
+                adapter.notifyDataSetChanged();
+                updateDeviceCountView();
             }
         }
     };
-
-    private void updateDeviceCountView(){
-        String temp = getResources().getString(R.string.device_discovery);
-        String count = String.format(temp,deviceList.size());
-        tvDeviceCount.setText(count);
-    }
-
 
     private void scanLeDevice(final boolean enable) {
         if (enable) {
@@ -276,6 +232,114 @@ public class DevicesScanActivity extends BaseActivity {
             progressBar.setVisibility(View.GONE);
         }
     }
+
+
+
+
+    private void showConnectDialog(BleDeviceInfo device){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("连接设备");
+        builder.setMessage("是否要连接设备：" +device.getName());
+        builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                BleServiceManager.getInstance().connect(device.getAddress(),connectionCallback);
+                device.setStatus(DeviceListAdapter.STATUS_CONNECTING);
+                adapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.VISIBLE);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+
+                        device.resetStatus();
+                        adapter.notifyDataSetChanged();
+
+                    }
+                },CONNECT_TIME_OUT);
+
+            }
+        });
+        builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.setCancelable(false);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.ib_device_scan_refresh:
+                Log.d(TAG,"scan refresh button clicked");
+                scanLeDevice(true);
+                break;
+            case R.id.ib_device_scan_back:
+                finish();
+                break;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        scanLeDevice(false);
+        if (mHandler != null){
+            mHandler.removeCallbacksAndMessages(null);
+        }
+        adapter.clear();
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // User chose not to enable Bluetooth.
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+        }else if(requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK){
+            scanLeDevice(true);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+
+    private void checkNeeded() {
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) || mBluetoothAdapter == null || mLeScanner == null) {
+            showToast(getString(R.string.ble_not_supported));
+            finish();
+        }
+        checkBLEPermission();
+    }
+
+    private void checkBLEPermission() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+            if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
+                //判断是否需要 向用户解释，为什么要申请该权限
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        }
+    }
+
+
+
+
+    private void updateDeviceCountView(){
+        String temp = getResources().getString(R.string.device_discovery);
+        String count = String.format(temp,deviceList.size());
+        tvDeviceCount.setText(count);
+    }
+
+
+
 
 
 }

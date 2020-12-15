@@ -1,6 +1,7 @@
 package com.ecs.numbasst.manager;
 
 import android.app.IntentService;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -13,24 +14,35 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.ecs.numbasst.base.callback.BaseCallback;
+import com.ecs.numbasst.base.util.ByteUtils;
+import com.ecs.numbasst.manager.callback.StatusCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
 import com.ecs.numbasst.manager.contants.BleSppGattAttributes;
 
 import java.util.List;
 import java.util.UUID;
 
-public class BleService extends IntentService implements SppInterface{
+public class BleService extends Service implements SppInterface{
 
     private final static String TAG = "BLEService";
 
     private static final int STATE_DISCONNECTED = 0x1000;
     private static final int STATE_CONNECTING = 0x1001;
     private static final int STATE_CONNECTED = 0x1002;
+
+    private static final int MSG_CONNECTED = 0x1000;
+    private static final int MSG_DISCONNECTED = 0x1001;
+
+    private static final int MSG_NOTIFY = 0x1100;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -41,26 +53,43 @@ public class BleService extends IntentService implements SppInterface{
     private BluetoothGattCharacteristic mWriteCharacteristic;
 
     private int mConnectionState = STATE_DISCONNECTED;
+
+    public String connectedDeviceAddress;
+
     private String intentAction;
 
     private final IBinder mBinder = new LocalBinder();
 
-    public BleService(String name) {
-        super(name);
-    }
+    private static StatusCallback connectionCallBack;
+    private static StatusCallback carNumberCallBack;
 
-
-
-
-    @Override
-    protected void onHandleIntent(@Nullable Intent intent) {
-
-    }
+    private Handler mHandler;
+    private ProtocolHelper protocolHelper;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate: ");
+        initialize();
+        mHandler = new MsgHandler();
+        protocolHelper= new ProtocolHelper();
+    }
+
+    public static class MsgHandler extends Handler{
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            switch (msg.what){
+                case MSG_CONNECTED:
+                    if(connectionCallBack !=null){
+                        connectionCallBack.onSucceed((String)msg.obj);
+                    }
+                    break;
+                case MSG_DISCONNECTED:
+                    if (connectionCallBack!=null){
+                        connectionCallBack.onFailed((String)msg.obj);
+                    }
+            }
+        }
     }
 
     public class LocalBinder extends Binder {
@@ -82,23 +111,38 @@ public class BleService extends IntentService implements SppInterface{
         return super.onUnbind(intent);
     }
 
+
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                intentAction = BleConstants.ACTION_GATT_CONNECTED;
+                connectedDeviceAddress = mBluetoothDeviceAddress;
                 mConnectionState = STATE_CONNECTED;
-                broadcastUpdate(intentAction);
-                Log.i(TAG, "Connected to GATT server.");
-                // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" +
+                if (connectionCallBack!=null){
+                    //创建所需的消息对象
+                    Message msg = Message.obtain();
+                    msg.what = MSG_CONNECTED;
+                    msg.obj = connectedDeviceAddress;
+                    mHandler.sendMessage(msg);
+                }
+                //Attempts to discover services after successful connection,start service discovery
+                Log.i(TAG, "Connected to GATT server.Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
-
+//                intentAction = BleConstants.ACTION_GATT_CONNECTED;
+//                broadcastUpdate(intentAction);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
-                Log.i(TAG, "Disconnected from GATT server.");
-                broadcastUpdate(intentAction);
+                connectedDeviceAddress = null;
+                if (connectionCallBack!=null){
+                    //创建所需的消息对象
+                    Message msg = Message.obtain();
+                    msg.what = MSG_DISCONNECTED;
+                    msg.obj = "断开连接";
+                    mHandler.sendMessage(msg);
+                }
+                Log.i(TAG, "Disconnected from GATT server. status="+status);
+//                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;
+//                broadcastUpdate(intentAction);
             }
         }
 
@@ -140,7 +184,6 @@ public class BleService extends IntentService implements SppInterface{
             }
         }
 
-
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
@@ -154,6 +197,9 @@ public class BleService extends IntentService implements SppInterface{
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
+
+            final byte[] data = characteristic.getValue();
+            String dataType = protocolHelper.getDataType(data);
         }
 
         //Will call this when write successful
@@ -165,6 +211,115 @@ public class BleService extends IntentService implements SppInterface{
             }
         }
     };
+
+
+    /**
+     * Initializes a reference to the local Bluetooth adapter.
+     *
+     * @return Return true if the initialization is successful.
+     */
+    public boolean initialize() {
+        // For API level 18 and above, get a reference to BluetoothAdapter through
+        // BluetoothManager.
+        if (mBluetoothManager == null) {
+            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            if (mBluetoothManager == null) {
+                Log.e(TAG, "Unable to initialize BluetoothManager.");
+                return false;
+            }
+        }
+
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
+        if (mBluetoothAdapter == null) {
+            Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Connects to the GATT server hosted on the Bluetooth LE device.
+     *
+     * @param address The device address of the destination device.
+     * @param callback connection status callback.
+     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     * callback.
+     */
+    @Override
+    public void connect(final String address, StatusCallback callback){
+        if (mBluetoothAdapter == null || address == null) {
+            if(!initialize()){
+                Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
+                callback.onFailed("BluetoothAdapter not initialized or unspecified address.");
+                return;
+            }
+        }
+        connectionCallBack = callback;
+        // Previously connected device.  Try to reconnect.
+        if (address!=null && address.equals(mBluetoothDeviceAddress)
+                && mBluetoothGatt != null) {
+            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
+            if (mBluetoothGatt.connect()) {
+                mConnectionState = STATE_CONNECTING;
+            } else {
+                callback.onFailed("RemoteException :the connection attempt was initiated failed");
+            }
+            return;
+        }
+
+        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        if (device == null) {
+            Log.e(TAG, "Device not found.  Unable to connect.");
+            callback.onFailed("没有找到设备,无法连接！");
+            return ;
+        }
+        // We want to directly connect to the device, so we are setting the autoConnect
+        // parameter to false.
+        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+        Log.d(TAG, "Trying to create a new connection.");
+        mBluetoothDeviceAddress = address;
+        mConnectionState = STATE_CONNECTING;
+    }
+
+    @Override
+    public void setCarNumber(String number, StatusCallback callback) {
+        byte[] order = protocolHelper.formatCarNumber(number);
+        carNumberCallBack = callback;
+        writeData(order);
+    }
+
+
+    /**
+     * Disconnects an existing connection or cancel a pending connection. The disconnection result
+     * is reported asynchronously through the
+     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     * callback.
+     */
+    public void disconnect() {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.disconnect();
+    }
+
+    /**
+     * After using a given BLE device, the app must call this method to ensure resources are
+     * released properly.
+     */
+    public void close() {
+        if (mBluetoothGatt == null) {
+            return;
+        }
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
+    }
+
+    public String getConnectedDeviceAddress(){
+        return connectedDeviceAddress;
+    }
+
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
@@ -237,7 +392,6 @@ public class BleService extends IntentService implements SppInterface{
 
     }
 
-
     /**
      * Retrieves a list of supported GATT services on the connected device. This should be
      * invoked only after {@code BluetoothGatt#discoverServices()} completes successfully.
@@ -248,100 +402,6 @@ public class BleService extends IntentService implements SppInterface{
         if (mBluetoothGatt == null) return null;
 
         return mBluetoothGatt.getServices();
-    }
-
-
-    /**
-     * Initializes a reference to the local Bluetooth adapter.
-     *
-     * @return Return true if the initialization is successful.
-     */
-    public boolean initialize() {
-        // For API level 18 and above, get a reference to BluetoothAdapter through
-        // BluetoothManager.
-        if (mBluetoothManager == null) {
-            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-            if (mBluetoothManager == null) {
-                Log.e(TAG, "Unable to initialize BluetoothManager.");
-                return false;
-            }
-        }
-
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
-        if (mBluetoothAdapter == null) {
-            Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
-            return false;
-        }
-        return true;
-    }
-
-
-    /**
-     * Connects to the GATT server hosted on the Bluetooth LE device.
-     *
-     * @param address The device address of the destination device.
-     * @return Return true if the connection is initiated successfully. The connection result
-     * is reported asynchronously through the
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
-     */
-    public boolean connect(final String address) {
-        if (mBluetoothAdapter == null || address == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
-            return false;
-        }
-
-        // Previously connected device.  Try to reconnect.
-        if (address.equals(mBluetoothDeviceAddress)
-                && mBluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
-            if (mBluetoothGatt.connect()) {
-                mConnectionState = STATE_CONNECTING;
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        if (device == null) {
-            Log.w(TAG, "Device not found.  Unable to connect.");
-            return false;
-        }
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
-        Log.d(TAG, "Trying to create a new connection.");
-        mBluetoothDeviceAddress = address;
-        mConnectionState = STATE_CONNECTING;
-        return true;
-    }
-
-
-    /**
-     * Disconnects an existing connection or cancel a pending connection. The disconnection result
-     * is reported asynchronously through the
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
-     */
-    public void disconnect() {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized");
-            return;
-        }
-        mBluetoothGatt.disconnect();
-    }
-
-    /**
-     * After using a given BLE device, the app must call this method to ensure resources are
-     * released properly.
-     */
-    public void close() {
-        if (mBluetoothGatt == null) {
-            return;
-        }
-        mBluetoothGatt.close();
-        mBluetoothGatt = null;
     }
 
 

@@ -10,12 +10,13 @@ import android.text.format.DateFormat;
 
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.Log;
+import com.ecs.numbasst.manager.callback.StatusCallback;
 
 import java.util.Date;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
-public class BleManager implements SppInterface{
+public class BleServiceManager implements SppInterface{
     private static final String TAG = "BLEManager";
 
 
@@ -45,23 +46,33 @@ public class BleManager implements SppInterface{
     public final static String STATE_FAILED = "00";
 
 
-    private static volatile BleManager instance;
+    private static volatile BleServiceManager instance;
     private BleService bleService;
-    private BleManager(){
+
+
+    private BleServiceManager(){
     }
 
-    public static BleManager getInstance(){
+    public String getConnectedDeviceMac() {
+        if (bleService!=null){
+            return bleService.getConnectedDeviceAddress();
+        }
+        return null;
+    }
+
+
+    public static BleServiceManager getInstance(){
         if (instance == null){
-            synchronized (BleManager.class){
+            synchronized (BleServiceManager.class){
                 if (instance ==null){
-                    instance = new BleManager();
+                    instance = new BleServiceManager();
                 }
             }
         }
         return  instance;
     }
 
-    public void initService(Context context){
+    public void initManager(Context context){
         Log.d(TAG," initService");
         Intent intent = new Intent(context, BleService.class);
         context.bindService(intent,mServiceConnection,BIND_AUTO_CREATE);
@@ -95,14 +106,7 @@ public class BleManager implements SppInterface{
     }
 
 
-    public void setCarNumber(String number){
-        Log.d(TAG,"setCarNumber =" +number);
-        String carNumber = ByteUtils.str2Hex16Str(number);
-        String numberLength =ByteUtils.str2Hex16Str(String.valueOf(number.length()));
-        String content = HEAD_SEND + CAR_NUMBER_SET + numberLength + carNumber;
-        writeContent(content);
 
-    }
 
     public void getCarNumber(){
         Log.d(TAG,"getCarNumber");
@@ -131,8 +135,6 @@ public class BleManager implements SppInterface{
         writeContent(content);
     }
 
-
-
     public void updateUnitTransfer(int num,byte[] data){
         Log.d(TAG,"updateUnitTransfer  num="+num);
         String numStr = ByteUtils.numToHex16(num);
@@ -142,8 +144,6 @@ public class BleManager implements SppInterface{
         String content = HEAD_SEND + UNIT_UPDATE_FILE_TRANSFER + ContentLength + numStr + dataStr;
         writeContent(content);
     }
-
-
 
     public void downloadDataRequired(Date from,Date to){
         String begin = (String) DateFormat.format("YYYYMMdd",from);
@@ -158,15 +158,20 @@ public class BleManager implements SppInterface{
         writeContent(content);
     }
 
-
+    @Override
+    public void connect(String address, StatusCallback callback) {
+        if (bleService !=null){
+            bleService.connect(address,callback);
+        }
+    }
 
     @Override
-    public boolean connect(String address) {
-        if (bleService !=null){
-            return  bleService.connect(address);
+    public void setCarNumber(String number, StatusCallback callback) {
+        if (bleService!=null){
+            bleService.setCarNumber(number,callback);
         }
-        return  false;
     }
+
 
     @Override
     public void disconnect() {

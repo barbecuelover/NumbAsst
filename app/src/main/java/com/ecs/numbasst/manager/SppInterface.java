@@ -1,9 +1,11 @@
 package com.ecs.numbasst.manager;
 
 import com.ecs.numbasst.base.callback.BaseCallback;
+import com.ecs.numbasst.manager.callback.StatusCallback;
 
 public interface SppInterface {
-   boolean connect(String address);
+   void connect(String address, StatusCallback callback);
+   void setCarNumber(String number,StatusCallback callback);
    void disconnect();
    void close();
 

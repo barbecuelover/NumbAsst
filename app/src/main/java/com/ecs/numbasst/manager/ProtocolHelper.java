@@ -4,58 +4,42 @@ import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
 
-import java.util.Arrays;
-
 public class ProtocolHelper {
 
     private static final String TAG = "ProtocolHelper";
 
-    public final static String HEAD_SEND = "AA";
-    public final static String HEAD_GET = "55";
-    public final static byte HEAD_SEND_BYTE = (byte)0xAA ;
-    public final static byte HEAD_GET_BYTE =(byte) 0x55;
+    public final static byte HEAD_SEND = (byte)0xAA ;
+    public final static byte HEAD_RECEIVE =(byte) 0x55;
 
-    public final static byte UNKNOWN_TYPE = -1;
+    public final static byte TYPE_UNKNOWN = -1;
 
-    public final static String DEVICE_STATUS = "01";
-    public final static byte DEVICE_STATUS_BYTE = 0x01;
+    public final static byte TYPE_DEVICE_STATUS = 0x01;
 
-    public final static String CAR_NUMBER_SET = "11";
-    public final static byte CAR_NUMBER_SET_BYTE = 0x11;
-    public final static String CAR_NUMBER_GET = "12";
-    public final static byte CAR_NUMBER_GET_BYTE = 0x12;
-
+    public final static byte TYPE_SET_NUMBER = 0x11;
+    public final static byte TYPE_GET_NUMBER = 0x12;
 
     public final static byte UNIT_STORE = 0x01;
     public final static byte UNIT_MAIN_CONTROL = 0x02;
     public final static byte UNIT_INDICATE = 0x03;
+    public final static byte TYPE_UNIT_UPDATE_REQUEST = 0x21;
+    public final static byte TYPE_UNIT_UPDATE_FILE_TRANSFER = 0x22;
+    public final static byte TYPE_UNIT_UPDATE_COMPLETED = 0x23;
+
+    public final static byte TYPE_DOWNLOAD_REQUIRED = 0X31;
+    public final static byte TYPE_DOWNLOAD_HEAD = 0X32;
+    public final static byte TYPE_DOWNLOAD_TRANSFER = 0X33;
 
 
-    public final static String UNIT_UPDATE_ORDER = "21";
-    public final static byte UNIT_UPDATE_ORDER_BYTE = 0x21;
-    public final static String UNIT_UPDATE_FILE_TRANSFER = "22";
-    public final static byte UNIT_UPDATE_FILE_TRANSFER_BYTE = 0x22;
-    public final static String UNIT_UPDATE_COMPLETED = "23";
-    public final static byte UNIT_UPDATE_COMPLETED_BYTE = 0x23;
+    public final static byte STATE_SUCCEED = 0x01;
+    public final static byte STATE_FAILED = 0x00;
 
-    public final static String DOWNLOAD_DATA_REQUIRED = "31";
-    public final static byte DOWNLOAD_DATA_REQUIRED_BYTE = 0X31;
-    public final static String DOWNLOAD_DATA_HEAD = "32";
-    public final static byte DOWNLOAD_DATA_HEAD_BYTE = 0X32;
-    public final static String DOWNLOAD_DATA_TRANSFER = "33";
-    public final static byte DOWNLOAD_DATA_TRANSFER_BYTE = 0X33;
-
-    public final static String STATE_SUCCEED = "01";
-    public final static byte STATE_SUCCEED_BYTE = 0x01;
-    public final static byte STATE_FAILED_BYTE = 0x00;
-    public final static String STATE_FAILED = "00";
 
 
     public byte[] createOrderSetCarNumber(String number){
 
         byte length = (byte)number.length();
         // AA , msg类型, msg长度
-        byte[] head = {HEAD_SEND_BYTE,CAR_NUMBER_SET_BYTE,length};
+        byte[] head = {HEAD_SEND, TYPE_SET_NUMBER,length};
         //先将 车号转换成16进制字符串
         String carNumber = ByteUtils.str2Hex16Str(number);
         //消息内容
@@ -70,7 +54,7 @@ public class ProtocolHelper {
 
 
     public byte[] createOrderGetCarNumber(){
-        byte[] content = {HEAD_SEND_BYTE,CAR_NUMBER_GET_BYTE,0x00};
+        byte[] content = {HEAD_SEND, TYPE_GET_NUMBER,0x00};
         byte[] order = CrcUtils.addCrc8(content);
         Log.d(TAG,"createOrderGetCarNumber  = "+ ByteUtils.bytesToString(order));
         return order;
@@ -79,7 +63,7 @@ public class ProtocolHelper {
     public byte[] createOrderUpdateUnitRequest(int unitType, int fileSize) {
         String sizeStr = ByteUtils.numToHex16(fileSize);
         byte[] size = ByteUtils.string16ToBytes(sizeStr);
-        byte [] content = {HEAD_SEND_BYTE, UNIT_UPDATE_ORDER_BYTE,0X03,(byte) unitType,size[0],size[1]};
+        byte [] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST,0X03,(byte) unitType,size[0],size[1]};
         byte[] order = CrcUtils.addCrc8(content);
         Log.d(TAG,"createOrderUpdateUnitRequest =  " + ByteUtils.bytesToString(order));
         return order;
@@ -87,20 +71,20 @@ public class ProtocolHelper {
 
 
     /**
-     * 解析主机返回数据类型
+     * 解析主机返回数据类型或者主机主动发送过来的数据类型
      * @param data
      * @return
      */
     public byte getDataType(byte[] data) {
         if (data == null){
-            return UNKNOWN_TYPE;
+            return TYPE_UNKNOWN;
         }
         byte flag = data[0];
         byte type = data[1];
-        if (flag == HEAD_GET_BYTE){
+        if (flag == HEAD_RECEIVE || flag == HEAD_SEND){
             return type;
         }
-        return UNKNOWN_TYPE;
+        return TYPE_UNKNOWN;
     }
 
     public String formatGetCarNumber(byte[] data) {
@@ -131,12 +115,12 @@ public class ProtocolHelper {
 
     public byte getOrderStatus(byte[] data) {
         if (data ==null || data.length < 4){
-            return STATE_FAILED_BYTE;
+            return STATE_FAILED;
         }
         if (CrcUtils.checkDataWithCrc8(data)){
             return data[3];
         }
-        return STATE_FAILED_BYTE;
+        return STATE_FAILED;
     }
 
 

@@ -37,13 +37,9 @@ public class BleService extends Service implements SppInterface{
     private static final int STATE_CONNECTING = 0x1001;
     private static final int STATE_CONNECTED = 0x1002;
 
-    private static final int MSG_CONNECTED = 0x1000;
-    private static final int MSG_DISCONNECTED = 0x1001;
+    private static final int MSG_CONNECTED = 0x1011;
+    private static final int MSG_DISCONNECTED = 0x1012;
 
-    private static final int MSG_SET_CAR_NUMBER = 0x2000;
-    private static final int MSG_GET_CAR_NUMBER = 0x2001;
-
-    private static final int MSG_NOTIFY = 0x1100;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -92,14 +88,14 @@ public class BleService extends Service implements SppInterface{
                         connectionCallBack.onFailed((String)msg.obj);
                     }
                     break;
-                case MSG_SET_CAR_NUMBER:
-                    if(((byte)msg.obj) == ProtocolHelper.STATE_SUCCEED_BYTE ){
+                case ProtocolHelper.TYPE_SET_NUMBER:
+                    if(((byte)msg.obj) == ProtocolHelper.STATE_SUCCEED){
                         setCarNumberCallBack.onSucceed("");
                     }else {
                         setCarNumberCallBack.onFailed("");
                     }
                     break;
-                case MSG_GET_CAR_NUMBER:
+                case ProtocolHelper.TYPE_GET_NUMBER:
                     getCarNumberCallBack.onSucceed((String)msg.obj);
                     break;
             }
@@ -232,33 +228,55 @@ public class BleService extends Service implements SppInterface{
         Log.d(TAG," handleMsgFromBleDevice  type = "+ ByteUtils.numToHex8(dataType));
         switch (dataType){
             default:
-            case ProtocolHelper.UNKNOWN_TYPE:
+            case ProtocolHelper.TYPE_UNKNOWN:
                 Log.d(TAG," handleMsgFromBleDevice  unknownType data = "+ ByteUtils.bytesToString(data));
                 break;
-            case ProtocolHelper.CAR_NUMBER_SET_BYTE:
-                //主机回复 设置车号 的返回状态
-                byte status = protocolHelper.getOrderStatus(data);
+
+            //主机回复 设置车号 的返回状态
+            case ProtocolHelper.TYPE_SET_NUMBER:
+                byte statusSetNum = protocolHelper.getOrderStatus(data);
                 if (setCarNumberCallBack!=null){
                     Message msg = Message.obtain();
-                    msg.what = MSG_SET_CAR_NUMBER;
-                    msg.obj = status;
+                    msg.what = ProtocolHelper.TYPE_SET_NUMBER;
+                    msg.obj = statusSetNum;
                     mHandler.sendMessage(msg);
                 }
                 break;
-
-            case ProtocolHelper.CAR_NUMBER_GET_BYTE:
-                //主机回复 获取车号
+            //主机回复 获取车号 的信息
+            case ProtocolHelper.TYPE_GET_NUMBER:
                 String number = protocolHelper.formatGetCarNumber(data);
                 if (setCarNumberCallBack!=null){
                     Message msg = Message.obtain();
-                    msg.what = MSG_GET_CAR_NUMBER;
+                    msg.what = ProtocolHelper.TYPE_GET_NUMBER;
                     msg.obj = number;
                     mHandler.sendMessage(msg);
                 }
                 break;
-            case  ProtocolHelper.UNIT_UPDATE_ORDER_BYTE:
+                //主机回复 单元升级请求 的返回状态
+            case  ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
+                byte statusUpdateReq = protocolHelper.getOrderStatus(data);
+                if (updateUnitRequestCallBack!=null){
+                    Message msg = Message.obtain();
+                    msg.what = ProtocolHelper.TYPE_SET_NUMBER;
+                    msg.obj = statusUpdateReq;
+                    mHandler.sendMessage(msg);
+                }
+                break;
+
+            case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
 
                 break;
+
+            case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                break;
+
+             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
+
+                break;
+            case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
+                break;
+
+
         }
     }
 
@@ -377,6 +395,7 @@ public class BleService extends Service implements SppInterface{
     public void updateUnitRequest(int unitType, int fileSize, StatusCallback callback) {
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType,fileSize);
         updateUnitRequestCallBack = callback;
+        writeData(order);
     }
 
 

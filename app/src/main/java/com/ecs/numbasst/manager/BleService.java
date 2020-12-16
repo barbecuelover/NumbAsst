@@ -1,6 +1,5 @@
 package com.ecs.numbasst.manager;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -22,7 +21,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.manager.callback.StatusCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
@@ -41,6 +39,9 @@ public class BleService extends Service implements SppInterface{
 
     private static final int MSG_CONNECTED = 0x1000;
     private static final int MSG_DISCONNECTED = 0x1001;
+
+    private static final int MSG_SET_CAR_NUMBER = 0x2000;
+    private static final int MSG_GET_CAR_NUMBER = 0x2001;
 
     private static final int MSG_NOTIFY = 0x1100;
 
@@ -61,7 +62,9 @@ public class BleService extends Service implements SppInterface{
     private final IBinder mBinder = new LocalBinder();
 
     private static StatusCallback connectionCallBack;
-    private static StatusCallback carNumberCallBack;
+    private static StatusCallback setCarNumberCallBack;
+    private static StatusCallback getCarNumberCallBack;
+    private static StatusCallback updateUnitRequestCallBack;
 
     private Handler mHandler;
     private ProtocolHelper protocolHelper;
@@ -199,7 +202,8 @@ public class BleService extends Service implements SppInterface{
             broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
 
             final byte[] data = characteristic.getValue();
-            String dataType = protocolHelper.getDataType(data);
+
+            handleMsgFromBleDevice(data);
         }
 
         //Will call this when write successful
@@ -211,6 +215,41 @@ public class BleService extends Service implements SppInterface{
             }
         }
     };
+
+    private void handleMsgFromBleDevice(byte[] data) {
+        byte dataType = protocolHelper.getDataType(data);
+        Log.d(TAG," handleMsgFromBleDevice  type = "+ ByteUtils.numToHex8(dataType));
+        switch (dataType){
+            default:
+            case ProtocolHelper.UNKNOWN_TYPE:
+                Log.d(TAG," handleMsgFromBleDevice  unknownType data = "+ ByteUtils.bytesToString(data));
+                break;
+            case ProtocolHelper.CAR_NUMBER_SET_BYTE:
+                //主机回复 设置车号 的返回状态
+                byte status = protocolHelper.getOrderStatus(data);
+                if (setCarNumberCallBack!=null){
+                    Message msg = Message.obtain();
+                    msg.what = MSG_SET_CAR_NUMBER;
+                    msg.obj = status;
+                    mHandler.sendMessage(msg);
+                }
+                break;
+
+            case ProtocolHelper.CAR_NUMBER_GET_BYTE:
+                //主机回复 获取车号
+                String number = protocolHelper.formatGetCarNumber(data);
+                if (setCarNumberCallBack!=null){
+                    Message msg = Message.obtain();
+                    msg.what = MSG_GET_CAR_NUMBER;
+                    msg.obj = number;
+                    mHandler.sendMessage(msg);
+                }
+                break;
+            case  ProtocolHelper.UNIT_UPDATE_ORDER_BYTE:
+
+                break;
+        }
+    }
 
 
     /**
@@ -282,14 +321,6 @@ public class BleService extends Service implements SppInterface{
         mConnectionState = STATE_CONNECTING;
     }
 
-    @Override
-    public void setCarNumber(String number, StatusCallback callback) {
-        byte[] order = protocolHelper.formatCarNumber(number);
-        carNumberCallBack = callback;
-        writeData(order);
-    }
-
-
     /**
      * Disconnects an existing connection or cancel a pending connection. The disconnection result
      * is reported asynchronously through the
@@ -315,6 +346,28 @@ public class BleService extends Service implements SppInterface{
         mBluetoothGatt.close();
         mBluetoothGatt = null;
     }
+
+
+    @Override
+    public void setCarNumber(String number, StatusCallback callback) {
+        byte[] order = protocolHelper.createOrderSetCarNumber(number);
+        setCarNumberCallBack = callback;
+        writeData(order);
+    }
+
+    @Override
+    public void getCarNumber(StatusCallback callback) {
+        byte[] order = protocolHelper.createOrderGetCarNumber();
+        getCarNumberCallBack = callback;
+        writeData(order);
+    }
+
+    @Override
+    public void updateUnitRequest(int unitType, int fileSize, StatusCallback callback) {
+        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType,fileSize);
+        updateUnitRequestCallBack = callback;
+    }
+
 
     public String getConnectedDeviceAddress(){
         return connectedDeviceAddress;
@@ -382,14 +435,12 @@ public class BleService extends Service implements SppInterface{
 
 
     public void writeData(byte[] data) {
-
         if (mWriteCharacteristic != null &&
                 data != null) {
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);
         }
-
     }
 
     /**

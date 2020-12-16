@@ -41,7 +41,7 @@ public class DataDownloadActivity extends BaseActivity {
     protected void initView() {
         tvStartTime = findViewById(R.id.btn_download_start_time);
         tvEndTime = findViewById(R.id.btn_download_end_time);
-        btnDownload = findViewById(R.id.btn_download);
+        btnDownload = findViewById(R.id.btn_set_car_number);
         progressBar = findViewById(R.id.progress_bar_data_download);
         tvProgressPercent = findViewById(R.id.tv_progress_percent);
         tvStatus =  findViewById(R.id.tv_data_download_status);

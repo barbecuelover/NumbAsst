@@ -96,67 +96,6 @@ public class BleServiceManager implements SppInterface{
     };
 
 
-    private void writeContent(String content){
-        String crc = ByteUtils.getCRC(content);
-        Log.d(TAG,"writeContent   content = " +content + "  crc =" +crc );
-        String order = content + crc;
-        if (bleService != null){
-            bleService.writeData(ByteUtils.string16ToBytes(order));
-        }
-    }
-
-
-
-
-    public void getCarNumber(){
-        Log.d(TAG,"getCarNumber");
-        String content = HEAD_SEND + CAR_NUMBER_GET + "00";
-        writeContent(content);
-    }
-
-
-    public void updateUnitOrder(int unitType,int fileSize){
-        Log.d(TAG,"updateUnitOrder");
-        String type;
-        switch (unitType){
-            default:
-            case 0:
-                type = UNIT_STORE;
-                break;
-            case 1:
-                type = UNIT_MAIN_CONTROL;
-                break;
-            case 2:
-                type = UNIT_INDICATE;
-                break;
-        }
-        String size = ByteUtils.numToHex16(fileSize);
-        String content = HEAD_SEND + UNIT_UPDATE_ORDER + "03" + type + size;
-        writeContent(content);
-    }
-
-    public void updateUnitTransfer(int num,byte[] data){
-        Log.d(TAG,"updateUnitTransfer  num="+num);
-        String numStr = ByteUtils.numToHex16(num);
-        int length = data.length + 2;
-        String ContentLength= ByteUtils.numToHex8(length);
-        String dataStr = ByteUtils.bytesToString(data);
-        String content = HEAD_SEND + UNIT_UPDATE_FILE_TRANSFER + ContentLength + numStr + dataStr;
-        writeContent(content);
-    }
-
-    public void downloadDataRequired(Date from,Date to){
-        String begin = (String) DateFormat.format("YYYYMMdd",from);
-        String end = (String) DateFormat.format("YYYYMMdd",to);
-        String content = HEAD_SEND + DOWNLOAD_DATA_REQUIRED +"08" +begin + end;
-        writeContent(content);
-    }
-
-    public void downloadTransferReply(int fileSize){
-        String size = ByteUtils.numToHex16(fileSize);
-        String content = HEAD_SEND + DOWNLOAD_DATA_HEAD +"02" + size;
-        writeContent(content);
-    }
 
     @Override
     public void connect(String address, StatusCallback callback) {
@@ -164,14 +103,6 @@ public class BleServiceManager implements SppInterface{
             bleService.connect(address,callback);
         }
     }
-
-    @Override
-    public void setCarNumber(String number, StatusCallback callback) {
-        if (bleService!=null){
-            bleService.setCarNumber(number,callback);
-        }
-    }
-
 
     @Override
     public void disconnect() {
@@ -186,4 +117,48 @@ public class BleServiceManager implements SppInterface{
             bleService.close();
         }
     }
+
+    @Override
+    public void setCarNumber(String number, StatusCallback callback) {
+        if (bleService!=null){
+            bleService.setCarNumber(number,callback);
+        }
+    }
+
+    @Override
+    public void getCarNumber(StatusCallback callback) {
+        if (bleService!=null){
+            bleService.getCarNumber(callback);
+        }
+    }
+
+    @Override
+    public void updateUnitRequest(int unitType, int fileSize, StatusCallback callback){
+        if (bleService!=null){
+            bleService.updateUnitRequest(unitType,fileSize,callback);
+        }
+    }
+
+    public void updateUnitTransfer(int num,byte[] data){
+        Log.d(TAG,"updateUnitTransfer  num="+num);
+        String numStr = ByteUtils.numToHex16(num);
+        int length = data.length + 2;
+        String ContentLength= ByteUtils.numToHex8(length);
+        String dataStr = ByteUtils.bytesToString(data);
+        String content = HEAD_SEND + UNIT_UPDATE_FILE_TRANSFER + ContentLength + numStr + dataStr;
+
+    }
+
+    public void downloadDataRequired(Date from,Date to){
+        String begin = (String) DateFormat.format("YYYYMMdd",from);
+        String end = (String) DateFormat.format("YYYYMMdd",to);
+        String content = HEAD_SEND + DOWNLOAD_DATA_REQUIRED +"08" +begin + end;
+
+    }
+
+    public void downloadTransferReply(int fileSize){
+        String size = ByteUtils.numToHex16(fileSize);
+        String content = HEAD_SEND + DOWNLOAD_DATA_HEAD +"02" + size;
+    }
+
 }

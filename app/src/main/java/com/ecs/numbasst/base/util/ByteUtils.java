@@ -35,40 +35,6 @@ public class ByteUtils {
         return sb.toString().trim();
     }
 
-    /**
-     * 计算CRC16校验码
-     *
-     * @param content 需要计算的16进制字符串
-     */
-    public static String getCRC(String content) {
-        byte [] bytes = string16ToBytes(content);
-        return  getCRC(bytes);
-    }
-
-
-    /**
-     * 计算CRC16校验码
-     *
-     * @param bytes 需要计算的字节数组
-     */
-    public static String getCRC(byte[] bytes) {
-        int CRC = 0x0000ffff;
-        int POLYNOMIAL = 0x0000a001;
-
-        int i, j;
-        for (i = 0; i < bytes.length; i++) {
-            CRC ^= ((int) bytes[i] & 0x000000ff);
-            for (j = 0; j < 8; j++) {
-                if ((CRC & 0x00000001) != 0) {
-                    CRC >>= 1;
-                    CRC ^= POLYNOMIAL;
-                } else {
-                    CRC >>= 1;
-                }
-            }
-        }
-        return Integer.toHexString(CRC);
-    }
 
     //使用1字节就可以表示b
     public static String numToHex8(int b) {
@@ -100,5 +66,13 @@ public class ByteUtils {
         }
         return sb.toString();
     }
+
+    public static byte[] joinArray(byte[] ary1,byte[] ary2){
+        byte[] data = new byte[ary1.length+ ary2.length];
+        System.arraycopy(ary1, 0, data, 0, ary1.length);
+        System.arraycopy(ary2, 0, data, ary1.length, ary2.length);
+        return  data;
+    }
+
 
 }

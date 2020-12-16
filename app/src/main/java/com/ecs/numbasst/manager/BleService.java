@@ -91,6 +91,17 @@ public class BleService extends Service implements SppInterface{
                     if (connectionCallBack!=null){
                         connectionCallBack.onFailed((String)msg.obj);
                     }
+                    break;
+                case MSG_SET_CAR_NUMBER:
+                    if(((byte)msg.obj) == ProtocolHelper.STATE_SUCCEED_BYTE ){
+                        setCarNumberCallBack.onSucceed("");
+                    }else {
+                        setCarNumberCallBack.onFailed("");
+                    }
+                    break;
+                case MSG_GET_CAR_NUMBER:
+                    getCarNumberCallBack.onSucceed((String)msg.obj);
+                    break;
             }
         }
     }
@@ -202,7 +213,7 @@ public class BleService extends Service implements SppInterface{
             broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
 
             final byte[] data = characteristic.getValue();
-
+            Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
             handleMsgFromBleDevice(data);
         }
 

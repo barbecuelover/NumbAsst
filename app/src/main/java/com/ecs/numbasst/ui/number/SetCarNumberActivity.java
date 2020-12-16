@@ -21,6 +21,7 @@ public class SetCarNumberActivity extends BaseActivity{
     ProgressBar progressBar;
     Button btnSetCarNumber;
     EditText etNewNumber;
+    TextView tvCarName;
     private BleServiceManager manager;
 
     private StatusCallback setCallback;
@@ -45,6 +46,7 @@ public class SetCarNumberActivity extends BaseActivity{
         progressBar = findViewById(R.id.progress_bar_set_car_number);
         btnSetCarNumber =findViewById(R.id.btn_set_car_number);
         etNewNumber =findViewById(R.id.et_new_numb);
+        tvCarName = findViewById(R.id.car_number_current);
     }
 
     @Override
@@ -54,19 +56,22 @@ public class SetCarNumberActivity extends BaseActivity{
         setCallback = new StatusCallback() {
             @Override
             public void onSucceed(String msg) {
-
+                progressBar.setVisibility(View.GONE);
+                showToast("设置车号成功!" );
             }
 
             @Override
             public void onFailed(String reason) {
-
+                progressBar.setVisibility(View.GONE);
+                showToast("设置车号失败!" );
             }
         };
 
         getCallback = new StatusCallback() {
             @Override
             public void onSucceed(String msg) {
-
+                showToast("获取车号为：" + msg);
+                tvCarName.setText(msg);
             }
 
             @Override
@@ -103,6 +108,7 @@ public class SetCarNumberActivity extends BaseActivity{
                 showToast("车号不能为空！");
             }else {
                 manager.setCarNumber(etNewNumber.getText().toString().trim(),setCallback);
+                progressBar.setVisibility(View.VISIBLE);
             }
 
 

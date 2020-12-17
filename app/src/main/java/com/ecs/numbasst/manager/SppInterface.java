@@ -5,9 +5,10 @@ import com.ecs.numbasst.manager.callback.StatusCallback;
 
 public interface SppInterface {
    void connect(String address, StatusCallback callback);
-   void setCarNumber(String number,StatusCallback callback);
+   void setCarNumber(String number,BaseCallback callback);
    void getCarNumber(StatusCallback callback);
-   void updateUnitRequest(int unitType, int fileSize, StatusCallback callback);
+   void updateUnitRequest(int unitType, long fileSize, BaseCallback callback);
+   void downloadDataRequest(String startTime,String endTime,StatusCallback callback);
 
    void disconnect();
    void close();

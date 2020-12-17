@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.text.format.DateFormat;
 
 
+import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.StatusCallback;
@@ -18,33 +19,6 @@ import static android.content.Context.BIND_AUTO_CREATE;
 
 public class BleServiceManager implements SppInterface{
     private static final String TAG = "BLEManager";
-
-
-    public final static String HEAD_SEND = "AA";
-    public final static String HEAD_GET = "55";
-
-
-    public final static String DEVICE_STATUS = "01";
-
-    public final static String CAR_NUMBER_SET = "11";
-    public final static String CAR_NUMBER_GET = "12";
-
-    public final static String UNIT_STORE = "01";
-    public final static String UNIT_MAIN_CONTROL = "02";
-    public final static String UNIT_INDICATE = "03";
-
-    public final static String UNIT_UPDATE_ORDER = "21";
-    public final static String UNIT_UPDATE_FILE_TRANSFER = "22";
-    public final static String UNIT_UPDATE_COMPLETED = "23";
-
-
-    public final static String DOWNLOAD_DATA_REQUIRED = "31";
-    public final static String DOWNLOAD_DATA_HEAD = "32";
-    public final static String DOWNLOAD_DATA_TRANSFER = "33";
-
-    public final static String STATE_SUCCEED = "01";
-    public final static String STATE_FAILED = "00";
-
 
     private static volatile BleServiceManager instance;
     private BleService bleService;
@@ -119,7 +93,7 @@ public class BleServiceManager implements SppInterface{
     }
 
     @Override
-    public void setCarNumber(String number, StatusCallback callback) {
+    public void setCarNumber(String number, BaseCallback callback) {
         if (bleService!=null){
             bleService.setCarNumber(number,callback);
         }
@@ -133,9 +107,16 @@ public class BleServiceManager implements SppInterface{
     }
 
     @Override
-    public void updateUnitRequest(int unitType, int fileSize, StatusCallback callback){
+    public void updateUnitRequest(int unitType, long fileSize, BaseCallback callback){
         if (bleService!=null){
             bleService.updateUnitRequest(unitType,fileSize,callback);
+        }
+    }
+
+    @Override
+    public void downloadDataRequest(String startTime, String endTime, StatusCallback callback) {
+        if (bleService!=null){
+            bleService.downloadDataRequest(startTime,endTime,callback);
         }
     }
 
@@ -145,20 +126,20 @@ public class BleServiceManager implements SppInterface{
         int length = data.length + 2;
         String ContentLength= ByteUtils.numToHex8(length);
         String dataStr = ByteUtils.bytesToString(data);
-        String content = HEAD_SEND + UNIT_UPDATE_FILE_TRANSFER + ContentLength + numStr + dataStr;
+      //  String content = HEAD_SEND + UNIT_UPDATE_FILE_TRANSFER + ContentLength + numStr + dataStr;
 
     }
 
     public void downloadDataRequired(Date from,Date to){
         String begin = (String) DateFormat.format("YYYYMMdd",from);
         String end = (String) DateFormat.format("YYYYMMdd",to);
-        String content = HEAD_SEND + DOWNLOAD_DATA_REQUIRED +"08" +begin + end;
+      //  String content = HEAD_SEND + DOWNLOAD_DATA_REQUIRED +"08" +begin + end;
 
     }
 
     public void downloadTransferReply(int fileSize){
         String size = ByteUtils.numToHex16(fileSize);
-        String content = HEAD_SEND + DOWNLOAD_DATA_HEAD +"02" + size;
+      //  String content = HEAD_SEND + DOWNLOAD_DATA_HEAD +"02" + size;
     }
 
 }

@@ -21,6 +21,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.manager.callback.StatusCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
@@ -58,9 +59,9 @@ public class BleService extends Service implements SppInterface{
     private final IBinder mBinder = new LocalBinder();
 
     private static StatusCallback connectionCallBack;
-    private static StatusCallback setCarNumberCallBack;
+    private static BaseCallback setCarNumberCallBack;
     private static StatusCallback getCarNumberCallBack;
-    private static StatusCallback updateUnitRequestCallBack;
+    private static BaseCallback updateUnitRequestCallBack;
 
     private Handler mHandler;
     private ProtocolHelper protocolHelper;
@@ -89,14 +90,33 @@ public class BleService extends Service implements SppInterface{
                     }
                     break;
                 case ProtocolHelper.TYPE_SET_NUMBER:
-                    if(((byte)msg.obj) == ProtocolHelper.STATE_SUCCEED){
-                        setCarNumberCallBack.onSucceed("");
-                    }else {
-                        setCarNumberCallBack.onFailed("");
+                    if (setCarNumberCallBack!=null){
+                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
+                            setCarNumberCallBack.onSucceed();
+                        }else {
+                            setCarNumberCallBack.onFailed("设置车号失败");
+                        }
                     }
                     break;
                 case ProtocolHelper.TYPE_GET_NUMBER:
-                    getCarNumberCallBack.onSucceed((String)msg.obj);
+                    if(getCarNumberCallBack!=null){
+                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED){
+                            getCarNumberCallBack.onSucceed((String)msg.obj);
+                        }else {
+                            getCarNumberCallBack.onFailed("主机返回数据异常！");
+                        }
+                    }
+
+                    break;
+
+                case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
+                    if (updateUnitRequestCallBack != null){
+                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED){
+                            updateUnitRequestCallBack.onSucceed();
+                        }else {
+                            updateUnitRequestCallBack.onFailed("更新单元请求失败！");
+                        }
+                    }
                     break;
             }
         }
@@ -234,31 +254,37 @@ public class BleService extends Service implements SppInterface{
 
             //主机回复 设置车号 的返回状态
             case ProtocolHelper.TYPE_SET_NUMBER:
-                byte statusSetNum = protocolHelper.getOrderStatus(data);
+                byte statusSetNum = protocolHelper.formatOrderStatus(data);
                 if (setCarNumberCallBack!=null){
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_SET_NUMBER;
-                    msg.obj = statusSetNum;
+                    msg.arg1 = statusSetNum;
                     mHandler.sendMessage(msg);
                 }
                 break;
             //主机回复 获取车号 的信息
             case ProtocolHelper.TYPE_GET_NUMBER:
                 String number = protocolHelper.formatGetCarNumber(data);
-                if (setCarNumberCallBack!=null){
+                Log.d(TAG," GET NUMBER = " + number);
+                if (getCarNumberCallBack!=null){
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_GET_NUMBER;
-                    msg.obj = number;
+                    if (number ==null){
+                        msg.arg1 = ProtocolHelper.STATE_FAILED;
+                    }else {
+                        msg.arg1 = ProtocolHelper.STATE_SUCCEED;
+                        msg.obj = number;
+                    }
                     mHandler.sendMessage(msg);
                 }
                 break;
                 //主机回复 单元升级请求 的返回状态
             case  ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                byte statusUpdateReq = protocolHelper.getOrderStatus(data);
+                byte statusUpdateReq = protocolHelper.formatOrderStatus(data);
                 if (updateUnitRequestCallBack!=null){
                     Message msg = Message.obtain();
-                    msg.what = ProtocolHelper.TYPE_SET_NUMBER;
-                    msg.obj = statusUpdateReq;
+                    msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST;
+                    msg.arg1 = statusUpdateReq;
                     mHandler.sendMessage(msg);
                 }
                 break;
@@ -378,7 +404,7 @@ public class BleService extends Service implements SppInterface{
 
 
     @Override
-    public void setCarNumber(String number, StatusCallback callback) {
+    public void setCarNumber(String number, BaseCallback callback) {
         byte[] order = protocolHelper.createOrderSetCarNumber(number);
         setCarNumberCallBack = callback;
         writeData(order);
@@ -392,10 +418,15 @@ public class BleService extends Service implements SppInterface{
     }
 
     @Override
-    public void updateUnitRequest(int unitType, int fileSize, StatusCallback callback) {
+    public void updateUnitRequest(int unitType, long fileSize, BaseCallback callback) {
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType,fileSize);
         updateUnitRequestCallBack = callback;
         writeData(order);
+    }
+
+    @Override
+    public void downloadDataRequest(String startTime, String endTime, StatusCallback callback) {
+
     }
 
 

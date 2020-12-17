@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.StatusCallback;
 
@@ -22,9 +23,11 @@ public class SetCarNumberActivity extends BaseActivity{
     Button btnSetCarNumber;
     EditText etNewNumber;
     TextView tvCarName;
+    TextView tvNumberStatus;
+
     private BleServiceManager manager;
 
-    private StatusCallback setCallback;
+    private BaseCallback setCallback;
     private StatusCallback getCallback;
 
     @Override
@@ -41,29 +44,28 @@ public class SetCarNumberActivity extends BaseActivity{
     @Override
     protected void initView() {
         tvTitle = findViewById(R.id.action_bar_title);
-        btnBack =findViewById(R.id.ib_device_scan_back);
+        btnBack =findViewById(R.id.ib_action_back);
         btnRefresh = findViewById(R.id.ib_get_car_number_refresh);
         progressBar = findViewById(R.id.progress_bar_set_car_number);
         btnSetCarNumber =findViewById(R.id.btn_set_car_number);
         etNewNumber =findViewById(R.id.et_new_numb);
         tvCarName = findViewById(R.id.car_number_current);
+        tvNumberStatus = findViewById(R.id.tv_car_numb_status);
     }
 
     @Override
     protected void initData() {
         tvTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        setCallback = new StatusCallback() {
+        setCallback = new BaseCallback() {
             @Override
-            public void onSucceed(String msg) {
-                progressBar.setVisibility(View.GONE);
-                showToast("设置车号成功!" );
+            public void onSucceed() {
+                updateNumberStatus("设置车号成功");
             }
 
             @Override
             public void onFailed(String reason) {
-                progressBar.setVisibility(View.GONE);
-                showToast("设置车号失败!" );
+                updateNumberStatus("设置车号失败");
             }
         };
 
@@ -72,11 +74,12 @@ public class SetCarNumberActivity extends BaseActivity{
             public void onSucceed(String msg) {
                 showToast("获取车号为：" + msg);
                 tvCarName.setText(msg);
+                updateNumberStatus("获取车号为："+msg);
             }
 
             @Override
             public void onFailed(String reason) {
-
+                updateNumberStatus(reason);
             }
         };
     }
@@ -91,7 +94,7 @@ public class SetCarNumberActivity extends BaseActivity{
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        if (id == R.id.ib_device_scan_back ){
+        if (id == R.id.ib_action_back){
             finish();
         }else if(id == R.id.ib_get_car_number_refresh){
             if (manager.getConnectedDeviceMac()==null){
@@ -102,6 +105,8 @@ public class SetCarNumberActivity extends BaseActivity{
             }else {
 //                manager.getCarNumber();
                 manager.getCarNumber(getCallback);
+                tvNumberStatus.setText("获取车号中...");
+                progressBar.setVisibility(View.VISIBLE);
             }
         }else if (id == R.id.btn_set_car_number){
             if (etNewNumber.getText().toString().trim().equals("")){
@@ -118,5 +123,10 @@ public class SetCarNumberActivity extends BaseActivity{
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    private void updateNumberStatus(String msg){
+        tvNumberStatus.setText(msg);
+        progressBar.setVisibility(View.GONE);
     }
 }

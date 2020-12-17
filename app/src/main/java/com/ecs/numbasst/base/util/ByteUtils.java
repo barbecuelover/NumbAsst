@@ -44,6 +44,12 @@ public class ByteUtils {
     public static String numToHex16(int b) {
         return String.format("%04x", b);
     }
+
+    //需要使用2字节表示b
+    public static String longToHex16(long b) {
+        return String.format("%04x", b);
+    }
+
     //需要使用4字节表示b
     public static String numToHex32(int b) {
         return String.format("%08x", b);

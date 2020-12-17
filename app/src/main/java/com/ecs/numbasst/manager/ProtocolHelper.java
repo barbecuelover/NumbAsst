@@ -60,8 +60,8 @@ public class ProtocolHelper {
         return order;
     }
 
-    public byte[] createOrderUpdateUnitRequest(int unitType, int fileSize) {
-        String sizeStr = ByteUtils.numToHex16(fileSize);
+    public byte[] createOrderUpdateUnitRequest(int unitType, long fileSize) {
+        String sizeStr = ByteUtils.longToHex16(fileSize);
         byte[] size = ByteUtils.string16ToBytes(sizeStr);
         byte [] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST,0X03,(byte) unitType,size[0],size[1]};
         byte[] order = CrcUtils.addCrc8(content);
@@ -90,7 +90,7 @@ public class ProtocolHelper {
     public String formatGetCarNumber(byte[] data) {
         if (CrcUtils.checkDataWithCrc8(data)){
             byte[] content = getContent(data);
-            return ByteUtils.bytesToString(content);
+            return new String(content);
         }
         return null;
     }
@@ -113,7 +113,7 @@ public class ProtocolHelper {
         return content;
     }
 
-    public byte getOrderStatus(byte[] data) {
+    public byte formatOrderStatus(byte[] data) {
         if (data ==null || data.length < 4){
             return STATE_FAILED;
         }

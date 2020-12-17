@@ -97,7 +97,7 @@ public class DevicesScanActivity extends BaseActivity {
         recyclerViewDeviceList.setLayoutManager(linearLayoutManager);
         tvDeviceCount = findViewById(R.id.tv_device_count);
         tvTitle = findViewById(R.id.action_bar_title);
-        btnBack= findViewById(R.id.ib_device_scan_back);
+        btnBack= findViewById(R.id.ib_action_back);
         btnRefresh= findViewById(R.id.ib_device_scan_refresh);
         progressBar = findViewById(R.id.progress_bar_device_search);
         updateDeviceCountView();
@@ -280,7 +280,7 @@ public class DevicesScanActivity extends BaseActivity {
                 Log.d(TAG,"scan refresh button clicked");
                 scanLeDevice(true);
                 break;
-            case R.id.ib_device_scan_back:
+            case R.id.ib_action_back:
                 finish();
                 break;
         }

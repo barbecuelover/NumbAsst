@@ -71,7 +71,7 @@
 
 
     <Button
-        android:id="@+id/btn_set_car_number"
+        android:id="@+id/btn_download_data"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"

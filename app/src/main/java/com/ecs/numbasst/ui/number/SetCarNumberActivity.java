@@ -12,7 +12,8 @@ import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.manager.BleServiceManager;
-import com.ecs.numbasst.manager.callback.StatusCallback;
+import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.NumberCallback;
 
 public class SetCarNumberActivity extends BaseActivity{
 
@@ -27,8 +28,7 @@ public class SetCarNumberActivity extends BaseActivity{
 
     private BleServiceManager manager;
 
-    private BaseCallback setCallback;
-    private StatusCallback getCallback;
+    private NumberCallback numberCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,24 +57,17 @@ public class SetCarNumberActivity extends BaseActivity{
     protected void initData() {
         tvTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        setCallback = new BaseCallback() {
+        numberCallback = new NumberCallback() {
             @Override
-            public void onSucceed() {
+            public void onNumberGot(String number) {
+                showToast("获取车号为：" + number);
+                tvCarName.setText(number);
+                updateNumberStatus("获取车号为："+number);
+            }
+
+            @Override
+            public void onSetSucceed() {
                 updateNumberStatus("设置车号成功");
-            }
-
-            @Override
-            public void onFailed(String reason) {
-                updateNumberStatus("设置车号失败");
-            }
-        };
-
-        getCallback = new StatusCallback() {
-            @Override
-            public void onSucceed(String msg) {
-                showToast("获取车号为：" + msg);
-                tvCarName.setText(msg);
-                updateNumberStatus("获取车号为："+msg);
             }
 
             @Override
@@ -82,6 +75,7 @@ public class SetCarNumberActivity extends BaseActivity{
                 updateNumberStatus(reason);
             }
         };
+
     }
 
     @Override
@@ -104,7 +98,7 @@ public class SetCarNumberActivity extends BaseActivity{
                 showToast("获取或设置车号中，请稍后再试");
             }else {
 //                manager.getCarNumber();
-                manager.getCarNumber(getCallback);
+                manager.getCarNumber(numberCallback);
                 tvNumberStatus.setText("获取车号中...");
                 progressBar.setVisibility(View.VISIBLE);
             }
@@ -112,7 +106,7 @@ public class SetCarNumberActivity extends BaseActivity{
             if (etNewNumber.getText().toString().trim().equals("")){
                 showToast("车号不能为空！");
             }else {
-                manager.setCarNumber(etNewNumber.getText().toString().trim(),setCallback);
+                manager.setCarNumber(etNewNumber.getText().toString().trim(), numberCallback);
                 progressBar.setVisibility(View.VISIBLE);
             }
 

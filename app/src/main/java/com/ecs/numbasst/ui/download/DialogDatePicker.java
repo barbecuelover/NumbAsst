@@ -26,12 +26,12 @@ import java.util.Calendar;
  * @Author:lp
  * @Description: 时间选择弹出框
  */
-public class DialogDatePickerSelect {
+public class DialogDatePicker {
     private Context context;
     private OnDateSelectCallBack callBack;
     private AlertDialog dialog;
 
-    public DialogDatePickerSelect(Context context, OnDateSelectCallBack dateSelectCallBack) {
+    public DialogDatePicker(Context context, OnDateSelectCallBack dateSelectCallBack) {
         this.context = context;
         this.callBack = dateSelectCallBack;
     }

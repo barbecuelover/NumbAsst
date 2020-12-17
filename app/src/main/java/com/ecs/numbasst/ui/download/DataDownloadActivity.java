@@ -1,5 +1,7 @@
 package com.ecs.numbasst.ui.download;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,10 +12,11 @@ import android.widget.TextView;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleServiceManager;
-import com.ecs.numbasst.manager.callback.StatusCallback;
+import com.ecs.numbasst.manager.callback.DownloadCallback;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 
 public class DataDownloadActivity extends BaseActivity {
@@ -30,9 +33,11 @@ public class DataDownloadActivity extends BaseActivity {
     private TextView tvTitle;
     private ImageButton btnBack;
 
-    DialogDatePickerSelect datePickerSelect;
+    DialogDatePicker datePickerSelect;
 
-    private StatusCallback downloadRequestCallback;
+    private DownloadCallback downloadCallback;
+
+    private long dataSize2download;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,28 +67,25 @@ public class DataDownloadActivity extends BaseActivity {
     protected void initData() {
 
         tvTitle.setText(getTitle());
-        String date = new SimpleDateFormat("yyy-MM-dd").format(new Date());
+        String date = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault()).format(new Date());
         tvStartTime.setText(date);
         tvEndTime.setText(date);
 
-        downloadRequestCallback = new StatusCallback() {
+        downloadCallback = new DownloadCallback() {
             @Override
-            public void onSucceed(String msg) {
-                //msg 为下载数据大小,询问用户确定要下载数据
-                showDownloadConfirmDialog();
-
+            public void onConfirmed(long size) {
+                dataSize2download = size;
+                showDownloadConfirmDialog((size/1024)+" kb");
             }
 
             @Override
-            public void onFailed(String reason) {
+            public void onTransferred(byte[] data) {
 
             }
         };
     }
 
-    private void showDownloadConfirmDialog() {
 
-    }
 
     @Override
     protected void initEvent() {
@@ -91,15 +93,13 @@ public class DataDownloadActivity extends BaseActivity {
         tvStartTime.setOnClickListener(this);
         tvEndTime.setOnClickListener(this);
         btnDownload.setOnClickListener(this);
-        datePickerSelect = new DialogDatePickerSelect(this, new DialogDatePickerSelect.OnDateSelectCallBack() {
+        datePickerSelect = new DialogDatePicker(this, new DialogDatePicker.OnDateSelectCallBack() {
             @Override
             public void onDateSelected(int flag, int year, int month, int day, long time, String dateString) {
                 switch (flag) {
-                    //年审到期时间
                     case START_TIME:
                         tvStartTime.setText(dateString);
                         break;
-                    //保险到期时间
                     case END_TIME:
                         tvEndTime.setText(dateString);
                         break;
@@ -127,11 +127,32 @@ public class DataDownloadActivity extends BaseActivity {
     private void prepareDownloadData() {
         String startTime = tvStartTime.getText().toString().replace("-","");
         String endTime = tvEndTime.getText().toString().replace("-","");
-        BleServiceManager.getInstance().downloadDataRequest(startTime,endTime,downloadRequestCallback);
+        dataSize2download = 0;
+        BleServiceManager.getInstance().downloadDataRequest(startTime,endTime,downloadCallback);
     }
 
-    private void replyDownloadConfirm(boolean download){
 
+    private void showDownloadConfirmDialog(String size){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("数据下载");
+        builder.setMessage("是否要下载数据？数据大小为"+size);
+        builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                progressBar.setVisibility(View.VISIBLE);
+                BleServiceManager.getInstance().replyDownloadConfirm(true);
+            }
+        });
+        builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                BleServiceManager.getInstance().replyDownloadConfirm(false);                progressBar.setVisibility(View.GONE);
+                dialog.dismiss();
+            }
+        });
+
+        builder.setCancelable(false);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
 }

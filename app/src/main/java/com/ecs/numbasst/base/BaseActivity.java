@@ -146,7 +146,6 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
      *
      * @param msg 提示信息
      */
-    @SuppressLint("ShowToast")
     public void showToast(String msg) {
         try {
             if (null == toast) {

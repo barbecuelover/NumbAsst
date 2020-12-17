@@ -13,6 +13,7 @@ import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.callback.UpdateCallback;
 
 public class UpdateUnitActivity extends BaseActivity {
 
@@ -21,7 +22,7 @@ public class UpdateUnitActivity extends BaseActivity {
     private ImageButton btnBack;
     private Spinner spinnerUnit;
     private Button btnUpdateUnit;
-    private BaseCallback requestCallback;
+    private UpdateCallback updateCallback;
     private ProgressBar progressBarStatus;
     private TextView unitStatus;
     Handler  handler;
@@ -51,12 +52,16 @@ public class UpdateUnitActivity extends BaseActivity {
     protected void initData() {
         tvTitle.setText(getTitle());
         handler = new Handler();
-        requestCallback = new BaseCallback() {
-            @Override
-            public void onSucceed() {
-                updateUnitStatus("更新单元请求成功！");
+        updateCallback = new UpdateCallback() {
 
+            @Override
+            public void onRequestSucceed() {
+                updateUnitStatus("更新单元请求成功！");
                 sendFile2Device();
+            }
+
+            @Override
+            public void onUpdateCompleted(int unitType, int status) {
 
             }
 
@@ -98,7 +103,7 @@ public class UpdateUnitActivity extends BaseActivity {
         long fileSize = 0x2A2B;
         progressBarStatus.setVisibility(View.VISIBLE);
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中..." );
-        BleServiceManager.getInstance().updateUnitRequest(unitType,fileSize,requestCallback);
+        BleServiceManager.getInstance().updateUnitRequest(unitType,fileSize, updateCallback);
     }
 
     private void updateUnitStatus(String msg){

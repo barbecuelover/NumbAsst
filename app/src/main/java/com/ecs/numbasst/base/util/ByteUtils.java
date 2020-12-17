@@ -1,8 +1,11 @@
 package com.ecs.numbasst.base.util;
 
-public class ByteUtils {
+import java.nio.ByteBuffer;
 
-    public static  byte[] string16ToBytes(String s) {
+public class ByteUtils {
+    private static ByteBuffer buffer = ByteBuffer.allocate(8);
+
+    public static byte[] string16ToBytes(String s) {
         byte[] buf = new byte[s.length() / 2];
         for (int i = 0; i < buf.length; i++) {
             try {
@@ -16,6 +19,7 @@ public class ByteUtils {
 
     /**
      * normal string to 16string
+     *
      * @param str
      * @return
      */
@@ -40,6 +44,7 @@ public class ByteUtils {
     public static String numToHex8(int b) {
         return String.format("%02x", b);//2表示需要两个16进制数
     }
+
     //需要使用2字节表示b
     public static String numToHex16(int b) {
         return String.format("%04x", b);
@@ -56,8 +61,7 @@ public class ByteUtils {
     }
 
 
-
-    public static  String bytesToString(byte[] bytes) {
+    public static String bytesToString(byte[] bytes) {
         final char[] hexArray = "0123456789ABCDEF".toCharArray();
         char[] hexChars = new char[bytes.length * 2];
         StringBuilder sb = new StringBuilder();
@@ -73,11 +77,17 @@ public class ByteUtils {
         return sb.toString();
     }
 
-    public static byte[] joinArray(byte[] ary1,byte[] ary2){
-        byte[] data = new byte[ary1.length+ ary2.length];
+    public static long bytesToLong(byte[] bytes) {
+        buffer.put(bytes, 0, bytes.length);
+        buffer.flip();//need flip
+        return buffer.getLong();
+    }
+
+    public static byte[] joinArray(byte[] ary1, byte[] ary2) {
+        byte[] data = new byte[ary1.length + ary2.length];
         System.arraycopy(ary1, 0, data, 0, ary1.length);
         System.arraycopy(ary2, 0, data, ary1.length, ary2.length);
-        return  data;
+        return data;
     }
 
 

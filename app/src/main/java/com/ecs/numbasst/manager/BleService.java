@@ -21,16 +21,18 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.base.util.ByteUtils;
-import com.ecs.numbasst.manager.callback.StatusCallback;
+import com.ecs.numbasst.manager.callback.DownloadCallback;
+import com.ecs.numbasst.manager.callback.NumberCallback;
+import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
 import com.ecs.numbasst.manager.contants.BleSppGattAttributes;
 
 import java.util.List;
 import java.util.UUID;
 
-public class BleService extends Service implements SppInterface{
+public class BleService extends Service implements SppInterface {
 
     private final static String TAG = "BLEService";
 
@@ -58,10 +60,10 @@ public class BleService extends Service implements SppInterface{
 
     private final IBinder mBinder = new LocalBinder();
 
-    private static StatusCallback connectionCallBack;
-    private static BaseCallback setCarNumberCallBack;
-    private static StatusCallback getCarNumberCallBack;
-    private static BaseCallback updateUnitRequestCallBack;
+    private static ConnectionCallback connectionCallBack;
+    private static NumberCallback numberCallback;
+    private static UpdateCallback updateCallback;
+    private static DownloadCallback downloadCallBack;
 
     private Handler mHandler;
     private ProtocolHelper protocolHelper;
@@ -69,53 +71,72 @@ public class BleService extends Service implements SppInterface{
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate: ");
         initialize();
         mHandler = new MsgHandler();
-        protocolHelper= new ProtocolHelper();
+        protocolHelper = new ProtocolHelper();
     }
 
-    public static class MsgHandler extends Handler{
+    public static class MsgHandler extends Handler {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case MSG_CONNECTED:
-                    if(connectionCallBack !=null){
-                        connectionCallBack.onSucceed((String)msg.obj);
+                    if (connectionCallBack != null) {
+                        connectionCallBack.onSucceed((String) msg.obj);
                     }
                     break;
                 case MSG_DISCONNECTED:
-                    if (connectionCallBack!=null){
-                        connectionCallBack.onFailed((String)msg.obj);
+                    if (connectionCallBack != null) {
+                        connectionCallBack.onFailed((String) msg.obj);
                     }
                     break;
                 case ProtocolHelper.TYPE_SET_NUMBER:
-                    if (setCarNumberCallBack!=null){
-                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
-                            setCarNumberCallBack.onSucceed();
-                        }else {
-                            setCarNumberCallBack.onFailed("设置车号失败");
+                    if (numberCallback != null) {
+                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED) {
+                            numberCallback.onSetSucceed();
+                        } else {
+                            numberCallback.onFailed("设置车号失败");
                         }
                     }
                     break;
                 case ProtocolHelper.TYPE_GET_NUMBER:
-                    if(getCarNumberCallBack!=null){
-                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED){
-                            getCarNumberCallBack.onSucceed((String)msg.obj);
-                        }else {
-                            getCarNumberCallBack.onFailed("主机返回数据异常！");
+                    if (numberCallback != null) {
+                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED) {
+                            numberCallback.onNumberGot((String) msg.obj);
+                        } else {
+                            numberCallback.onFailed("主机返回数据异常！");
                         }
                     }
 
                     break;
 
                 case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                    if (updateUnitRequestCallBack != null){
-                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED){
-                            updateUnitRequestCallBack.onSucceed();
-                        }else {
-                            updateUnitRequestCallBack.onFailed("更新单元请求失败！");
+                    if (updateCallback != null) {
+                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED) {
+                            updateCallback.onRequestSucceed();
+                        } else {
+                            updateCallback.onFailed("更新单元请求失败！");
                         }
+                    }
+                    break;
+                case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
+                    //传输文件 主机回复
+                    break;
+                case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                    if (updateCallback != null) {
+                        updateCallback.onUpdateCompleted(msg.arg1, msg.arg2);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
+                    if (downloadCallBack != null) {
+                        long size = (long) msg.obj;
+                        downloadCallBack.onConfirmed(size);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
+                    if (downloadCallBack != null) {
+                        byte[] data = (byte[]) msg.obj;
+                        downloadCallBack.onTransferred(data);
                     }
                     break;
             }
@@ -131,13 +152,13 @@ public class BleService extends Service implements SppInterface{
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind: ");
         return mBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
         close();
+        mHandler.removeCallbacksAndMessages(null);
         return super.onUnbind(intent);
     }
 
@@ -148,7 +169,7 @@ public class BleService extends Service implements SppInterface{
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 connectedDeviceAddress = mBluetoothDeviceAddress;
                 mConnectionState = STATE_CONNECTED;
-                if (connectionCallBack!=null){
+                if (connectionCallBack != null) {
                     //创建所需的消息对象
                     Message msg = Message.obtain();
                     msg.what = MSG_CONNECTED;
@@ -163,14 +184,14 @@ public class BleService extends Service implements SppInterface{
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 mConnectionState = STATE_DISCONNECTED;
                 connectedDeviceAddress = null;
-                if (connectionCallBack!=null){
+                if (connectionCallBack != null) {
                     //创建所需的消息对象
                     Message msg = Message.obtain();
                     msg.what = MSG_DISCONNECTED;
                     msg.obj = "断开连接";
                     mHandler.sendMessage(msg);
                 }
-                Log.i(TAG, "Disconnected from GATT server. status="+status);
+                Log.i(TAG, "Disconnected from GATT server. status=" + status);
 //                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;
 //                broadcastUpdate(intentAction);
             }
@@ -245,17 +266,17 @@ public class BleService extends Service implements SppInterface{
 
     private void handleMsgFromBleDevice(byte[] data) {
         byte dataType = protocolHelper.getDataType(data);
-        Log.d(TAG," handleMsgFromBleDevice  type = "+ ByteUtils.numToHex8(dataType));
-        switch (dataType){
+        Log.d(TAG, " handleMsgFromBleDevice  type = " + ByteUtils.numToHex8(dataType));
+        switch (dataType) {
             default:
             case ProtocolHelper.TYPE_UNKNOWN:
-                Log.d(TAG," handleMsgFromBleDevice  unknownType data = "+ ByteUtils.bytesToString(data));
+                Log.d(TAG, " handleMsgFromBleDevice  unknownType data = " + ByteUtils.bytesToString(data));
                 break;
 
             //主机回复 设置车号 的返回状态
             case ProtocolHelper.TYPE_SET_NUMBER:
                 byte statusSetNum = protocolHelper.formatOrderStatus(data);
-                if (setCarNumberCallBack!=null){
+                if (numberCallback != null) {
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_SET_NUMBER;
                     msg.arg1 = statusSetNum;
@@ -265,23 +286,23 @@ public class BleService extends Service implements SppInterface{
             //主机回复 获取车号 的信息
             case ProtocolHelper.TYPE_GET_NUMBER:
                 String number = protocolHelper.formatGetCarNumber(data);
-                Log.d(TAG," GET NUMBER = " + number);
-                if (getCarNumberCallBack!=null){
+                Log.d(TAG, " GET NUMBER = " + number);
+                if (numberCallback != null) {
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_GET_NUMBER;
-                    if (number ==null){
+                    if (number == null) {
                         msg.arg1 = ProtocolHelper.STATE_FAILED;
-                    }else {
+                    } else {
                         msg.arg1 = ProtocolHelper.STATE_SUCCEED;
                         msg.obj = number;
                     }
                     mHandler.sendMessage(msg);
                 }
                 break;
-                //主机回复 单元升级请求 的返回状态
-            case  ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                byte statusUpdateReq = protocolHelper.formatOrderStatus(data);
-                if (updateUnitRequestCallBack!=null){
+            //主机回复 单元升级请求 的返回状态
+            case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
+                if (updateCallback != null) {
+                    byte statusUpdateReq = protocolHelper.formatOrderStatus(data);
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST;
                     msg.arg1 = statusUpdateReq;
@@ -290,19 +311,37 @@ public class BleService extends Service implements SppInterface{
                 break;
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
-
                 break;
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                if (updateCallback != null) {
+                    byte[] completeStatus = protocolHelper.formatUpdateCompleteStatus(data);
+                    Message msg = Message.obtain();
+                    msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED;
+                    msg.arg1 = completeStatus[0];
+                    msg.arg2 = completeStatus[1];
+                    mHandler.sendMessage(msg);
+                }
                 break;
 
-             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
-
+            case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
+                if (downloadCallBack != null) {
+                    long dataSize = protocolHelper.formatDownloadSize(data);
+                    Message msg = Message.obtain();
+                    msg.what = ProtocolHelper.TYPE_DOWNLOAD_HEAD;
+                    msg.obj = dataSize;
+                    mHandler.sendMessage(msg);
+                }
                 break;
             case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
+                if (downloadCallBack != null) {
+                    byte[] dataDownload = protocolHelper.formatDownloadData(data);
+                    Message msg = Message.obtain();
+                    msg.what = ProtocolHelper.TYPE_DOWNLOAD_TRANSFER;
+                    msg.obj = dataDownload;
+                    mHandler.sendMessage(msg);
+                }
                 break;
-
-
         }
     }
 
@@ -335,15 +374,15 @@ public class BleService extends Service implements SppInterface{
     /**
      * Connects to the GATT server hosted on the Bluetooth LE device.
      *
-     * @param address The device address of the destination device.
+     * @param address  The device address of the destination device.
      * @param callback connection status callback.
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
+     *                 {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     *                 callback.
      */
     @Override
-    public void connect(final String address, StatusCallback callback){
+    public void connect(final String address, ConnectionCallback callback) {
         if (mBluetoothAdapter == null || address == null) {
-            if(!initialize()){
+            if (!initialize()) {
                 Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
                 callback.onFailed("BluetoothAdapter not initialized or unspecified address.");
                 return;
@@ -351,7 +390,7 @@ public class BleService extends Service implements SppInterface{
         }
         connectionCallBack = callback;
         // Previously connected device.  Try to reconnect.
-        if (address!=null && address.equals(mBluetoothDeviceAddress)
+        if (address != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
             if (mBluetoothGatt.connect()) {
@@ -366,7 +405,7 @@ public class BleService extends Service implements SppInterface{
         if (device == null) {
             Log.e(TAG, "Device not found.  Unable to connect.");
             callback.onFailed("没有找到设备,无法连接！");
-            return ;
+            return;
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
@@ -404,33 +443,41 @@ public class BleService extends Service implements SppInterface{
 
 
     @Override
-    public void setCarNumber(String number, BaseCallback callback) {
+    public void setCarNumber(String number, NumberCallback callback) {
         byte[] order = protocolHelper.createOrderSetCarNumber(number);
-        setCarNumberCallBack = callback;
+        numberCallback = callback;
         writeData(order);
     }
 
     @Override
-    public void getCarNumber(StatusCallback callback) {
+    public void getCarNumber(NumberCallback callback) {
         byte[] order = protocolHelper.createOrderGetCarNumber();
-        getCarNumberCallBack = callback;
+        numberCallback = callback;
         writeData(order);
     }
 
     @Override
-    public void updateUnitRequest(int unitType, long fileSize, BaseCallback callback) {
-        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType,fileSize);
-        updateUnitRequestCallBack = callback;
+    public void updateUnitRequest(int unitType, long fileSize, UpdateCallback callback) {
+        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, fileSize);
+        updateCallback = callback;
         writeData(order);
     }
 
     @Override
-    public void downloadDataRequest(String startTime, String endTime, StatusCallback callback) {
+    public void downloadDataRequest(String startTime, String endTime, DownloadCallback callback) {
+        byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
+        downloadCallBack = callback;
+        writeData(order);
+    }
 
+    @Override
+    public void replyDownloadConfirm(boolean download) {
+        byte[] order = protocolHelper.createOrderReplyDownloadConfirm(download);
+        writeData(order);
     }
 
 
-    public String getConnectedDeviceAddress(){
+    public String getConnectedDeviceAddress() {
         return connectedDeviceAddress;
     }
 

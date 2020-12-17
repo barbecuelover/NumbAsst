@@ -32,7 +32,7 @@ import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleDeviceInfo;
 import com.ecs.numbasst.manager.BleServiceManager;
-import com.ecs.numbasst.manager.callback.StatusCallback;
+import com.ecs.numbasst.manager.callback.ConnectionCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -169,7 +169,7 @@ public class DevicesScanActivity extends BaseActivity {
         }
     }
 
-    private StatusCallback connectionCallback = new StatusCallback() {
+    private ConnectionCallback connectionCallback = new ConnectionCallback() {
         @Override
         public void onSucceed(String msg) {
             handleConnectionSucceed(msg);

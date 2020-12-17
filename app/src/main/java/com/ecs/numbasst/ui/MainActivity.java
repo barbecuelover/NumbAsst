@@ -10,7 +10,7 @@ import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
-import com.ecs.numbasst.ui.number.SetCarNumberActivity;
+import com.ecs.numbasst.ui.number.NumberSetActivity;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 
 public class MainActivity extends BaseActivity{
@@ -62,7 +62,7 @@ public class MainActivity extends BaseActivity{
         if (id == R.id.view_discovery){
             goActivity(DevicesScanActivity.class);
         }else if (id == R.id.view_set_car_numb){
-            goActivity(SetCarNumberActivity.class);
+            goActivity(NumberSetActivity.class);
         }else if(id == R.id.view_update){
             goActivity(UpdateUnitActivity.class);
         }else if(id == R.id.view_download){

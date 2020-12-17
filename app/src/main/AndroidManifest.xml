@@ -26,7 +26,7 @@
         <activity android:name=".ui.update.UpdateUnitActivity"
             android:label="@string/function_update_unit"/>
         <activity
-            android:name=".ui.number.SetCarNumberActivity"
+            android:name=".ui.number.NumberSetActivity"
             android:label="@string/function_set_car_numb" />
         <activity
             android:name=".ui.scan.DevicesScanActivity"

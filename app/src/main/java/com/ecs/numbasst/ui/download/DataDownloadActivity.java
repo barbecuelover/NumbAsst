@@ -27,7 +27,8 @@ public class DataDownloadActivity extends BaseActivity {
     private TextView tvStartTime;
     private TextView tvEndTime;
     private Button btnDownload;
-    private ProgressBar progressBar;
+    private ProgressBar progressBarStatus;
+    private ProgressBar progressBarDownload;
     private TextView tvProgressPercent;
     private TextView tvStatus;
     private TextView tvTitle;
@@ -37,7 +38,12 @@ public class DataDownloadActivity extends BaseActivity {
 
     private DownloadCallback downloadCallback;
 
-    private long dataSize2download;
+    private BleServiceManager manager;
+    private long dataTotalSize;
+    private long currentSize;
+
+    private boolean isDownloading;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +61,8 @@ public class DataDownloadActivity extends BaseActivity {
         tvStartTime = findViewById(R.id.btn_download_start_time);
         tvEndTime = findViewById(R.id.btn_download_end_time);
         btnDownload = findViewById(R.id.btn_download_data);
-        progressBar = findViewById(R.id.progress_bar_data_download);
+        progressBarStatus = findViewById(R.id.progress_bar_data_download_status);
+        progressBarDownload = findViewById(R.id.progress_bar_data_download);
         tvProgressPercent = findViewById(R.id.tv_progress_percent);
         tvStatus =  findViewById(R.id.tv_data_download_status);
         tvTitle = findViewById(R.id.action_bar_title);
@@ -67,6 +74,7 @@ public class DataDownloadActivity extends BaseActivity {
     protected void initData() {
 
         tvTitle.setText(getTitle());
+        manager = BleServiceManager.getInstance();
         String date = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault()).format(new Date());
         tvStartTime.setText(date);
         tvEndTime.setText(date);
@@ -74,13 +82,21 @@ public class DataDownloadActivity extends BaseActivity {
         downloadCallback = new DownloadCallback() {
             @Override
             public void onConfirmed(long size) {
-                dataSize2download = size;
+                dataTotalSize = size;
                 showDownloadConfirmDialog((size/1024)+" kb");
             }
 
             @Override
             public void onTransferred(byte[] data) {
-
+               if (dataTotalSize == currentSize){
+                   isDownloading = false;
+                   showToast("下载完成");
+                   tvStatus.setText("下载完成!");
+               }else {
+                   int progress = (int) ((currentSize/dataTotalSize) *100);
+                   tvProgressPercent.setText(progress+"%");
+                   progressBarDownload.setProgress(progress);
+               }
             }
         };
     }
@@ -125,9 +141,19 @@ public class DataDownloadActivity extends BaseActivity {
     }
 
     private void prepareDownloadData() {
+
+        if (manager.getConnectedDeviceMac()==null){
+            showToast(getString(R.string.check_device_connection));
+            return;
+        }
+        if (progressBarStatus.getVisibility()==View.VISIBLE ||isDownloading){
+            showToast("下载操作中请勿重复点击下载");
+            return;
+        }
+
         String startTime = tvStartTime.getText().toString().replace("-","");
         String endTime = tvEndTime.getText().toString().replace("-","");
-        dataSize2download = 0;
+        dataTotalSize = 0;
         BleServiceManager.getInstance().downloadDataRequest(startTime,endTime,downloadCallback);
     }
 
@@ -138,14 +164,17 @@ public class DataDownloadActivity extends BaseActivity {
         builder.setMessage("是否要下载数据？数据大小为"+size);
         builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                progressBar.setVisibility(View.VISIBLE);
+                progressBarStatus.setVisibility(View.VISIBLE);
+                isDownloading =true;
                 BleServiceManager.getInstance().replyDownloadConfirm(true);
             }
         });
         builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                BleServiceManager.getInstance().replyDownloadConfirm(false);                progressBar.setVisibility(View.GONE);
+                BleServiceManager.getInstance().replyDownloadConfirm(false);
+                progressBarStatus.setVisibility(View.GONE);
+                isDownloading = false;
                 dialog.dismiss();
             }
         });

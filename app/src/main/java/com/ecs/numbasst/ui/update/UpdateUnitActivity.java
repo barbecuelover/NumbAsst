@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
@@ -26,7 +25,7 @@ public class UpdateUnitActivity extends BaseActivity {
     private ProgressBar progressBarStatus;
     private TextView unitStatus;
     Handler  handler;
-
+    private BleServiceManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +43,7 @@ public class UpdateUnitActivity extends BaseActivity {
         btnBack= findViewById(R.id.ib_action_back);
         spinnerUnit =findViewById(R.id.spinner_select_unit);
         btnUpdateUnit =findViewById(R.id.btn_update_unit);
-        progressBarStatus = findViewById(R.id.progress_bar_unit_update);
+        progressBarStatus = findViewById(R.id.progress_bar_unit_update_status);
         unitStatus = findViewById(R.id.tv_data_download_status);
     }
 
@@ -52,6 +51,7 @@ public class UpdateUnitActivity extends BaseActivity {
     protected void initData() {
         tvTitle.setText(getTitle());
         handler = new Handler();
+        manager = BleServiceManager.getInstance();
         updateCallback = new UpdateCallback() {
 
             @Override
@@ -97,6 +97,16 @@ public class UpdateUnitActivity extends BaseActivity {
     }
 
     private void prepareUnitUpdate(){
+
+        if (manager.getConnectedDeviceMac()==null){
+            showToast("请先连接设备");
+            return;
+        }
+        if (progressBarStatus.getVisibility()==View.VISIBLE ){
+            showToast("更新操作中请勿重复点击");
+            return;
+        }
+
         int unitType = spinnerUnit.getSelectedItemPosition();
         //File file = new File("");
         //long fileSize = file.length();

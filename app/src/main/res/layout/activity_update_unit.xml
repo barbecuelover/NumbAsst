@@ -84,7 +84,7 @@ tools:context=".ui.update.UpdateUnitActivity">
 
 
     <ProgressBar
-        android:id="@+id/progress_bar_data_download"
+        android:id="@+id/progress_bar_unit_update"
         app:layout_constraintBottom_toTopOf="@+id/tv_data_download_status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -124,7 +124,7 @@ tools:context=".ui.update.UpdateUnitActivity">
     android:minHeight="160dp" />
 
     <ProgressBar
-        android:id="@+id/progress_bar_unit_update"
+        android:id="@+id/progress_bar_data_download_status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

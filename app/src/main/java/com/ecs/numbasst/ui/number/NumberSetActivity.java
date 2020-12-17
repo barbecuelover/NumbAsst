@@ -10,12 +10,10 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.base.callback.BaseCallback;
 import com.ecs.numbasst.manager.BleServiceManager;
-import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 
-public class SetCarNumberActivity extends BaseActivity{
+public class NumberSetActivity extends BaseActivity{
 
     TextView tvTitle;
     ImageButton btnBack;
@@ -92,10 +90,12 @@ public class SetCarNumberActivity extends BaseActivity{
             finish();
         }else if(id == R.id.ib_get_car_number_refresh){
             if (manager.getConnectedDeviceMac()==null){
-                showToast("请先检查Ble连接");
+                showToast(getString(R.string.check_device_connection));
+                 return;
             }
             if (progressBar.getVisibility() == View.VISIBLE){
                 showToast("获取或设置车号中，请稍后再试");
+
             }else {
 //                manager.getCarNumber();
                 manager.getCarNumber(numberCallback);
@@ -106,6 +106,10 @@ public class SetCarNumberActivity extends BaseActivity{
             if (etNewNumber.getText().toString().trim().equals("")){
                 showToast("车号不能为空！");
             }else {
+                if (manager.getConnectedDeviceMac()==null){
+                    showToast(getString(R.string.check_device_connection));
+                    return;
+                }
                 manager.setCarNumber(etNewNumber.getText().toString().trim(), numberCallback);
                 progressBar.setVisibility(View.VISIBLE);
             }

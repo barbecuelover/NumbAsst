@@ -22,6 +22,7 @@
     <string name="function_update_unit">更新单元软件</string>
     <string name="function_set_car_numb">设置车号</string>
     <string name="function_device_discovery">设备检测</string>
+    <string name="check_device_connection">请先检查设备连接</string>
 
 
 </resources>

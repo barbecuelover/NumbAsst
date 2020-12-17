@@ -478,6 +478,7 @@ public class BleService extends Service implements SppInterface {
 
 
     public String getConnectedDeviceAddress() {
+        Log.d(TAG,"connectedDeviceAddress =" +connectedDeviceAddress);
         return connectedDeviceAddress;
     }
 

@@ -114,6 +114,11 @@ public class BleServiceManager implements SppInterface {
     }
 
     @Override
+    public void updateUnitTransfer(String filePath) {
+
+    }
+
+    @Override
     public void downloadDataRequest(String startTime, String endTime, DownloadCallback callback) {
         if (bleService != null) {
             bleService.downloadDataRequest(startTime, endTime, callback);

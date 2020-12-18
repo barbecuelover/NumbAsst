@@ -13,6 +13,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -22,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ecs.numbasst.base.util.ByteUtils;
+import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
@@ -43,6 +45,8 @@ public class BleService extends Service implements SppInterface {
     private static final int MSG_CONNECTED = 0x1011;
     private static final int MSG_DISCONNECTED = 0x1012;
 
+    private static final int RETRY_TIMEOUT = 20 *1000;
+    private static final int RETRY_TIMES = 3;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -60,19 +64,24 @@ public class BleService extends Service implements SppInterface {
 
     private final IBinder mBinder = new LocalBinder();
 
+    private Callback currCallback;
+
     private static ConnectionCallback connectionCallBack;
     private static NumberCallback numberCallback;
     private static UpdateCallback updateCallback;
     private static DownloadCallback downloadCallBack;
 
-    private Handler mHandler;
+    private Handler msgHandler;
+    private CountDownTimer retryTimer;
+
+
     private ProtocolHelper protocolHelper;
 
     @Override
     public void onCreate() {
         super.onCreate();
         initialize();
-        mHandler = new MsgHandler();
+        msgHandler = new MsgHandler();
         protocolHelper = new ProtocolHelper();
     }
 
@@ -158,7 +167,7 @@ public class BleService extends Service implements SppInterface {
     @Override
     public boolean onUnbind(Intent intent) {
         close();
-        mHandler.removeCallbacksAndMessages(null);
+        msgHandler.removeCallbacksAndMessages(null);
         return super.onUnbind(intent);
     }
 
@@ -174,7 +183,7 @@ public class BleService extends Service implements SppInterface {
                     Message msg = Message.obtain();
                     msg.what = MSG_CONNECTED;
                     msg.obj = connectedDeviceAddress;
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 //Attempts to discover services after successful connection,start service discovery
                 Log.i(TAG, "Connected to GATT server.Attempting to start service discovery:" +
@@ -189,7 +198,7 @@ public class BleService extends Service implements SppInterface {
                     Message msg = Message.obtain();
                     msg.what = MSG_DISCONNECTED;
                     msg.obj = "断开连接";
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 Log.i(TAG, "Disconnected from GATT server. status=" + status);
 //                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;
@@ -249,7 +258,13 @@ public class BleService extends Service implements SppInterface {
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
 
+
+
             final byte[] data = characteristic.getValue();
+            //主机返回消息,取消当前 重试计时器
+            if (retryTimer!=null){
+                retryTimer.cancel();
+            }
             Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
             handleMsgFromBleDevice(data);
         }
@@ -280,7 +295,7 @@ public class BleService extends Service implements SppInterface {
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_SET_NUMBER;
                     msg.arg1 = statusSetNum;
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 break;
             //主机回复 获取车号 的信息
@@ -296,7 +311,7 @@ public class BleService extends Service implements SppInterface {
                         msg.arg1 = ProtocolHelper.STATE_SUCCEED;
                         msg.obj = number;
                     }
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 break;
             //主机回复 单元升级请求 的返回状态
@@ -306,7 +321,7 @@ public class BleService extends Service implements SppInterface {
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST;
                     msg.arg1 = statusUpdateReq;
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 break;
 
@@ -320,7 +335,7 @@ public class BleService extends Service implements SppInterface {
                     msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED;
                     msg.arg1 = completeStatus[0];
                     msg.arg2 = completeStatus[1];
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 break;
 
@@ -330,7 +345,7 @@ public class BleService extends Service implements SppInterface {
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_DOWNLOAD_HEAD;
                     msg.obj = dataSize;
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 break;
             case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
@@ -339,7 +354,7 @@ public class BleService extends Service implements SppInterface {
                     Message msg = Message.obtain();
                     msg.what = ProtocolHelper.TYPE_DOWNLOAD_TRANSFER;
                     msg.obj = dataDownload;
-                    mHandler.sendMessage(msg);
+                    msgHandler.sendMessage(msg);
                 }
                 break;
         }
@@ -389,6 +404,7 @@ public class BleService extends Service implements SppInterface {
             }
         }
         connectionCallBack = callback;
+        currCallback =connectionCallBack;
         // Previously connected device.  Try to reconnect.
         if (address != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
@@ -446,34 +462,43 @@ public class BleService extends Service implements SppInterface {
     public void setCarNumber(String number, NumberCallback callback) {
         byte[] order = protocolHelper.createOrderSetCarNumber(number);
         numberCallback = callback;
-        writeData(order);
+        currCallback =callback;
+        writeDataWithRetry(order,callback);
     }
 
     @Override
     public void getCarNumber(NumberCallback callback) {
         byte[] order = protocolHelper.createOrderGetCarNumber();
         numberCallback = callback;
-        writeData(order);
+        currCallback =callback;
+        writeDataWithRetry(order,callback);
     }
 
     @Override
     public void updateUnitRequest(int unitType, long fileSize, UpdateCallback callback) {
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, fileSize);
         updateCallback = callback;
-        writeData(order);
+        currCallback =callback;
+        writeDataWithRetry(order,callback);
+    }
+
+    @Override
+    public void updateUnitTransfer(String filePath) {
+
     }
 
     @Override
     public void downloadDataRequest(String startTime, String endTime, DownloadCallback callback) {
         byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
         downloadCallBack = callback;
-        writeData(order);
+        currCallback =callback;
+        writeDataWithRetry(order,callback);
     }
 
     @Override
     public void replyDownloadConfirm(boolean download) {
         byte[] order = protocolHelper.createOrderReplyDownloadConfirm(download);
-        writeData(order);
+        writeDataWithRetry(order,downloadCallBack);
     }
 
 
@@ -543,7 +568,28 @@ public class BleService extends Service implements SppInterface {
     }
 
 
-    public void writeData(byte[] data) {
+    private void writeDataWithRetry(byte[] data,Callback callback){
+        if (retryTimer!=null){
+            retryTimer.cancel();
+        }
+        retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES,RETRY_TIMEOUT) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.d(TAG,"重新尝试 通讯");
+                writeData(data);
+            }
+            @Override
+            public void onFinish() {
+                //3次重试失败
+                if (callback!=null){
+                    callback.onRetryFailed();
+                }
+            }
+        }.start();
+    }
+
+
+    private void writeData(byte[] data) {
         if (mWriteCharacteristic != null &&
                 data != null) {
             mWriteCharacteristic.setValue(data);

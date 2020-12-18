@@ -171,6 +171,11 @@ public class DevicesScanActivity extends BaseActivity {
 
     private ConnectionCallback connectionCallback = new ConnectionCallback() {
         @Override
+        public void onRetryFailed() {
+
+        }
+
+        @Override
         public void onSucceed(String msg) {
             handleConnectionSucceed(msg);
         }

@@ -57,6 +57,11 @@ public class NumberSetActivity extends BaseActivity{
         manager = BleServiceManager.getInstance();
         numberCallback = new NumberCallback() {
             @Override
+            public void onRetryFailed() {
+
+            }
+
+            @Override
             public void onNumberGot(String number) {
                 showToast("获取车号为：" + number);
                 tvCarName.setText(number);
@@ -113,7 +118,6 @@ public class NumberSetActivity extends BaseActivity{
                 manager.setCarNumber(etNewNumber.getText().toString().trim(), numberCallback);
                 progressBar.setVisibility(View.VISIBLE);
             }
-
 
         }
     }

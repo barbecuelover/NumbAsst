@@ -143,17 +143,12 @@ public class ExampleUnitTest {
 
     @Test
     public void testHexString (){
-        String number = "FXD1-123456";
-        String str16 = str2HexStr(number);
-        byte [] byteA = string16ToBytes(str16);
-        String crc  = getCRC(byteA).toUpperCase();
-        System.out.println(crc);
-        String temp = str16 + crc;
-        System.out.println(temp);
-        byte [] byteB = string16ToBytes(temp);
-        System.out.println(byteB.toString());
-        boolean checked = checkDataWithCRC16(byteB);
-        System.out.println(checked);
+
+        long a = 10000000000L;
+        if (a==0L){
+            System.out.println("FFFFFFFFFFF");
+        }
+
     }
 
 }

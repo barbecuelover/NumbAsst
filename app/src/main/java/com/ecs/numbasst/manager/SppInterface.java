@@ -10,6 +10,8 @@ public interface SppInterface {
    void setCarNumber(String number,NumberCallback callback);
    void getCarNumber(NumberCallback callback);
    void updateUnitRequest(int unitType, long fileSize, UpdateCallback callback);
+   void updateUnitTransfer(String filePath);
+
 
    void downloadDataRequest(String startTime, String endTime, DownloadCallback callback);
    void replyDownloadConfirm(boolean download);

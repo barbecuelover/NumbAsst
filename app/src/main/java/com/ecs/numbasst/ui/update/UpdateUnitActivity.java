@@ -21,11 +21,12 @@ public class UpdateUnitActivity extends BaseActivity {
     private ImageButton btnBack;
     private Spinner spinnerUnit;
     private Button btnUpdateUnit;
-    private UpdateCallback updateCallback;
     private ProgressBar progressBarStatus;
     private TextView unitStatus;
     Handler  handler;
     private BleServiceManager manager;
+    private String path = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,28 +53,44 @@ public class UpdateUnitActivity extends BaseActivity {
         tvTitle.setText(getTitle());
         handler = new Handler();
         manager = BleServiceManager.getInstance();
-        updateCallback = new UpdateCallback() {
 
-            @Override
-            public void onRequestSucceed() {
-                updateUnitStatus("更新单元请求成功！");
-                sendFile2Device();
-            }
-
-            @Override
-            public void onUpdateCompleted(int unitType, int status) {
-
-            }
-
-            @Override
-            public void onFailed(String reason) {
-                updateUnitStatus("更新单元请求失败！");
-            }
-        };
 
 
     }
 
+    private final UpdateCallback updateCallback = new UpdateCallback() {
+
+        @Override
+        public void onRetryFailed() {
+
+        }
+
+        @Override
+        public void onRequestSucceed() {
+            updateUnitStatus("更新单元请求成功！");
+            sendFile2Device();
+        }
+
+        @Override
+        public void onUpdateCompleted(int unitType, int status) {
+
+        }
+
+        @Override
+        public void onUpdateProgressChanged(int progress) {
+
+        }
+
+        @Override
+        public void onUpdateError() {
+
+        }
+
+        @Override
+        public void onFailed(String reason) {
+            updateUnitStatus("更新单元请求失败！");
+        }
+    };
 
 
     @Override
@@ -93,7 +110,7 @@ public class UpdateUnitActivity extends BaseActivity {
     }
 
     private void sendFile2Device() {
-
+        BleServiceManager.getInstance().updateUnitTransfer(path);
     }
 
     private void prepareUnitUpdate(){

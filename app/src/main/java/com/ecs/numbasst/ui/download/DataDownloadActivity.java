@@ -81,6 +81,11 @@ public class DataDownloadActivity extends BaseActivity {
 
         downloadCallback = new DownloadCallback() {
             @Override
+            public void onRetryFailed() {
+
+            }
+
+            @Override
             public void onConfirmed(long size) {
                 dataTotalSize = size;
                 showDownloadConfirmDialog((size/1024)+" kb");

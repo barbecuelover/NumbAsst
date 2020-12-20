@@ -95,7 +95,6 @@ public class DataDownloadActivity extends BaseActivity {
             public void onTransferred(byte[] data) {
                if (dataTotalSize == currentSize){
                    isDownloading = false;
-                   showToast("下载完成");
                    tvStatus.setText("下载完成!");
                }else {
                    int progress = (int) ((currentSize/dataTotalSize) *100);

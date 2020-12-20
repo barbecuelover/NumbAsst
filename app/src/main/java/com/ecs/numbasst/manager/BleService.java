@@ -31,6 +31,10 @@ import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
 import com.ecs.numbasst.manager.contants.BleSppGattAttributes;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,7 +49,7 @@ public class BleService extends Service implements SppInterface {
     private static final int MSG_CONNECTED = 0x1011;
     private static final int MSG_DISCONNECTED = 0x1012;
 
-    private static final int RETRY_TIMEOUT = 20 *1000;
+    private static final int RETRY_TIMEOUT = 20 * 1000;
     private static final int RETRY_TIMES = 3;
 
     private BluetoothManager mBluetoothManager;
@@ -73,7 +77,8 @@ public class BleService extends Service implements SppInterface {
 
     private Handler msgHandler;
     private CountDownTimer retryTimer;
-
+    private List<byte[]> updateList;
+    private int curUpdatePackage = 0;
 
     private ProtocolHelper protocolHelper;
 
@@ -130,6 +135,13 @@ public class BleService extends Service implements SppInterface {
                     break;
                 case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                     //传输文件 主机回复
+                    if (updateCallback != null) {
+                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
+                            updateCallback.onUpdateProgressChanged(msg.arg2);
+                        }else {
+                            updateCallback.onUpdateError();
+                        }
+                    }
                     break;
                 case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
                     if (updateCallback != null) {
@@ -259,10 +271,9 @@ public class BleService extends Service implements SppInterface {
             broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
 
 
-
             final byte[] data = characteristic.getValue();
             //主机返回消息,取消当前 重试计时器
-            if (retryTimer!=null){
+            if (retryTimer != null) {
                 retryTimer.cancel();
             }
             Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
@@ -326,9 +337,31 @@ public class BleService extends Service implements SppInterface {
                 break;
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
+                if (updateCallback != null) {
+                    byte statusTransfer = protocolHelper.formatOrderStatus(data);
+                    Message msg = Message.obtain();
+                    msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER;
+                    msg.arg1 = statusTransfer;
+
+                    if (statusTransfer == ProtocolHelper.STATE_SUCCEED) {
+                        curUpdatePackage++;
+                        if (updateList.size() > 0 && updateList.size() < curUpdatePackage) {
+                            writeDataWithRetry(updateList.get(curUpdatePackage), updateCallback);
+                            //粗略的进度，其实应该是当前已经传递的size / 总size
+                            // (15 * curUpdatePackage)/totalSize  totalSize没有保存
+                            int progress = (curUpdatePackage * 100) / updateList.size();
+                            updateCallback.onUpdateProgressChanged(progress);
+                            msg.arg2 = progress;
+                        }
+                    }
+                    msgHandler.sendMessage(msg);
+                }
+
+
                 break;
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                curUpdatePackage = 0;
                 if (updateCallback != null) {
                     byte[] completeStatus = protocolHelper.formatUpdateCompleteStatus(data);
                     Message msg = Message.obtain();
@@ -404,7 +437,7 @@ public class BleService extends Service implements SppInterface {
             }
         }
         connectionCallBack = callback;
-        currCallback =connectionCallBack;
+        currCallback = connectionCallBack;
         // Previously connected device.  Try to reconnect.
         if (address != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
@@ -462,49 +495,84 @@ public class BleService extends Service implements SppInterface {
     public void setCarNumber(String number, NumberCallback callback) {
         byte[] order = protocolHelper.createOrderSetCarNumber(number);
         numberCallback = callback;
-        currCallback =callback;
-        writeDataWithRetry(order,callback);
+        currCallback = callback;
+        writeDataWithRetry(order, callback);
     }
 
     @Override
     public void getCarNumber(NumberCallback callback) {
         byte[] order = protocolHelper.createOrderGetCarNumber();
         numberCallback = callback;
-        currCallback =callback;
-        writeDataWithRetry(order,callback);
+        currCallback = callback;
+        writeDataWithRetry(order, callback);
     }
 
     @Override
     public void updateUnitRequest(int unitType, long fileSize, UpdateCallback callback) {
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, fileSize);
         updateCallback = callback;
-        currCallback =callback;
-        writeDataWithRetry(order,callback);
+        currCallback = callback;
+        writeDataWithRetry(order, callback);
     }
 
+    /**
+     * 需要将文件拆分多个数据包，每次主机返回上一个包的状态后才能上传下一个包
+     * 同时，将进度通知给更新界面
+     *
+     * @param filePath 更新的单元文件路径
+     */
     @Override
     public void updateUnitTransfer(String filePath) {
-
+        //暂定升级文件每个数据包需要回复来确认准确送达到主机
+        updateList = ByteUtils.getUpdateDataList(filePath);
+        curUpdatePackage = 0;
+        if (updateList != null && updateList.size() != 0) {
+            writeDataWithRetry(updateList.get(0), updateCallback);
+        }
     }
 
     @Override
     public void downloadDataRequest(String startTime, String endTime, DownloadCallback callback) {
         byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
         downloadCallBack = callback;
-        currCallback =callback;
-        writeDataWithRetry(order,callback);
+        currCallback = callback;
+        writeDataWithRetry(order, callback);
     }
 
     @Override
     public void replyDownloadConfirm(boolean download) {
         byte[] order = protocolHelper.createOrderReplyDownloadConfirm(download);
-        writeDataWithRetry(order,downloadCallBack);
+        writeDataWithRetry(order, downloadCallBack);
     }
 
 
     public String getConnectedDeviceAddress() {
-        Log.d(TAG,"connectedDeviceAddress =" +connectedDeviceAddress);
+        Log.d(TAG, "connectedDeviceAddress =" + connectedDeviceAddress);
         return connectedDeviceAddress;
+    }
+
+
+    //如果更新Unit文件的每个数据包不需要回复来确认，则调用此方法
+    protected void splitPacketFor20Byte(byte[] data) {
+        if (data != null) {
+            int index = 0;
+            do {
+                byte[] surplusData = new byte[data.length - index];
+                byte[] currentData;
+                System.arraycopy(data, index, surplusData, 0, data.length - index);
+                if (surplusData.length <= 20) {
+                    currentData = new byte[surplusData.length];
+                    System.arraycopy(surplusData, 0, currentData, 0, surplusData.length);
+                    index += surplusData.length;
+                } else {
+                    currentData = new byte[20];
+                    System.arraycopy(data, index, currentData, 0, 20);
+                    index += 20;
+                }
+                writeData(currentData);
+            } while (index < data.length);
+        }
+
     }
 
 
@@ -568,20 +636,21 @@ public class BleService extends Service implements SppInterface {
     }
 
 
-    private void writeDataWithRetry(byte[] data,Callback callback){
-        if (retryTimer!=null){
+    private void writeDataWithRetry(byte[] data, Callback callback) {
+        if (retryTimer != null) {
             retryTimer.cancel();
         }
-        retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES,RETRY_TIMEOUT) {
+        retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES, RETRY_TIMEOUT) {
             @Override
             public void onTick(long millisUntilFinished) {
-                Log.d(TAG,"重新尝试 通讯");
+                Log.d(TAG, "重新尝试 通讯");
                 writeData(data);
             }
+
             @Override
             public void onFinish() {
                 //3次重试失败
-                if (callback!=null){
+                if (callback != null) {
                     callback.onRetryFailed();
                 }
             }

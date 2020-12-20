@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
@@ -22,7 +23,9 @@ public class UpdateUnitActivity extends BaseActivity {
     private Spinner spinnerUnit;
     private Button btnUpdateUnit;
     private ProgressBar progressBarStatus;
+    private ProgressBar progressBarProcess;
     private TextView unitStatus;
+    private TextView tvProcess;
     Handler  handler;
     private BleServiceManager manager;
     private String path = "";
@@ -45,7 +48,9 @@ public class UpdateUnitActivity extends BaseActivity {
         spinnerUnit =findViewById(R.id.spinner_select_unit);
         btnUpdateUnit =findViewById(R.id.btn_update_unit);
         progressBarStatus = findViewById(R.id.progress_bar_unit_update_status);
+        progressBarProcess = findViewById(R.id.progress_bar_unit_update);
         unitStatus = findViewById(R.id.tv_data_download_status);
+        tvProcess = findViewById(R.id.tv_progress_percent);
     }
 
     @Override
@@ -62,7 +67,7 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onRetryFailed() {
-
+            updateUnitStatus("多次尝试与主机通讯失败！");
         }
 
         @Override
@@ -73,17 +78,18 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onUpdateCompleted(int unitType, int status) {
-
+            updateUnitStatus( spinnerUnit.getItemAtPosition(unitType).toString() + "固件升级完成！");
         }
 
         @Override
         public void onUpdateProgressChanged(int progress) {
-
+            progressBarProcess.setProgress(progress);
+            tvProcess.setText(progress + "%");
         }
 
         @Override
         public void onUpdateError() {
-
+            updateUnitStatus("升级文件上传失败！");
         }
 
         @Override

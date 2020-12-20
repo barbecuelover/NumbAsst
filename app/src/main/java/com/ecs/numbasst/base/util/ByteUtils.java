@@ -1,6 +1,13 @@
 package com.ecs.numbasst.base.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ByteUtils {
     private static ByteBuffer buffer = ByteBuffer.allocate(8);
@@ -89,6 +96,56 @@ public class ByteUtils {
         System.arraycopy(ary2, 0, data, ary1.length, ary2.length);
         return data;
     }
+    //获得指定文件的byte数组
+    private static byte[] getBytes(String filePath){
+        byte[] buffer = null;
+        try {
+            File file = new File(filePath);
+            FileInputStream fis = new FileInputStream(file);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);
+            byte[] b = new byte[1000];
+            int n;
+            while ((n = fis.read(b)) != -1) {
+                bos.write(b, 0, n);
+            }
+            fis.close();
+            bos.close();
+            buffer = bos.toByteArray();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return buffer;
+    }
 
+    /**
+     * 将 文件 分为多个 byte数字，每个数组长度为15
+     * @param filePath
+     * @return 返回byte数组集合
+     */
+    public static List<byte[]> getUpdateDataList(String filePath){
+        List<byte[]> list = new ArrayList<>();
+        byte[] data = getBytes(filePath);
+        if (data != null) {
+            int index = 0;
+            do {
+                byte[] surplusData = new byte[data.length - index];
+                byte[] currentData;
+                System.arraycopy(data, index, surplusData, 0, data.length - index);
+                if (surplusData.length <= 20) {
+                    currentData = new byte[surplusData.length];
+                    System.arraycopy(surplusData, 0, currentData, 0, surplusData.length);
+                    index += surplusData.length;
+                } else {
+                    currentData = new byte[20];
+                    System.arraycopy(data, index, currentData, 0, 20);
+                    index += 20;
+                }
+                list.add(currentData);
+            } while (index < data.length);
+        }
+        return  list;
+    }
 
 }

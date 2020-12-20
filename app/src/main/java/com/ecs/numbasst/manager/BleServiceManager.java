@@ -115,7 +115,9 @@ public class BleServiceManager implements SppInterface {
 
     @Override
     public void updateUnitTransfer(String filePath) {
-
+        if (bleService != null) {
+            bleService.updateUnitTransfer(filePath);
+        }
     }
 
     @Override

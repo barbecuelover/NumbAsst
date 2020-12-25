@@ -15,6 +15,11 @@ import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class UpdateUnitActivity extends BaseActivity {
 
 
@@ -28,7 +33,7 @@ public class UpdateUnitActivity extends BaseActivity {
     private TextView tvProcess;
     Handler  handler;
     private BleServiceManager manager;
-    private String path = "";
+    private String path ="file:///android_asset/ble.docx";
 
 
     @Override
@@ -58,9 +63,6 @@ public class UpdateUnitActivity extends BaseActivity {
         tvTitle.setText(getTitle());
         handler = new Handler();
         manager = BleServiceManager.getInstance();
-
-
-
     }
 
     private final UpdateCallback updateCallback = new UpdateCallback() {
@@ -110,8 +112,13 @@ public class UpdateUnitActivity extends BaseActivity {
         int id = v.getId();
         if(id == R.id.ib_action_back){
             finish();
-        }else if(id == R.id.btn_set_car_number){
-            prepareUnitUpdate();
+        }else if(id == R.id.btn_update_unit){
+           // prepareUnitUpdate();
+
+            copyAssetAndWrite("ble.docx");
+            File dataFile=new File(getCacheDir(),"ble.docx");
+            path = dataFile.getAbsolutePath();
+            sendFile2Device();
         }
     }
 
@@ -142,5 +149,44 @@ public class UpdateUnitActivity extends BaseActivity {
     private void updateUnitStatus(String msg){
         progressBarStatus.setVisibility(View.GONE);
         unitStatus.setText(msg);
+    }
+
+
+
+
+
+    private boolean copyAssetAndWrite(String fileName){
+        try {
+            File cacheDir=getCacheDir();
+            if (!cacheDir.exists()){
+                cacheDir.mkdirs();
+            }
+            File outFile =new File(cacheDir,fileName);
+            if (!outFile.exists()){
+                boolean res=outFile.createNewFile();
+                if (!res){
+                    return false;
+                }
+            }else {
+                if (outFile.length()>10){//表示已经写入一次
+                    return true;
+                }
+            }
+            InputStream is=getAssets().open(fileName);
+            FileOutputStream fos = new FileOutputStream(outFile);
+            byte[] buffer = new byte[1024];
+            int byteCount;
+            while ((byteCount = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, byteCount);
+            }
+            fos.flush();
+            is.close();
+            fos.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

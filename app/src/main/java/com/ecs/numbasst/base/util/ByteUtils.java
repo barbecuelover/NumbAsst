@@ -97,7 +97,7 @@ public class ByteUtils {
         return data;
     }
     //获得指定文件的byte数组
-    private static byte[] getBytes(String filePath){
+    public static byte[] getFile2Bytes(String filePath){
         byte[] buffer = null;
         try {
             File file = new File(filePath);
@@ -126,7 +126,7 @@ public class ByteUtils {
      */
     public static List<byte[]> getUpdateDataList(String filePath){
         List<byte[]> list = new ArrayList<>();
-        byte[] data = getBytes(filePath);
+        byte[] data = getFile2Bytes(filePath);
         if (data != null) {
             int index = 0;
             do {

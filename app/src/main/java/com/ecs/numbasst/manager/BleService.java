@@ -284,8 +284,10 @@ public class BleService extends Service implements SppInterface {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(BleConstants.ACTION_WRITE_SUCCESSFUL);
+                //broadcastUpdate(BleConstants.ACTION_WRITE_SUCCESSFUL);
                 Log.v("log", "Write OK");
+            }else{
+                Log.e("log", "Write Failed");
             }
         }
     };
@@ -524,11 +526,13 @@ public class BleService extends Service implements SppInterface {
     @Override
     public void updateUnitTransfer(String filePath) {
         //暂定升级文件每个数据包需要回复来确认准确送达到主机
-        updateList = ByteUtils.getUpdateDataList(filePath);
-        curUpdatePackage = 0;
-        if (updateList != null && updateList.size() != 0) {
-            writeDataWithRetry(updateList.get(0), updateCallback);
-        }
+//        updateList = ByteUtils.getUpdateDataList(filePath);
+//        curUpdatePackage = 0;
+//        if (updateList != null && updateList.size() != 0) {
+//            writeDataWithRetry(updateList.get(0), updateCallback);
+//        }
+        byte [] order = ByteUtils.getFile2Bytes(filePath);
+        splitPacketFor20Byte(order);
     }
 
     @Override
@@ -555,24 +559,36 @@ public class BleService extends Service implements SppInterface {
     //如果更新Unit文件的每个数据包不需要回复来确认，则调用此方法
     protected void splitPacketFor20Byte(byte[] data) {
         if (data != null) {
-            int index = 0;
-            do {
-                byte[] surplusData = new byte[data.length - index];
-                byte[] currentData;
-                System.arraycopy(data, index, surplusData, 0, data.length - index);
-                if (surplusData.length <= 20) {
-                    currentData = new byte[surplusData.length];
-                    System.arraycopy(surplusData, 0, currentData, 0, surplusData.length);
-                    index += surplusData.length;
-                } else {
-                    currentData = new byte[20];
-                    System.arraycopy(data, index, currentData, 0, 20);
-                    index += 20;
-                }
-                writeData(currentData);
-            } while (index < data.length);
-        }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int index = 0;
+                    do {
+                        Log.d(TAG,"data = " + data.length  + "   index =" +index);
+                        byte[] surplusData = new byte[data.length - index];
+                        byte[] currentData;
+                        System.arraycopy(data, index, surplusData, 0, data.length - index);
+                        if (surplusData.length <= 20) {
+                            currentData = new byte[surplusData.length];
+                            System.arraycopy(surplusData, 0, currentData, 0, surplusData.length);
+                            index += surplusData.length;
+                        } else {
+                            currentData = new byte[20];
+                            System.arraycopy(data, index, currentData, 0, 20);
+                            index += 20;
+                        }
+                        writeData(currentData);
+                        try {
+                            Thread.sleep(10);
 
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } while (index < data.length);
+                }
+            }).start();
+
+        }
     }
 
 

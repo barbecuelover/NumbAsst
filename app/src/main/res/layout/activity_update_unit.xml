@@ -48,7 +48,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <ProgressBar
-        android:id="@+id/progress_bar_data_download_status"
+        android:id="@+id/progress_bar_update_unit_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"

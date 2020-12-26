@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 
@@ -61,8 +62,8 @@ public class DataDownloadActivity extends BaseActivity {
         tvStartTime = findViewById(R.id.btn_download_start_time);
         tvEndTime = findViewById(R.id.btn_download_end_time);
         btnDownload = findViewById(R.id.btn_download_data);
-        progressBarStatus = findViewById(R.id.progress_bar_data_download_status);
-        progressBarDownload = findViewById(R.id.progress_bar_data_download);
+        progressBarStatus = findViewById(R.id.progress_bar_download_status);
+        progressBarDownload = findViewById(R.id.progress_bar_data_download_percent);
         tvProgressPercent = findViewById(R.id.tv_progress_percent);
         tvStatus =  findViewById(R.id.tv_data_download_status);
         tvTitle = findViewById(R.id.action_bar_title);
@@ -78,7 +79,7 @@ public class DataDownloadActivity extends BaseActivity {
         String date = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault()).format(new Date());
         tvStartTime.setText(date);
         tvEndTime.setText(date);
-
+        Log.d("zwcc"," Unix :" + new Date().getTime());
         downloadCallback = new DownloadCallback() {
             @Override
             public void onRetryFailed() {

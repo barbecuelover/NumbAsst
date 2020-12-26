@@ -1,9 +1,11 @@
 package com.ecs.numbasst.base.util;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -146,6 +148,34 @@ public class ByteUtils {
             } while (index < data.length);
         }
         return  list;
+    }
+
+
+    /**
+     * 将字节数组转成文件
+     * @param filePath
+     * @param data
+     */
+    public static void saveBytesToFile(String filePath, byte[] data) {
+        File file = new File(filePath);
+        BufferedOutputStream outStream = null;
+        try {
+            outStream = new BufferedOutputStream(new FileOutputStream(file));
+            outStream.write(data);
+            outStream.flush();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != outStream) {
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

@@ -27,16 +27,20 @@ import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
 import com.ecs.numbasst.manager.contants.BleSppGattAttributes;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+
+import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
 public class BleService extends Service implements SppInterface {
 
@@ -74,6 +78,7 @@ public class BleService extends Service implements SppInterface {
     private static NumberCallback numberCallback;
     private static UpdateCallback updateCallback;
     private static DownloadCallback downloadCallBack;
+    private static QueryStateCallback queryStateCallback;
 
     private Handler msgHandler;
     private CountDownTimer retryTimer;
@@ -81,6 +86,11 @@ public class BleService extends Service implements SppInterface {
     private int curUpdatePackage = 0;
 
     private ProtocolHelper protocolHelper;
+    //Test
+    private String saveDataPath;
+    BufferedOutputStream outStream = null;
+    File downFile;
+    private boolean inTransferring = false;
 
     @Override
     public void onCreate() {
@@ -88,6 +98,21 @@ public class BleService extends Service implements SppInterface {
         initialize();
         msgHandler = new MsgHandler();
         protocolHelper = new ProtocolHelper();
+
+        //Test
+        saveDataPath = getExternalFilesDir(DIRECTORY_DOWNLOADS ).getAbsolutePath();
+        downFile= new File(saveDataPath);
+        try {
+            outStream = new BufferedOutputStream(new FileOutputStream(downFile));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        cancelAction();
     }
 
     public static class MsgHandler extends Handler {
@@ -102,6 +127,11 @@ public class BleService extends Service implements SppInterface {
                 case MSG_DISCONNECTED:
                     if (connectionCallBack != null) {
                         connectionCallBack.onFailed((String) msg.obj);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DEVICE_STATUS:
+                    if(queryStateCallback!=null){
+                        queryStateCallback.onGetState(msg.arg1,msg.arg2);
                     }
                     break;
                 case ProtocolHelper.TYPE_SET_NUMBER:
@@ -136,11 +166,12 @@ public class BleService extends Service implements SppInterface {
                 case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                     //传输文件 主机回复
                     if (updateCallback != null) {
-                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
-                            updateCallback.onUpdateProgressChanged(msg.arg2);
-                        }else {
-                            updateCallback.onUpdateError();
-                        }
+                        updateCallback.onUpdateProgressChanged(msg.arg1);
+//                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
+//                            updateCallback.onUpdateProgressChanged(msg.arg2);
+//                        }else {
+//                            updateCallback.onUpdateError();
+//                        }
                     }
                     break;
                 case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
@@ -277,7 +308,34 @@ public class BleService extends Service implements SppInterface {
                 retryTimer.cancel();
             }
             Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
-            handleMsgFromBleDevice(data);
+            //handleMsgFromBleDevice(data);
+            //Test
+            if (inTransferring){
+
+                if (data[0]== 0xAA && data[1]== 0xAA && data[2]== 0xAA ){
+
+                    try {
+                        inTransferring = false;
+                        if (outStream!=null){
+                            outStream.flush();
+                            outStream.close();
+                        }
+                    } catch (IOException e) {
+                        inTransferring = false;
+                        e.printStackTrace();
+                    }
+                }else{
+                    try {
+                        outStream.write(data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }else {
+                handleMsgFromBleDevice(data);
+            }
+
+
         }
 
         //Will call this when write successful
@@ -299,6 +357,17 @@ public class BleService extends Service implements SppInterface {
             default:
             case ProtocolHelper.TYPE_UNKNOWN:
                 Log.d(TAG, " handleMsgFromBleDevice  unknownType data = " + ByteUtils.bytesToString(data));
+                break;
+
+            case ProtocolHelper.TYPE_DEVICE_STATUS:
+                byte[] deviceStatus = protocolHelper.formatGetDeviceStatus(data);
+                if (deviceStatus!=null && queryStateCallback!=null){
+                    Message msg = Message.obtain();
+                    msg.what = ProtocolHelper.TYPE_DEVICE_STATUS;
+                    msg.arg1 = deviceStatus[0];
+                    msg.arg2 = deviceStatus[1];
+                    msgHandler.sendMessage(msg);
+                }
                 break;
 
             //主机回复 设置车号 的返回状态
@@ -340,23 +409,23 @@ public class BleService extends Service implements SppInterface {
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                 if (updateCallback != null) {
-                    byte statusTransfer = protocolHelper.formatOrderStatus(data);
-                    Message msg = Message.obtain();
-                    msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER;
-                    msg.arg1 = statusTransfer;
-
-                    if (statusTransfer == ProtocolHelper.STATE_SUCCEED) {
-                        curUpdatePackage++;
-                        if (updateList.size() > 0 && updateList.size() < curUpdatePackage) {
-                            writeDataWithRetry(updateList.get(curUpdatePackage), updateCallback);
-                            //粗略的进度，其实应该是当前已经传递的size / 总size
-                            // (15 * curUpdatePackage)/totalSize  totalSize没有保存
-                            int progress = (curUpdatePackage * 100) / updateList.size();
-                            updateCallback.onUpdateProgressChanged(progress);
-                            msg.arg2 = progress;
-                        }
-                    }
-                    msgHandler.sendMessage(msg);
+//                    byte statusTransfer = protocolHelper.formatOrderStatus(data);
+//                    Message msg = Message.obtain();
+//                    msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER;
+//                    msg.arg1 = statusTransfer;
+//
+//                    if (statusTransfer == ProtocolHelper.STATE_SUCCEED) {
+//                        curUpdatePackage++;
+//                        if (updateList.size() > 0 && updateList.size() < curUpdatePackage) {
+//                            writeDataWithRetry(updateList.get(curUpdatePackage), updateCallback);
+//                            //粗略的进度，其实应该是当前已经传递的size / 总size
+//                            // (15 * curUpdatePackage)/totalSize  totalSize没有保存
+//                            int progress = (curUpdatePackage * 100) / updateList.size();
+//                            updateCallback.onUpdateProgressChanged(progress);
+//                            msg.arg2 = progress;
+//                        }
+//                    }
+//                    msgHandler.sendMessage(msg);
                 }
 
 
@@ -492,6 +561,12 @@ public class BleService extends Service implements SppInterface {
         mBluetoothGatt = null;
     }
 
+    @Override
+    public void getDeviceState(int type, QueryStateCallback callback) {
+        queryStateCallback =  callback;
+        byte[] order = protocolHelper.createOrderGetDeviceStatus(type);
+        writeDataWithRetry(order, callback);
+    }
 
     @Override
     public void setCarNumber(String number, NumberCallback callback) {
@@ -549,6 +624,17 @@ public class BleService extends Service implements SppInterface {
         writeDataWithRetry(order, downloadCallBack);
     }
 
+    @Override
+    public void cancelAction() {
+        inTransferring = false;
+        if (retryTimer!=null){
+            retryTimer.cancel();
+        }
+        if (msgHandler!=null){
+            msgHandler.removeCallbacksAndMessages(null);
+        }
+    }
+
 
     public String getConnectedDeviceAddress() {
         Log.d(TAG, "connectedDeviceAddress =" + connectedDeviceAddress);
@@ -578,8 +664,17 @@ public class BleService extends Service implements SppInterface {
                             index += 20;
                         }
                         writeData(currentData);
+
+                        //Test
+                        if(msgHandler!=null){
+                            Message msg = Message.obtain();
+                            msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER;
+                            msg.arg1 = (index *100) /data.length;
+                            msgHandler.sendMessage(msg);
+                        }
+
                         try {
-                            Thread.sleep(10);
+                            Thread.sleep(25);
 
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -656,7 +751,7 @@ public class BleService extends Service implements SppInterface {
         if (retryTimer != null) {
             retryTimer.cancel();
         }
-        retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES, RETRY_TIMEOUT) {
+        retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES + 1000, RETRY_TIMEOUT) {
             @Override
             public void onTick(long millisUntilFinished) {
                 Log.d(TAG, "重新尝试 通讯");

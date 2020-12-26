@@ -33,7 +33,8 @@ public class UpdateUnitActivity extends BaseActivity {
     private TextView tvProcess;
     Handler  handler;
     private BleServiceManager manager;
-    private String path ="file:///android_asset/ble.docx";
+    private String path ="file:///android_asset/ble.rar";
+    private File dataFile;
 
 
     @Override
@@ -52,7 +53,7 @@ public class UpdateUnitActivity extends BaseActivity {
         btnBack= findViewById(R.id.ib_action_back);
         spinnerUnit =findViewById(R.id.spinner_select_unit);
         btnUpdateUnit =findViewById(R.id.btn_update_unit);
-        progressBarStatus = findViewById(R.id.progress_bar_unit_update_status);
+        progressBarStatus = findViewById(R.id.progress_bar_update_unit_status);
         progressBarProcess = findViewById(R.id.progress_bar_unit_update);
         unitStatus = findViewById(R.id.tv_data_download_status);
         tvProcess = findViewById(R.id.tv_progress_percent);
@@ -63,7 +64,12 @@ public class UpdateUnitActivity extends BaseActivity {
         tvTitle.setText(getTitle());
         handler = new Handler();
         manager = BleServiceManager.getInstance();
+
+        testFile();
+
     }
+
+
 
     private final UpdateCallback updateCallback = new UpdateCallback() {
 
@@ -74,7 +80,7 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onRequestSucceed() {
-            updateUnitStatus("更新单元请求成功！");
+            updateUnitStatus("更新单元请求成功！开始传输文件。");
             sendFile2Device();
         }
 
@@ -113,16 +119,13 @@ public class UpdateUnitActivity extends BaseActivity {
         if(id == R.id.ib_action_back){
             finish();
         }else if(id == R.id.btn_update_unit){
-           // prepareUnitUpdate();
-
-            copyAssetAndWrite("ble.docx");
-            File dataFile=new File(getCacheDir(),"ble.docx");
-            path = dataFile.getAbsolutePath();
-            sendFile2Device();
+            prepareUnitUpdate();
+            //testUpdate();
         }
     }
 
     private void sendFile2Device() {
+        progressBarStatus.setVisibility(View.VISIBLE);
         BleServiceManager.getInstance().updateUnitTransfer(path);
     }
 
@@ -140,7 +143,7 @@ public class UpdateUnitActivity extends BaseActivity {
         int unitType = spinnerUnit.getSelectedItemPosition();
         //File file = new File("");
         //long fileSize = file.length();
-        long fileSize = 0x2A2B;
+        long fileSize =dataFile.length();
         progressBarStatus.setVisibility(View.VISIBLE);
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中..." );
         BleServiceManager.getInstance().updateUnitRequest(unitType,fileSize, updateCallback);
@@ -153,6 +156,17 @@ public class UpdateUnitActivity extends BaseActivity {
 
 
 
+    private void testFile() {
+        copyAssetAndWrite("ble.rar");
+        dataFile=new File(getCacheDir(),"ble.rar");
+        path = dataFile.getAbsolutePath();
+    }
+
+
+    private void testUpdate(){
+
+        sendFile2Device();
+    }
 
 
     private boolean copyAssetAndWrite(String fileName){

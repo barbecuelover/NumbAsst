@@ -2,7 +2,7 @@ package com.ecs.numbasst.base.util;
 
 public class Log {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static void v(String tag, String msg) {
         if (DEBUG) {

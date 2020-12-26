@@ -12,6 +12,7 @@ import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
+import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
 import java.util.Date;
@@ -79,6 +80,13 @@ public class BleServiceManager implements SppInterface {
     }
 
     @Override
+    public void getDeviceState(int type, QueryStateCallback callback) {
+        if (bleService != null) {
+            bleService.getDeviceState(type, callback);
+        }
+    }
+
+    @Override
     public void disconnect() {
         if (bleService != null) {
             bleService.disconnect();
@@ -131,6 +139,13 @@ public class BleServiceManager implements SppInterface {
     public void replyDownloadConfirm(boolean download) {
         if (bleService != null) {
             bleService.replyDownloadConfirm(download);
+        }
+    }
+
+    @Override
+    public void cancelAction() {
+        if (bleService != null) {
+            bleService.cancelAction();
         }
     }
 

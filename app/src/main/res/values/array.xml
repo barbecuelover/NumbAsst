@@ -8,4 +8,11 @@
     </string-array>
 
 
+    <string-array name="state_types">
+        <item>列车管压力</item>
+        <item>数据存储器</item>
+        <item>电池电量</item>
+        <item>查询故障</item>
+    </string-array>
+
 </resources>

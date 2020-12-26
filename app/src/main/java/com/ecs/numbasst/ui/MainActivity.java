@@ -11,16 +11,16 @@ import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.NumberSetActivity;
+import com.ecs.numbasst.ui.state.DeviceStateActivity;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 
 public class MainActivity extends BaseActivity{
 
-    Button btnDiscovery,btnSetNumb,btnUpdate,btnDownload;
+    Button btnDiscovery,btnGetState,btnSetNumb,btnUpdate,btnDownload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -31,6 +31,7 @@ public class MainActivity extends BaseActivity{
     @Override
     protected void initView() {
         btnDiscovery= findViewById(R.id.view_discovery);
+        btnGetState = findViewById(R.id.view_get_device_state);
         btnSetNumb = findViewById(R.id.view_set_car_numb);
         btnUpdate = findViewById(R.id.view_update);
         btnDownload = findViewById(R.id.view_download);
@@ -47,6 +48,7 @@ public class MainActivity extends BaseActivity{
         btnSetNumb.setOnClickListener(this);
         btnUpdate.setOnClickListener(this);
         btnDownload.setOnClickListener(this);
+        btnGetState.setOnClickListener(this);
     }
 
 
@@ -67,6 +69,8 @@ public class MainActivity extends BaseActivity{
             goActivity(UpdateUnitActivity.class);
         }else if(id == R.id.view_download){
             goActivity( DataDownloadActivity.class);
+        }else if(id == R.id.view_get_device_state){
+            goActivity( DeviceStateActivity.class);
         }
     }
 }

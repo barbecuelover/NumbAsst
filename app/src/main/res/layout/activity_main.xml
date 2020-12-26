@@ -25,6 +25,17 @@
         android:text="@string/function_device_discovery"
         android:layout_height="60dp"/>
 
+
+    <Button
+
+        android:id="@+id/view_get_device_state"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:text="@string/function_get_device_state"
+        android:layout_height="60dp"/>
+
     <Button
 
         android:id="@+id/view_set_car_numb"

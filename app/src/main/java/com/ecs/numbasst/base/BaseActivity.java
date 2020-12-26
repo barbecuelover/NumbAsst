@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.ecs.numbasst.base.manager.ActivityCollector;
+import com.ecs.numbasst.manager.BleServiceManager;
 
 public abstract class BaseActivity extends AppCompatActivity implements View.OnClickListener{
     //获取TAG的activity名称
@@ -193,6 +194,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     protected void onDestroy() {
         super.onDestroy();
         //activity管理
+        BleServiceManager.getInstance().cancelAction();
         ActivityCollector.removeActivity(this);
     }
 }

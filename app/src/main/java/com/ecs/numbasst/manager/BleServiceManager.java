@@ -15,6 +15,7 @@ import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
+import java.io.File;
 import java.util.Date;
 
 import static android.content.Context.BIND_AUTO_CREATE;
@@ -115,9 +116,30 @@ public class BleServiceManager implements SppInterface {
     }
 
     @Override
-    public void updateUnitRequest(int unitType, long fileSize, UpdateCallback callback) {
+    public void setDeviceID(String id, NumberCallback callback) {
         if (bleService != null) {
-            bleService.updateUnitRequest(unitType, fileSize, callback);
+            bleService.setDeviceID(id,callback);
+        }
+    }
+
+    @Override
+    public void getDeviceID(NumberCallback callback) {
+        if (bleService != null) {
+            bleService.getDeviceID(callback);
+        }
+    }
+
+    @Override
+    public void demarcateSensor(int type, int pressure, NumberCallback callback) {
+        if (bleService != null) {
+            bleService.demarcateSensor(type, pressure, callback);
+        }
+    }
+
+    @Override
+    public void updateUnitRequest(int unitType, File file, UpdateCallback callback) {
+        if (bleService != null) {
+            bleService.updateUnitRequest(unitType, file, callback);
         }
     }
 
@@ -129,7 +151,14 @@ public class BleServiceManager implements SppInterface {
     }
 
     @Override
-    public void downloadDataRequest(String startTime, String endTime, DownloadCallback callback) {
+    public void updateUnitCompletedResult(int unitType, int state) {
+        if (bleService != null) {
+            bleService.updateUnitCompletedResult(unitType,state);
+        }
+    }
+
+    @Override
+    public void downloadDataRequest(Date startTime, Date endTime, DownloadCallback callback) {
         if (bleService != null) {
             bleService.downloadDataRequest(startTime, endTime, callback);
         }

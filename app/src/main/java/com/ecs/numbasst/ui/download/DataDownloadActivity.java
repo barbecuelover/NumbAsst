@@ -15,6 +15,7 @@ import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -44,7 +45,7 @@ public class DataDownloadActivity extends BaseActivity {
     private long currentSize;
 
     private boolean isDownloading;
-
+    private SimpleDateFormat dateFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +77,8 @@ public class DataDownloadActivity extends BaseActivity {
 
         tvTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        String date = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault()).format(new Date());
+        dateFormat = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault());
+        String date =dateFormat.format(new Date());
         tvStartTime.setText(date);
         tvEndTime.setText(date);
         Log.d("zwcc"," Unix :" + new Date().getTime());
@@ -156,10 +158,17 @@ public class DataDownloadActivity extends BaseActivity {
             return;
         }
 
-        String startTime = tvStartTime.getText().toString().replace("-","");
-        String endTime = tvEndTime.getText().toString().replace("-","");
-        dataTotalSize = 0;
-        BleServiceManager.getInstance().downloadDataRequest(startTime,endTime,downloadCallback);
+//        String startTime = tvStartTime.getText().toString().replace("-","");
+//        String endTime = tvEndTime.getText().toString().replace("-","");
+
+        try {
+            Date dateStart = dateFormat.parse(tvStartTime.getText().toString());
+            Date dateEnd = dateFormat.parse(tvEndTime.getText().toString());
+            dataTotalSize = 0;
+            BleServiceManager.getInstance().downloadDataRequest(dateStart,dateEnd,downloadCallback);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
 

@@ -87,6 +87,7 @@ public class UpdateUnitActivity extends BaseActivity {
         @Override
         public void onUpdateCompleted(int unitType, int status) {
             updateUnitStatus( spinnerUnit.getItemAtPosition(unitType).toString() + "固件升级完成！");
+            manager.updateUnitCompletedResult(unitType,status);
         }
 
         @Override
@@ -146,7 +147,7 @@ public class UpdateUnitActivity extends BaseActivity {
         long fileSize =dataFile.length();
         progressBarStatus.setVisibility(View.VISIBLE);
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中..." );
-        BleServiceManager.getInstance().updateUnitRequest(unitType,fileSize, updateCallback);
+        BleServiceManager.getInstance().updateUnitRequest(unitType,dataFile, updateCallback);
     }
 
     private void updateUnitStatus(String msg){

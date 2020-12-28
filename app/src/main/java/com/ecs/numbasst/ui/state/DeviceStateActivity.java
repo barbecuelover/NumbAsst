@@ -12,6 +12,7 @@ import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
+import com.ecs.numbasst.ui.state.entity.StateInfo;
 
 public class DeviceStateActivity extends BaseActivity {
 
@@ -62,8 +63,12 @@ public class DeviceStateActivity extends BaseActivity {
         }
 
         @Override
-        public void onGetState(int type, int params) {
-            updateDeviceStatus("状态类型：" +type +  "   状态参数 ："+params);
+        public void onGetState(StateInfo info) {
+            if (info == null){
+                updateDeviceStatus("获取状态为空!");
+            }else {
+                updateDeviceStatus("状态类型：" +info.stateType +  "\n状态参数 ："+ info.toString());
+            }
         }
 
         @Override
@@ -99,10 +104,7 @@ public class DeviceStateActivity extends BaseActivity {
             showToast("获取设备状态中请勿重复点击");
             return;
         }
-
         int stateType = spinnerStateType.getSelectedItemPosition() +1;
-        //File file = new File("");
-        //long fileSize = file.length();
         progressBarStatus.setVisibility(View.VISIBLE);
         deviceStatus.setText("查询 " + spinnerStateType.getSelectedItem().toString() + "  中..." );
         BleServiceManager.getInstance().getDeviceState(stateType,callback);

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 
 public class NumberSetActivity extends BaseActivity{
@@ -57,25 +58,34 @@ public class NumberSetActivity extends BaseActivity{
         manager = BleServiceManager.getInstance();
         numberCallback = new NumberCallback() {
             @Override
-            public void onRetryFailed() {
-
-            }
-
-            @Override
-            public void onNumberGot(String number) {
+            public void onNumberGot(int type, String number) {
                 showToast("获取车号为：" + number);
                 tvCarName.setText(number);
                 updateNumberStatus("获取车号为："+number);
             }
 
             @Override
-            public void onSetSucceed() {
-                updateNumberStatus("设置车号成功");
+            public void onNumberSet(int type, int state) {
+                String status= state == ProtocolHelper.STATE_SUCCEED ? "成功！":"失败！";
+                String typeStr = type == ProtocolHelper.TYPE_NUMBER_SET?"车号":"设备ID";
+                String msg = "设置" + typeStr + status;
+                updateNumberStatus(msg);
             }
 
             @Override
-            public void onFailed(String reason) {
-                updateNumberStatus(reason);
+            public void onUnsubscribed(int state) {
+                String status= state == ProtocolHelper.STATE_SUCCEED ? "成功！":"失败！";
+                updateNumberStatus("注销车号" +status);
+            }
+
+            @Override
+            public void onSensorDemarcated(int type, int pressure) {
+                updateNumberStatus("标定类型：" +type + " 标定后压力为："+pressure);
+            }
+
+            @Override
+            public void onRetryFailed() {
+                updateNumberStatus("多次连接主机失败");
             }
         };
 

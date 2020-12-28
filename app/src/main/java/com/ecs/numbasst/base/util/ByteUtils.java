@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,10 @@ public class ByteUtils {
         return String.format("%08x", b);
     }
 
+    //需要使用4字节表示b
+    public static String longToHex32(long b) {
+        return String.format("%08x", b);
+    }
 
     public static String bytesToString(byte[] bytes) {
         final char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -85,6 +90,40 @@ public class ByteUtils {
         }
         return sb.toString();
     }
+
+    /**
+     * 将两位 byte 转为 int
+     * 低位在前，高位在后
+     */
+    public static int byte2Int(byte low,byte high){
+        return (low & 0xFF) << 8 | high & 0xFF;
+    }
+
+    /**
+     * 将byte[] 转为 int
+     * 低位在前，高位在后
+     */
+    public static int byte2Int(byte[] content){
+        int temp = 0;
+        if (content!=null){
+            for (int i=0;i<content.length;i++){
+                temp |= content[i] << 8*i;
+            }
+        }
+        return temp;
+    }
+
+
+    /**
+     *将int 转为2字节 Byte[]  低位在前，
+     */
+    public static byte[] intToLow2Byte(int n) {
+        byte[] b = new byte[2];
+        b[0] = (byte) (n & 0xff);
+        b[1] = (byte) (n >> 8 & 0xff);
+        return b;
+    }
+
 
     public static long bytesToLong(byte[] bytes) {
         buffer.put(bytes, 0, bytes.length);
@@ -151,6 +190,10 @@ public class ByteUtils {
     }
 
 
+
+
+
+
     /**
      * 将字节数组转成文件
      * @param filePath
@@ -176,6 +219,20 @@ public class ByteUtils {
                 }
             }
         }
+    }
+
+
+    public static byte[] getFileByteFromIndex(String path ,int index){
+        byte [] data = new byte[1024];
+        try {
+
+            RandomAccessFile file = new RandomAccessFile(path,"r");
+            file.read(data,index *1024,1024);
+            file.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
 }

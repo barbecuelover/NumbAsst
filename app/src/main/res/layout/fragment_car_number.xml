@@ -33,12 +33,24 @@
         android:id="@+id/ib_get_car_number_refresh"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="12dp"
         android:background="@null"
-        android:src="@drawable/selector_button_device_refresh"
+        android:src="@drawable/selector_btn_refresh"
+        app:layout_constraintBottom_toBottomOf="@+id/view_split"
+        app:layout_constraintEnd_toStartOf="@+id/ib_number_logo_out"
+        app:layout_constraintTop_toTopOf="@+id/select_download_start_time" />
+
+    <ImageButton
+        android:id="@+id/ib_number_logo_out"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="12dp"
+        android:background="@null"
+        android:src="@drawable/selector_btn_logout"
         app:layout_constraintBottom_toBottomOf="@+id/view_split"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/select_download_start_time" />
+
 
     <View
         android:id="@+id/view_split"

@@ -5,11 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.text.format.DateFormat;
 
-import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.DemarcateCallback;
+import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
@@ -116,21 +116,28 @@ public class BleServiceManager implements SppInterface {
     }
 
     @Override
-    public void setDeviceID(String id, NumberCallback callback) {
+    public void logoutCarNumber(NumberCallback callback) {
+        if (bleService != null) {
+            bleService.logoutCarNumber(callback);
+        }
+    }
+
+    @Override
+    public void setDeviceID(String id, DeviceIDCallback callback) {
         if (bleService != null) {
             bleService.setDeviceID(id,callback);
         }
     }
 
     @Override
-    public void getDeviceID(NumberCallback callback) {
+    public void getDeviceID(DeviceIDCallback callback) {
         if (bleService != null) {
             bleService.getDeviceID(callback);
         }
     }
 
     @Override
-    public void demarcateSensor(int type, int pressure, NumberCallback callback) {
+    public void demarcateSensor(int type, int pressure, DemarcateCallback callback) {
         if (bleService != null) {
             bleService.demarcateSensor(type, pressure, callback);
         }
@@ -177,27 +184,4 @@ public class BleServiceManager implements SppInterface {
             bleService.cancelAction();
         }
     }
-
-    public void updateUnitTransfer(int num, byte[] data) {
-        Log.d(TAG, "updateUnitTransfer  num=" + num);
-        String numStr = ByteUtils.numToHex16(num);
-        int length = data.length + 2;
-        String ContentLength = ByteUtils.numToHex8(length);
-        String dataStr = ByteUtils.bytesToString(data);
-        //  String content = HEAD_SEND + UNIT_UPDATE_FILE_TRANSFER + ContentLength + numStr + dataStr;
-
-    }
-
-    public void downloadDataRequired(Date from, Date to) {
-        String begin = (String) DateFormat.format("YYYYMMdd", from);
-        String end = (String) DateFormat.format("YYYYMMdd", to);
-        //  String content = HEAD_SEND + DOWNLOAD_DATA_REQUIRED +"08" +begin + end;
-
-    }
-
-    public void downloadTransferReply(int fileSize) {
-        String size = ByteUtils.numToHex16(fileSize);
-        //  String content = HEAD_SEND + DOWNLOAD_DATA_HEAD +"02" + size;
-    }
-
 }

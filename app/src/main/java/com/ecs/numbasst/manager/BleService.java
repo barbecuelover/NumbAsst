@@ -24,9 +24,11 @@ import androidx.annotation.Nullable;
 
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.manager.callback.Callback;
+import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.DemarcateCallback;
+import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
-import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
@@ -35,17 +37,11 @@ import com.ecs.numbasst.ui.state.entity.StateInfo;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
 public class BleService extends Service implements SppInterface {
 
@@ -80,7 +76,11 @@ public class BleService extends Service implements SppInterface {
     private Callback currCallback;
 
     private static ConnectionCallback connectionCallBack;
+
     private static NumberCallback numberCallback;
+    private static DeviceIDCallback deviceIDCallback;
+    private static DemarcateCallback demarcateCallback;
+
     private static UpdateCallback updateCallback;
     private static DownloadCallback downloadCallBack;
     private static QueryStateCallback queryStateCallback;
@@ -145,21 +145,34 @@ public class BleService extends Service implements SppInterface {
                         queryStateCallback.onGetState((StateInfo) msg.obj);
                     }
                     break;
-                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
+                case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
+                    if (numberCallback != null) {
+                        numberCallback.onUnsubscribed(msg.arg1);
+                    }
+                    break;
                 case ProtocolHelper.TYPE_NUMBER_SET:
                     if (numberCallback != null) {
-                        numberCallback.onNumberSet(msg.what,msg.arg1);
+                        numberCallback.onNumberSet(msg.arg1);
                     }
                     break;
                 case ProtocolHelper.TYPE_NUMBER_GET:
-                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
                     if (numberCallback != null) {
-                        numberCallback.onNumberGot(msg.what,(String) msg.obj);
+                        numberCallback.onNumberGot((String) msg.obj);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
+                    if (deviceIDCallback != null) {
+                        deviceIDCallback.onDeviceIDSet(msg.arg1);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
+                    if (deviceIDCallback != null) {
+                        deviceIDCallback.onDeviceIDGot((String) msg.obj);
                     }
                     break;
                 case ProtocolHelper.TYPE_NUMBER_SENSOR_DEMARCATE:
-                    if (numberCallback != null) {
-                        numberCallback.onSensorDemarcated(msg.arg1,msg.arg2);
+                    if (demarcateCallback != null) {
+                        demarcateCallback.onSensorDemarcated(msg.arg1,msg.arg2);
                     }
                     break;
 
@@ -401,8 +414,6 @@ public class BleService extends Service implements SppInterface {
             case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
             //设置车号 的返回状态
             case ProtocolHelper.TYPE_NUMBER_SET:
-            //设置DEVICE ID 的信息
-            case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
                 sendHandlerMessage(numberCallback, type, null, content[0], 0);
                 break;
             //获取车号 的信息
@@ -410,15 +421,19 @@ public class BleService extends Service implements SppInterface {
                 String number = protocolHelper.formatGetCarNumber(content);
                 sendHandlerMessage(numberCallback, type, number, 0, 0);
                 break;
+            //设置DEVICE ID 的信息
+            case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
+                sendHandlerMessage(deviceIDCallback, type, null, content[0], 0);
+                break;
             //获取车号DEVICE ID 的信息
             case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
                 String id = protocolHelper.formatGetDeviceID(content);
-                sendHandlerMessage(numberCallback, type, id, 0, 0);
+                sendHandlerMessage(deviceIDCallback, type, id, 0, 0);
                 break;
             //标定传感器返回信息
             case ProtocolHelper.TYPE_NUMBER_SENSOR_DEMARCATE:
                 int[] result = protocolHelper.formatDemarcateSensor(content);
-                sendHandlerMessage(numberCallback, type, null, result[0],  result[1]);
+                sendHandlerMessage(demarcateCallback, type, null, result[0],  result[1]);
                 break;
 
             //主机回复 单元升级请求 的返回状态
@@ -579,23 +594,30 @@ public class BleService extends Service implements SppInterface {
     }
 
     @Override
-    public void setDeviceID(String id, NumberCallback callback) {
+    public void logoutCarNumber(NumberCallback callback) {
+        byte[] order = protocolHelper.createOrderUnsubscribeNumber();
+        numberCallback = callback;
+        writeDataWithRetry(order, callback);
+    }
+
+    @Override
+    public void setDeviceID(String id, DeviceIDCallback callback) {
         byte[] order = protocolHelper.createOrderSetDeviceID(id);
-        numberCallback = callback;
+        deviceIDCallback = callback;
         writeDataWithRetry(order, callback);
     }
 
     @Override
-    public void getDeviceID(NumberCallback callback) {
+    public void getDeviceID(DeviceIDCallback callback) {
         byte[] order = protocolHelper.createOrderGetDeviceID();
-        numberCallback = callback;
+        deviceIDCallback = callback;
         writeDataWithRetry(order, callback);
     }
 
     @Override
-    public void demarcateSensor(int type, int pressure, NumberCallback callback) {
+    public void demarcateSensor(int type, int pressure, DemarcateCallback callback) {
         byte[] order = protocolHelper.createOrderDemarcate(type,pressure);
-        numberCallback = callback;
+        demarcateCallback = callback;
         writeDataWithRetry(order, callback);
     }
 

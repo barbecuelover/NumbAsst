@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseFragment;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.ProtocolHelper;
+import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 
 /**
@@ -34,13 +36,13 @@ public class DeviceIDFragment extends BaseFragment {
     private TextView tvCurrentDeviceId;
     private ImageButton ibGetDeviceIdRefresh;
     private EditText etNewDeviceId;
-    private Button btnSetCarNumber;
+    private Button btnSetDeviceId;
     private TextView tvDeviceIdStatus;
 
 
     private BleServiceManager manager;
-    private NumberCallback numberCallback;
-    private NumberActivity activity;
+    private DeviceIDCallback callback;
+
 
     public DeviceIDFragment() {
         // Required empty public constructor
@@ -91,25 +93,75 @@ public class DeviceIDFragment extends BaseFragment {
         tvCurrentDeviceId = findViewById(R.id.tv_current_device_id);
         ibGetDeviceIdRefresh = findViewById(R.id.ib_get_device_id_refresh);
         etNewDeviceId = findViewById(R.id.et_new_device_id);
-        btnSetCarNumber = findViewById(R.id.btn_set_car_number);
+        btnSetDeviceId = findViewById(R.id.btn_set_device_id);
         tvDeviceIdStatus = findViewById(R.id.tv_device_id_status);
     }
 
     @Override
     protected void initData() {
         manager = BleServiceManager.getInstance();
-        activity = (NumberActivity) getActivity();
-        numberCallback = activity.getNumberCallback();
+
+        callback = new DeviceIDCallback() {
+            @Override
+            public void onDeviceIDGot(String number) {
+                tvCurrentDeviceId.setText(number);
+                updateStatus("获取设备ID为："+number);
+            }
+
+            @Override
+            public void onDeviceIDSet(int state) {
+                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
+                String msg = "设置设备ID" + status;
+                updateStatus(msg);
+            }
+
+            @Override
+            public void onRetryFailed() {
+                updateStatus("多次连接主机失败");
+            }
+        };
+
     }
 
     @Override
     protected void initEvent() {
-
+        ibGetDeviceIdRefresh.setOnClickListener(this);
+        btnSetDeviceId.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.ib_get_device_id_refresh) {
+            if (manager.getConnectedDeviceMac() == null) {
+                updateStatus(getString(R.string.check_device_connection));
+                return;
+            }
+            manager.getDeviceID(callback);
+            updateStatus("获取设备ID中...");
+            //showLoading
+        } else if (id == R.id.btn_set_device_id) {
+            String dID = etNewDeviceId.getText().toString().trim();
 
+            if (dID.equals("")) {
+                updateStatus("设备ID不能为空！");
+            } else {
+                if (manager.getConnectedDeviceMac() == null) {
+                    updateStatus(getString(R.string.check_device_connection));
+                    return;
+                }
+
+                if (dID.length() == 6){
+                    manager.setDeviceID(dID,callback);
+                    //showLoading
+                }
+
+            }
+        }
+    }
+
+    private void updateStatus(String msg) {
+        tvDeviceIdStatus.setText(msg);
     }
 
 }

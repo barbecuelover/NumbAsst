@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseFragment;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.callback.DemarcateCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 
 /**
@@ -31,8 +32,8 @@ public class DemarcateFragment extends BaseFragment {
 
 
     private BleServiceManager manager;
-    private NumberCallback numberCallback;
-    private NumberActivity activity;
+    private DemarcateCallback callback;
+
 
     public DemarcateFragment() {
         // Required empty public constructor
@@ -85,8 +86,7 @@ public class DemarcateFragment extends BaseFragment {
     @Override
     protected void initData() {
         manager = BleServiceManager.getInstance();
-        activity = (NumberActivity) getActivity();
-        numberCallback = activity.getNumberCallback();
+
     }
 
     @Override

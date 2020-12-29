@@ -32,7 +32,6 @@ public class NumberActivity extends BaseActivity{
     ImageButton btnBack;
     TabLayout tabLayout;
     ViewPager viewPager;
-    private NumberCallback numberCallback;
 
     private String[] tabs = {"车号信息", "设备ID", "传感器标定"};
     private List<BaseFragment> tabFragmentList = new ArrayList<>();
@@ -90,37 +89,7 @@ public class NumberActivity extends BaseActivity{
        tabLayout.setupWithViewPager(viewPager,false);
 
 
-        numberCallback = new NumberCallback() {
-            @Override
-            public void onNumberGot(int type, String number) {
-               // tvCarName.setText(number);
-               // updateNumberStatus("获取车号为："+number);
-            }
 
-            @Override
-            public void onNumberSet(int type, int state) {
-                String status= state == ProtocolHelper.STATE_SUCCEED ? "成功！":"失败！";
-                String typeStr = type == ProtocolHelper.TYPE_NUMBER_SET?"车号":"设备ID";
-                String msg = "设置" + typeStr + status;
-               // updateNumberStatus(msg);
-            }
-
-            @Override
-            public void onUnsubscribed(int state) {
-                String status= state == ProtocolHelper.STATE_SUCCEED ? "成功！":"失败！";
-               // updateNumberStatus("注销车号" +status);
-            }
-
-            @Override
-            public void onSensorDemarcated(int type, int pressure) {
-              //  updateNumberStatus("标定类型：" +type + " 标定后压力为："+pressure);
-            }
-
-            @Override
-            public void onRetryFailed() {
-                //updateNumberStatus("多次连接主机失败");
-            }
-        };
     }
 
     @Override
@@ -141,8 +110,5 @@ public class NumberActivity extends BaseActivity{
         super.onDestroy();
     }
 
-    public NumberCallback  getNumberCallback(){
-        return  numberCallback;
-    }
 
 }

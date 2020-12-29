@@ -36,6 +36,7 @@ public class CarNumberFragment extends BaseFragment {
     private String mParam2;
 
     ImageButton btnRefresh;
+    ImageButton btnNumberLogout;
     ProgressBar progressBar;
     Button btnSetCarNumber;
     EditText etNewNumber;
@@ -82,7 +83,7 @@ public class CarNumberFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return super.onCreateView(inflater,container,savedInstanceState);
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
@@ -93,6 +94,7 @@ public class CarNumberFragment extends BaseFragment {
     @Override
     protected void initView() {
         btnRefresh = findViewById(R.id.ib_get_car_number_refresh);
+        btnNumberLogout = findViewById(R.id.ib_number_logo_out);
         progressBar = findViewById(R.id.progress_bar_set_car_number);
         btnSetCarNumber = findViewById(R.id.btn_set_car_number);
         etNewNumber = findViewById(R.id.et_new_numb);
@@ -102,51 +104,79 @@ public class CarNumberFragment extends BaseFragment {
 
 
     @Override
-    protected void initData(){
+    protected void initData() {
         manager = BleServiceManager.getInstance();
         activity = (NumberActivity) getActivity();
-        numberCallback = activity.getNumberCallback();
+        numberCallback = new NumberCallback() {
+            @Override
+            public void onNumberGot(String number) {
+                 tvCarName.setText(number);
+                 updateStatus("获取车号为："+number);
+            }
+
+            @Override
+            public void onNumberSet(int state) {
+                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
+                String msg = "设置车号" + status;
+                updateStatus(msg);
+            }
+
+            @Override
+            public void onUnsubscribed(int state) {
+                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
+                updateStatus("注销车号" +status);
+            }
+
+            @Override
+            public void onRetryFailed() {
+                updateStatus("多次连接主机失败");
+            }
+        };
     }
 
     @Override
     protected void initEvent() {
         btnRefresh.setOnClickListener(this);
         btnSetCarNumber.setOnClickListener(this);
+        btnNumberLogout.setOnClickListener(this);
     }
 
 
-    private void updateNumberStatus(String msg){
+    private void updateStatus(String msg) {
         tvNumberStatus.setText(msg);
         progressBar.setVisibility(View.GONE);
     }
 
     @Override
     public void onClick(View v) {
-        int id  =v.getId();
-      if(id == R.id.ib_get_car_number_refresh){
-            if (manager.getConnectedDeviceMac()==null){
+        int id = v.getId();
+        if (id == R.id.ib_get_car_number_refresh) {
+            if (manager.getConnectedDeviceMac() == null) {
                 tvNumberStatus.setText(getString(R.string.check_device_connection));
                 return;
             }
-            if (progressBar.getVisibility() == View.VISIBLE){
+            if (progressBar.getVisibility() == View.VISIBLE) {
                 tvNumberStatus.setText("获取或设置车号中，请稍后再试");
 
-            }else {
+            } else {
                 manager.getCarNumber(numberCallback);
                 tvNumberStatus.setText("获取车号中...");
                 progressBar.setVisibility(View.VISIBLE);
             }
-        }else if (id == R.id.btn_set_car_number){
-            if (etNewNumber.getText().toString().trim().equals("")){
-                updateNumberStatus("车号不能为空！");
-            }else {
-                if (manager.getConnectedDeviceMac()==null){
-                    updateNumberStatus(getString(R.string.check_device_connection));
+        } else if (id == R.id.btn_set_car_number) {
+            if (etNewNumber.getText().toString().trim().equals("")) {
+                updateStatus("车号不能为空！");
+            } else {
+                if (manager.getConnectedDeviceMac() == null) {
+                    updateStatus(getString(R.string.check_device_connection));
                     return;
                 }
                 manager.setCarNumber(etNewNumber.getText().toString().trim(), numberCallback);
                 progressBar.setVisibility(View.VISIBLE);
             }
+        }else if (id == R.id.ib_number_logo_out){
+            updateStatus("注销车号中！");
+            manager.logoutCarNumber(numberCallback);
         }
     }
 }

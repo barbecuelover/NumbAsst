@@ -34,7 +34,7 @@
         android:layout_height="0dp"
         android:layout_marginEnd="24dp"
         android:background="@null"
-        android:src="@drawable/selector_button_device_refresh"
+        android:src="@drawable/selector_btn_refresh"
         app:layout_constraintBottom_toBottomOf="@+id/view_split"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tv_device_id_title" />
@@ -73,7 +73,7 @@
 
 
     <Button
-        android:id="@+id/btn_set_car_number"
+        android:id="@+id/btn_set_device_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"

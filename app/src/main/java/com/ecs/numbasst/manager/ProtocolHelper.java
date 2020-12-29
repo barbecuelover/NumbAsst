@@ -74,7 +74,7 @@ public class ProtocolHelper {
     public byte[] createOrderGetDeviceStatus(int statusType) {
         byte[] content = {HEAD_SEND, TYPE_DEVICE_STATUS, 0x01,(byte)statusType};
         //最终发送的字段
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##GetDeviceStatus =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -84,7 +84,7 @@ public class ProtocolHelper {
      */
     public byte[] createOrderUnsubscribeNumber() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_UNSUBSCRIBE, 0x00};
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##UnsubscribeNumber =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -104,7 +104,7 @@ public class ProtocolHelper {
         //不包含crc验证的全部字段
         byte[] content = ByteUtils.joinArray(head, msg);
         //最终发送的字段
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##SetCarNumber =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -114,7 +114,7 @@ public class ProtocolHelper {
      */
     public byte[] createOrderGetCarNumber() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_SET, 0x00};
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -126,14 +126,14 @@ public class ProtocolHelper {
         byte[] head = {HEAD_SEND, TYPE_NUMBER_GET, 0x06};
         byte[] msg = ByteUtils.string16ToBytes( ByteUtils.str2Hex16Str(id));
         byte[] content = ByteUtils.joinArray(head, msg);
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
         return order;
     }
 
     public byte[] createOrderGetDeviceID() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_GET, 0x00};
-        return  CrcUtils.addCrc8(content);
+        return  CrcUtils.addCrc8SUM(content);
     }
 
 
@@ -145,7 +145,7 @@ public class ProtocolHelper {
     public byte[] createOrderDemarcate(int type,int pressure) {
         byte[] press = ByteUtils.intToLow2Byte(pressure);
         byte[] content = {HEAD_SEND, TYPE_NUMBER_SENSOR_DEMARCATE, 0x03,(byte)type,press[0],press[1]};
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##Demarcate  = " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -159,10 +159,12 @@ public class ProtocolHelper {
      * @param fileSize 文件总长度
      */
     public byte[] createOrderUpdateUnitRequest(int unitType, File fileSize) {
-        String sizeStr = ByteUtils.longToHex16(fileSize.length());
-        byte[] size = ByteUtils.string16ToBytes(sizeStr);
-        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X03, (byte) unitType, size[0], size[1]};
-        byte[] order = CrcUtils.addCrc8(content);
+        //String sizeStr = ByteUtils.longToHex16(fileSize.length());
+        //byte[] size = ByteUtils.string16ToBytes(sizeStr);
+       // byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X03, (byte) unitType, size[0], size[1]};
+        byte fileCrc = 0x00;
+        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X03, (byte) unitType, 0x00, 0x04};
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##UpdateUnitRequest =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -188,6 +190,7 @@ public class ProtocolHelper {
      * @return 返回 1kb 数据的数组集合 包括协议头和Crc验证
      */
     public static List<byte[]> getUpdateData1KBList(String filePath, int pkgIndex){
+        Log.d("zwcc","getUpdateData1KBList pkgIndex="+pkgIndex +" filePath="+filePath);
         List<byte[]> list = new ArrayList<>();
         byte[] data = ByteUtils.getFileByteFromIndex(filePath,pkgIndex);
         if (data != null) {
@@ -198,10 +201,11 @@ public class ProtocolHelper {
                 index += 16;
                 byte[] head = {HEAD_SEND, TYPE_UNIT_UPDATE_FILE_TRANSFER, (byte)list.size()};
                 byte[] content = ByteUtils.joinArray(head, currentData);
-                byte[] order = CrcUtils.addCrc8(content);
+                byte[] order = CrcUtils.addCrc8SUM(content);
                 list.add(order);
             } while (index < data.length);
         }
+        Log.d("zwcc","getUpdateData1KBList list="+list.size() );
         return  list;
     }
 
@@ -220,7 +224,7 @@ public class ProtocolHelper {
       //  byte[] time = ByteUtils.joinArray(ByteUtils.string16ToBytes(startTime), ByteUtils.string16ToBytes(endTime));
         byte[] time = null;
         byte[] content = ByteUtils.joinArray(head, time);
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -231,7 +235,7 @@ public class ProtocolHelper {
     public byte[] createOrderReplyDownloadConfirm(boolean download) {
         byte status = download ? (byte) 0x01 : (byte) 0x00;
         byte[] content = {HEAD_REPLY, TYPE_DOWNLOAD_HEAD, 0X01, status};
-        byte[] order = CrcUtils.addCrc8(content);
+        byte[] order = CrcUtils.addCrc8SUM(content);
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -304,10 +308,7 @@ public class ProtocolHelper {
         if (data == null || data.length < 4) {
             return STATE_FAILED;
         }
-        if (CrcUtils.checkDataWithCrc8(data)) {
-            return data[3];
-        }
-        return STATE_FAILED;
+        return data[3];
     }
 
 
@@ -365,18 +366,12 @@ public class ProtocolHelper {
 
 
     public long formatDownloadSize(byte[] data) {
-        if (CrcUtils.checkDataWithCrc8(data)) {
-            byte[] sizeArr = {data[3], data[4]};
-            return ByteUtils.bytesToLong(sizeArr);
-        }
-        return -1;
+        byte[] sizeArr = {data[3], data[4]};
+        return ByteUtils.bytesToLong(sizeArr);
     }
 
     public byte[] formatUpdateCompleteStatus(byte[] data) {
-        if (CrcUtils.checkDataWithCrc8(data)) {
-            return new byte[]{data[3], data[4]};
-        }
-        return new byte[]{-1, 0x00};
+        return new byte[]{data[3], data[4]};
     }
 
     public byte[] formatDownloadData(byte[] data) {

@@ -15,10 +15,15 @@ public class BleSppGattAttributes {
 //    Service UUID：fee0
 //    Notify：fee1
 //    Write:fee1
-    public static String BLE_SPP_Service = "0000fee0-0000-1000-8000-00805f9b34fb";
-    public static String BLE_SPP_Notify_Characteristic = "0000fee1-0000-1000-8000-00805f9b34fb";
-    public static String  BLE_SPP_Write_Characteristic = "0000fee2-0000-1000-8000-00805f9b34fb";
-    public static String  BLE_SPP_AT_Characteristic = "0000fee3-0000-1000-8000-00805f9b34fb";
+//    public static String BLE_SPP_Service = "0000fee0-0000-1000-8000-00805f9b34fb";
+//    public static String BLE_SPP_Notify_Characteristic = "0000fee1-0000-1000-8000-00805f9b34fb";
+//    public static String  BLE_SPP_Write_Characteristic = "0000fee2-0000-1000-8000-00805f9b34fb";
+//    public static String  BLE_SPP_AT_Characteristic = "0000fee3-0000-1000-8000-00805f9b34fb";
+
+    public static String BLE_SPP_Service = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    public static String BLE_SPP_Notify_Characteristic = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    public static String  BLE_SPP_Write_Characteristic = "0000ffe2-0000-1000-8000-00805f9b34fb";
+    public static String  BLE_SPP_AT_Characteristic = "0000ffe3-0000-1000-8000-00805f9b34fb";
 
 
     public final static UUID UUID_BLE_SPP_SERVICE= UUID.fromString(BleSppGattAttributes.BLE_SPP_Service);

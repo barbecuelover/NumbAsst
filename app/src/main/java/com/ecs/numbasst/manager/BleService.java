@@ -41,6 +41,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
@@ -95,6 +98,8 @@ public class BleService extends Service implements SppInterface {
     private boolean inTransferring = false;
     private String updateFilePath;
 
+    ThreadPoolExecutor executorService;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -102,14 +107,17 @@ public class BleService extends Service implements SppInterface {
         msgHandler = new MsgHandler();
         protocolHelper = new ProtocolHelper();
 
+        executorService = (ThreadPoolExecutor)Executors.newFixedThreadPool(1);
+
+
         //Test
-        saveDataPath = getExternalFilesDir(DIRECTORY_DOWNLOADS).getAbsolutePath();
-        downFile = new File(saveDataPath);
-        try {
-            outStream = new BufferedOutputStream(new FileOutputStream(downFile));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+//        saveDataPath = getExternalFilesDir(DIRECTORY_DOWNLOADS).getAbsolutePath();
+//        downFile = new File(saveDataPath);
+//        try {
+//            outStream = new BufferedOutputStream(new FileOutputStream(downFile));
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -270,7 +278,8 @@ public class BleService extends Service implements SppInterface {
                 if (mWriteCharacteristic == null) //适配没有FEE2的B-0002/04
                 {
                     if (service != null) {
-                        mWriteCharacteristic = service.getCharacteristic(UUID.fromString(BleSppGattAttributes.BLE_SPP_Notify_Characteristic));
+                        mWriteCharacteristic = service.getCharacteristic(BleSppGattAttributes.UUID_BLE_SPP_NOTIFY);
+                        Log.d(TAG,"mWriteCharacteristic == mNotifyCharacteristic");
                     } else {
                         Log.v("log", "service is null");
                         broadcastUpdate(BleConstants.ACTION_GATT_SERVICES_NO_DISCOVERED);
@@ -300,8 +309,7 @@ public class BleService extends Service implements SppInterface {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
-            broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
-
+            //broadcastUpdate(BleConstants.ACTION_DATA_AVAILABLE, characteristic);
 
             final byte[] data = characteristic.getValue();
             //主机返回消息,取消当前 重试计时器
@@ -309,32 +317,7 @@ public class BleService extends Service implements SppInterface {
                 retryTimer.cancel();
             }
             Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
-            //handleMsgFromBleDevice(data);
-            //Test
-            if (inTransferring) {
-
-                if (data[0] == 0xAA && data[1] == 0xAA && data[2] == 0xAA) {
-
-                    try {
-                        inTransferring = false;
-                        if (outStream != null) {
-                            outStream.flush();
-                            outStream.close();
-                        }
-                    } catch (IOException e) {
-                        inTransferring = false;
-                        e.printStackTrace();
-                    }
-                } else {
-                    try {
-                        outStream.write(data);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
-                handleMsgFromBleDevice(data);
-            }
+            handleMsgFromBleDevice(data);
 
 
         }
@@ -398,6 +381,7 @@ public class BleService extends Service implements SppInterface {
     private void handleInitiativeMsgFromServer(byte type,byte[] content) {
 
         switch (type) {
+            //主机主动下发的升级完成指令
             case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
                 curUpdatePackage = 0;
                 sendHandlerMessage(updateCallback,type,null,content[0],content[1]);
@@ -431,7 +415,7 @@ public class BleService extends Service implements SppInterface {
                 String id = protocolHelper.formatGetDeviceID(content);
                 sendHandlerMessage(numberCallback, type, id, 0, 0);
                 break;
-
+            //标定传感器返回信息
             case ProtocolHelper.TYPE_NUMBER_SENSOR_DEMARCATE:
                 int[] result = protocolHelper.formatDemarcateSensor(content);
                 sendHandlerMessage(numberCallback, type, null, result[0],  result[1]);
@@ -441,19 +425,19 @@ public class BleService extends Service implements SppInterface {
             case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
                 sendHandlerMessage(updateCallback, type, null, content[0],  content[1]);
                 break;
-
+            //升级Unit传输1kb包过程中返回信息
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                 byte transferIndex = content[0];
                 if(transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED){
                     //1kb已经传完开始下一个1kb
+                    sendHandlerMessage(updateCallback, type, null, transferIndex, 0);
                     curUpdatePackage++;
                     sendWhole1KBPackage();
-                }else{
+                }else if (transferIndex > 0 && transferIndex <63 ){
                     //传输出问题。transferIndex 继续开始传
                     send1KBPackageFromIndex(transferIndex);
                 }
                 break;
-
 
             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
                 if (downloadCallBack != null) {
@@ -610,7 +594,9 @@ public class BleService extends Service implements SppInterface {
 
     @Override
     public void demarcateSensor(int type, int pressure, NumberCallback callback) {
-
+        byte[] order = protocolHelper.createOrderDemarcate(type,pressure);
+        numberCallback = callback;
+        writeDataWithRetry(order, callback);
     }
 
     @Override
@@ -688,10 +674,22 @@ public class BleService extends Service implements SppInterface {
     }
     //传输线程应该只且只有一个，出错时应该取消掉当前任务
     private void send1KBPackageFromIndex(int index){
-        new Thread(new Runnable() {
+
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
+
+                if (updateList== null){
+                    Log.d(TAG,"包解析错误");
+                    return;
+                }
                 for (int i =index ; i< updateList.size();i++){
+
+                    int queueSize = executorService.getQueue().size();
+                    if (queueSize!=0 && i !=index){
+                        return;
+                    }
+                    Log.d("zwcc"," index = "+ i + " 排队队列="+queueSize);
                     writeData(updateList.get(i));
                     //Test
                     try {
@@ -700,8 +698,9 @@ public class BleService extends Service implements SppInterface {
                         e.printStackTrace();
                     }
                 }
+
             }
-        }).start();
+        });
     }
 
 
@@ -833,8 +832,10 @@ public class BleService extends Service implements SppInterface {
 
 
     private void writeData(byte[] data) {
+        Log.d(TAG,"writeData " );
         if (mWriteCharacteristic != null &&
                 data != null) {
+            Log.d(TAG,"writeData :" + ByteUtils.bytesToString(data));
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);

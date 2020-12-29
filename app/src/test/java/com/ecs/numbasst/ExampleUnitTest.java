@@ -17,18 +17,36 @@ public class ExampleUnitTest {
 
 
 
+    public static byte getCrcSum (byte [] lpbyBuf)
+    {
+        byte  byLPC =0;
+        for (byte b : lpbyBuf) {
+            byLPC = (byte) (byLPC + b);
+        }
+        return byLPC;
+    }
+
+
+    public static boolean checkDataWithCrc8SUM(byte[] data) {
+        byte ret = data[data.length-1];
+        byte[] content = new byte[data.length-1];
+        System.arraycopy(data, 0, content, 0, data.length -1);
+        byte retCalc = getCrcSum(content);
+        return ret == retCalc;
+    }
+
+
+
     @Test
     public void test (){
         //20180
-        byte low = 0x4E;
-        byte high =(byte)0xD4;
-        int  numb = (low & 0xFF) << 8 | high & 0xFF;
-
-        System.out.println(numb);
-        System.out.println(0xD44E);
-
-        System.out.println(0x4ED4);
-
+        byte[] data = new byte[]{0x11 ,0x0B};
+        byte a = getCrcSum(data);
+        System.out.println(a);
+        System.out.println(0x1c);
+        byte[] crct = new byte[]{0x11 ,0x0B,0x1c};
+        boolean check = checkDataWithCrc8SUM(crct);
+        System.out.println(check);
     }
 
 }

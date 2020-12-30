@@ -148,9 +148,9 @@ public class UpdateUnitActivity extends BaseActivity {
         long fileSize =dataFile.length();
         progressBarStatus.setVisibility(View.VISIBLE);
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中..." );
-        //BleServiceManager.getInstance().updateUnitRequest(unitType +1,dataFile, updateCallback);
+        BleServiceManager.getInstance().updateUnitRequest(unitType +1,dataFile, updateCallback);
 
-        sendFile2Device();
+        //sendFile2Device();
     }
 
     private void updateUnitStatus(String msg){

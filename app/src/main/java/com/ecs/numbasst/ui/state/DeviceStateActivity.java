@@ -41,17 +41,14 @@ public class DeviceStateActivity extends BaseActivity {
     protected void initView() {
         tvTitle = findViewById(R.id.action_bar_title);
         btnBack= findViewById(R.id.ib_action_back);
-        spinnerStateType =findViewById(R.id.spinner_select_state);
-        btnGetState =findViewById(R.id.btn_get_device_state);
+
         progressBarStatus = findViewById(R.id.progress_bar_get_state_status);
-        deviceStatus = findViewById(R.id.tv_get_device_state_status);
+
 
     }
 
     @Override
     protected void initData() {
-        tvTitle.setText(getTitle());
-
         manager = BleServiceManager.getInstance();
     }
 
@@ -89,8 +86,6 @@ public class DeviceStateActivity extends BaseActivity {
         int id = v.getId();
         if(id == R.id.ib_action_back){
             finish();
-        }else if(id == R.id.btn_get_device_state){
-            prepareGetDeviceState();
         }
     }
 

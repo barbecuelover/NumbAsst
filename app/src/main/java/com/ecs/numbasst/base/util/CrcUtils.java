@@ -31,22 +31,21 @@ public class CrcUtils {
      * @param data 需要计算的数组
      * @return 带CRC8和校验的整个数组
      */
-    public static byte[] addCrc8SUM(byte[] data) {
-        byte ret =getCrcSum(data);
+    public static byte[] addCrc8MAXIM(byte[] data) {
+
+        byte ret = calcCrc8(data, 0, data.length, (byte) 0);
         byte[] order = new byte[data.length+1];
         System.arraycopy(data, 0, order, 0, data.length);
         order[order.length -1] = ret;
         return order;
+
     }
 
-    public static boolean checkDataWithCrc8SUM(byte[] data) {
+    public static boolean checkDataWithCrc8MAXIM(byte[] data) {
         byte ret = data[data.length-1];
-        byte[] content = new byte[data.length-1];
-        System.arraycopy(data, 0, content, 0, data.length -1);
-        byte retCalc = getCrcSum(content);
+        byte retCalc = calcCrc8(data,0,data.length-1);
         return ret == retCalc;
     }
-
 
     public static byte getCrcSum (byte [] lpbyBuf)
     {
@@ -64,20 +63,22 @@ public class CrcUtils {
      * @param data 需要计算的数组
      * @return CRC8校验值
      */
-    public static byte[] addCrc8MAXIM(byte[] data) {
-        byte ret = calcCrc8(data, 0, data.length, (byte) 0);
+    public static byte[] addCrc8Sum(byte[] data) {
+        byte ret =getCrcSum(data);
         byte[] order = new byte[data.length+1];
         System.arraycopy(data, 0, order, 0, data.length);
         order[order.length -1] = ret;
         return order;
     }
 
-
-    public static boolean checkDataWithCrc8MAXIM(byte[] data) {
+    public static boolean checkDataWithCrc8SUM(byte[] data) {
         byte ret = data[data.length-1];
-        byte retCalc = calcCrc8(data,0,data.length-1);
+        byte[] content = new byte[data.length-1];
+        System.arraycopy(data, 0, content, 0, data.length -1);
+        byte retCalc = getCrcSum(content);
         return ret == retCalc;
     }
+
 
 
     /**

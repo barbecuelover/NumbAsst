@@ -6,64 +6,102 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".ui.MainActivity">
-<TextView
-    android:gravity="center"
-    android:textColor="@color/white"
-    android:textSize="16sp"
-    android:text="@string/select_function"
-    android:textStyle="bold"
-    android:background="@color/teal_700"
-    android:layout_width="match_parent"
-    android:layout_height="32dp"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:background="@color/teal_700"
+        android:gravity="center"
+        android:text="@string/select_function"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/view_discovery"
         android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:textSize="18sp"
+        android:text="1、设备连接"
         android:textColor="@color/black"
-        android:text="@string/function_device_discovery"
-        android:layout_height="60dp"/>
+        android:textSize="16sp" />
 
 
     <Button
 
         android:id="@+id/view_get_device_state"
         android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:textSize="18sp"
+        android:text="2、列尾状态"
         android:textColor="@color/black"
-        android:text="@string/function_get_device_state"
-        android:layout_height="60dp"/>
+        android:textSize="16sp" />
+
 
     <Button
 
         android:id="@+id/view_set_car_numb"
         android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:textSize="18sp"
+        android:text="3、设置车号"
         android:textColor="@color/black"
-        android:text="@string/function_set_car_numb"
-        android:layout_height="60dp"/>
-
+        android:textSize="16sp" />
 
     <Button
         android:id="@+id/view_update"
         android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:textSize="18sp"
+        android:text="4、更新单元软件"
         android:textColor="@color/black"
-        android:text="@string/function_update_unit"
-        android:layout_height="60dp"/>
+        android:textSize="16sp" />
+
 
     <Button
         android:id="@+id/view_download"
         android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:gravity="center_vertical"
-        android:textSize="18sp"
+        android:text="5、下载数据"
         android:textColor="@color/black"
-        android:text="@string/function_down_load"
-        android:layout_height="60dp"/>
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/view_sensor_check"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:text="6、传感器校准"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/view_set_device_id"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:text="7、设置设备ID"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/view_debugging"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:text="8、调试"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/view_about_numb_asst"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:text="9、关于置号软件"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
 
 </LinearLayout>

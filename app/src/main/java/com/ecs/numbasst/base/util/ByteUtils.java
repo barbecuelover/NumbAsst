@@ -125,6 +125,19 @@ public class ByteUtils {
     }
 
 
+    /**
+     *将int 转为2字节 Byte[]  低位在前，
+     */
+    public static byte[] longToLow4Byte(long n) {
+        byte[] b = new byte[4];
+        b[0] = (byte) (n & 0xff);
+        b[1] = (byte) (n >> 8 & 0xff);
+        b[2] = (byte) (n >> 16 & 0xff);
+        b[3] = (byte) (n >> 32 & 0xff);
+        return b;
+    }
+
+
     public static long bytesToLong(byte[] bytes) {
         buffer.put(bytes, 0, bytes.length);
         buffer.flip();//need flip
@@ -225,9 +238,24 @@ public class ByteUtils {
     public static byte[] getFileByteFromIndex(String path ,int index){
         byte [] data = new byte[1024];
         try {
-
+            long  offSize = index *1024;
+            int length = 1024;
             RandomAccessFile file = new RandomAccessFile(path,"r");
-            file.read(data,index *1024,1024);
+            if( (offSize + length) > file.length() ){
+                length = (int)(file.length() - offSize);
+            }
+            //超出文件长度
+            if (length < 0){
+                file.close();
+                return data;
+            }
+
+            file.seek(offSize);
+
+            if( (offSize + length) > file.length() ){
+               length = (int)(file.length() - offSize);
+            }
+            file.read(data,0,length);
             file.close();
         } catch (Exception e) {
             e.printStackTrace();

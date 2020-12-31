@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NumbAsst">
-        <activity android:name=".ui.debug.DebugActivity" />
+        <activity android:name=".ui.debug.DebugActivity"/>
         <activity
             android:name=".ui.state.DeviceStateActivity"
             android:label="@string/function_get_device_state" />

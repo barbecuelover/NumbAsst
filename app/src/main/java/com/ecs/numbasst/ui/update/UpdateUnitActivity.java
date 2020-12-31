@@ -87,7 +87,7 @@ public class UpdateUnitActivity extends BaseActivity {
         @Override
         public void onUpdateCompleted(int unitType, int status) {
             updateUnitStatus( spinnerUnit.getItemAtPosition(unitType-1).toString() + "固件升级完成！");
-            manager.updateUnitCompletedResult(unitType,status);
+           // manager.updateUnitCompletedResult(unitType,status);
         }
 
         @Override

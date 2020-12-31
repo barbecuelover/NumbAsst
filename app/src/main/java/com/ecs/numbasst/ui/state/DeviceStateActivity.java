@@ -42,7 +42,7 @@ public class DeviceStateActivity extends BaseActivity {
         tvTitle = findViewById(R.id.action_bar_title);
         btnBack= findViewById(R.id.ib_action_back);
 
-        progressBarStatus = findViewById(R.id.progress_bar_get_state_status);
+       // progressBarStatus = findViewById(R.id.progress_bar_get_state_status);
 
 
     }
@@ -78,7 +78,7 @@ public class DeviceStateActivity extends BaseActivity {
     @Override
     protected void initEvent() {
         btnBack.setOnClickListener(this);
-        btnGetState.setOnClickListener(this);
+        //btnGetState.setOnClickListener(this);
     }
 
     @Override

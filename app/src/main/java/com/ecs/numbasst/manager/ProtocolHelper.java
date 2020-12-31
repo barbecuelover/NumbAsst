@@ -56,8 +56,8 @@ public class ProtocolHelper {
     public final static byte TYPE_DOWNLOAD_TRANSFER = 0X33;
 
 
-    public final static byte STATE_SUCCEED = 0x01;
-    public final static byte STATE_FAILED = 0x00;
+    public final static byte STATE_FAILED = 0x01;
+    public final static byte  STATE_SUCCEED = 0x00;
 
     /**
      * 获取 查询列尾状态信息 的指令
@@ -156,14 +156,16 @@ public class ProtocolHelper {
      *        UNIT_STORE :存储单元
      *        UNIT_MAIN_CONTROL :主控单元
      *        UNIT_INDICATE :指示单元
-     * @param fileSize 文件总长度
      */
-    public byte[] createOrderUpdateUnitRequest(int unitType, File fileSize) {
-        //String sizeStr = ByteUtils.longToHex16(fileSize.length());
-        //byte[] size = ByteUtils.string16ToBytes(sizeStr);
-       // byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X03, (byte) unitType, size[0], size[1]};
-        byte fileCrc = 0x00;
-        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X03, (byte) unitType, 0x00, 0x04};
+    public byte[] createOrderUpdateUnitRequest(int unitType, long fileSize) {
+
+
+
+        byte[] size = ByteUtils.longToLow4Byte(fileSize);
+        Log.d(TAG, "createOrder##UpdateUnitRequest  file.length =" + fileSize);
+        Log.d(TAG, "createOrder##UpdateUnitRequest  size =" +  ByteUtils.bytesToString(size));
+        //String fileCrc = CrcUtils.calcCrc16(ByteUtils.getFile2Bytes(file.getAbsolutePath()));
+        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X07, (byte) unitType, size[0], size[1],size[2],size[3],0x22,0x22};
         byte[] order = CrcUtils.addCrc8MAXIM(content);
         Log.d(TAG, "createOrder##UpdateUnitRequest =  " + ByteUtils.bytesToString(order));
         return order;
@@ -213,7 +215,8 @@ public class ProtocolHelper {
 
 
     public byte[] createOrderUpdateCompleted(int unitType, int state) {
-        return new byte[] {HEAD_REPLY, TYPE_UNIT_UPDATE_COMPLETED, 0X02,(byte)unitType,(byte)state};
+        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_COMPLETED, 0X02,(byte)unitType,(byte)state};
+        return CrcUtils.addCrc8MAXIM(content);
     }
 
 

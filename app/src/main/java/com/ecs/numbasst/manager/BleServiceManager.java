@@ -8,19 +8,21 @@ import android.os.IBinder;
 
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.DemarcateCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
+import com.ecs.numbasst.manager.interfaces.IDebugging;
 
 import java.io.File;
 import java.util.Date;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
-public class BleServiceManager implements SppInterface {
+public class BleServiceManager implements SppInterface , IDebugging {
     private static final String TAG = "BLEManager";
 
     private static volatile BleServiceManager instance;
@@ -178,10 +180,29 @@ public class BleServiceManager implements SppInterface {
         }
     }
 
+
+
     @Override
     public void cancelAction() {
         if (bleService != null) {
             bleService.cancelAction();
         }
+    }
+
+    @Override
+    public void sendDebuggingData(String data) {
+        if (bleService != null) {
+            bleService.sendDebuggingData(data);
+        }
+    }
+
+    @Override
+    public void enableDebugging(boolean enable) {
+
+    }
+
+    @Override
+    public void setDebugCallBack(DebugCallback callBack) {
+
     }
 }

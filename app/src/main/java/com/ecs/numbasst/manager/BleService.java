@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
+import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.DemarcateCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
@@ -33,6 +34,7 @@ import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.contants.BleConstants;
 import com.ecs.numbasst.manager.contants.BleSppGattAttributes;
+import com.ecs.numbasst.manager.interfaces.IDebugging;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
 import java.io.BufferedOutputStream;
@@ -43,7 +45,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class BleService extends Service implements SppInterface {
+public class BleService extends Service implements SppInterface , IDebugging {
 
     private final static String TAG = "BLEService";
 
@@ -85,21 +87,22 @@ public class BleService extends Service implements SppInterface {
     private static DownloadCallback downloadCallBack;
     private static QueryStateCallback queryStateCallback;
 
+    private DebugCallback debugCallback;
+    private boolean inDebugging;
+
     private Handler msgHandler;
     private CountDownTimer retryTimer;
     private List<byte[]> updateList;
-    private int curUpdatePackage = 0;
 
     private ProtocolHelper protocolHelper;
-    //Test
-    private String saveDataPath;
-    BufferedOutputStream outStream = null;
-    File downFile;
-    private boolean inTransferring = false;
-    private String updateFilePath;
+
+    private File updateFile;
 
     ThreadPoolExecutor executorService;
+    private int unitType;
 
+    private long totalPackage;
+    private int curUpdatePackage = 0;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -125,6 +128,8 @@ public class BleService extends Service implements SppInterface {
         super.onDestroy();
         cancelAction();
     }
+
+
 
     public static class MsgHandler extends Handler {
         @Override
@@ -178,7 +183,7 @@ public class BleService extends Service implements SppInterface {
 
                 case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
                     if (updateCallback != null) {
-                        if (msg.arg1 == ProtocolHelper.STATE_SUCCEED) {
+                        if (msg.arg2 == ProtocolHelper.STATE_SUCCEED) {
                             updateCallback.onRequestSucceed();
                         } else {
                             updateCallback.onFailed("更新单元请求失败！");
@@ -395,10 +400,7 @@ public class BleService extends Service implements SppInterface {
 
         switch (type) {
             //主机主动下发的升级完成指令
-            case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
-                curUpdatePackage = 0;
-                sendHandlerMessage(updateCallback,type,null,content[0],content[1]);
-                break;
+
         }
     }
 
@@ -445,14 +447,27 @@ public class BleService extends Service implements SppInterface {
                 byte transferIndex = content[0];
                 if(transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED){
                     //1kb已经传完开始下一个1kb
-                    sendHandlerMessage(updateCallback, type, null, transferIndex, 0);
+                    sendHandlerMessage(updateCallback, type, null, curUpdatePackage, 0);
                     curUpdatePackage++;
-                    sendWhole1KBPackage();
+                    if(updateFile!=null && curUpdatePackage == totalPackage){
+                        //传输完成
+                        //sendHandlerMessage(updateCallback,ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED,null,unit,ProtocolHelper.STATE_SUCCEED);
+                        updateUnitCompletedResult(unitType,ProtocolHelper.STATE_SUCCEED);
+                    }else {
+                        sendWhole1KBPackage();
+                    }
+
                 }else if (transferIndex > 0 && transferIndex <63 ){
                     //传输出问题。transferIndex 继续开始传
                     send1KBPackageFromIndex(transferIndex);
                 }
                 break;
+
+            case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                curUpdatePackage = 0;
+                sendHandlerMessage(updateCallback,type,null,content[0],content[1]);
+                break;
+
 
             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
                 if (downloadCallBack != null) {
@@ -623,7 +638,10 @@ public class BleService extends Service implements SppInterface {
 
     @Override
     public void updateUnitRequest(int unitType, File file, UpdateCallback callback) {
-        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, file);
+        int more = file.length()%1024 ==0?0:1;
+        totalPackage = file.length()/1024 +more;
+        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024);
+        this.unitType = unitType;
         updateCallback = callback;
         currCallback = callback;
         writeDataWithRetry(order, callback);
@@ -646,7 +664,8 @@ public class BleService extends Service implements SppInterface {
 /*        byte[] order = ByteUtils.getFile2Bytes(filePath);
         splitPacketFor20Byte(order);*/
 
-        updateFilePath = filePath;
+
+        updateFile = new File(filePath);
         curUpdatePackage = 0;
         sendWhole1KBPackage();
     }
@@ -673,7 +692,7 @@ public class BleService extends Service implements SppInterface {
 
     @Override
     public void cancelAction() {
-        inTransferring = false;
+
         if (retryTimer != null) {
             retryTimer.cancel();
         }
@@ -689,9 +708,27 @@ public class BleService extends Service implements SppInterface {
     }
 
 
+    @Override
+    public void sendDebuggingData(String data) {
+        boolean state = writeData(ByteUtils.string16ToBytes(data));
+        if (debugCallback!=null){
+            debugCallback.onSendState(state);
+        }
+    }
+
+    @Override
+    public void enableDebugging(boolean enable) {
+        inDebugging = enable;
+    }
+
+    @Override
+    public void setDebugCallBack(DebugCallback callBack) {
+        debugCallback = callBack;
+    }
+
 
     private void sendWhole1KBPackage(){
-        updateList = ProtocolHelper.getUpdateData1KBList(updateFilePath,curUpdatePackage);
+        updateList = ProtocolHelper.getUpdateData1KBList(updateFile.getAbsolutePath(),curUpdatePackage);
         send1KBPackageFromIndex(0);
     }
     //传输线程应该只且只有一个，出错时应该取消掉当前任务
@@ -720,6 +757,7 @@ public class BleService extends Service implements SppInterface {
                         e.printStackTrace();
                     }
                 }
+                Log.d("zwcc"," send1KBPackageFromIndex   curUpdatePackage= "+ curUpdatePackage );
 
             }
         });
@@ -853,7 +891,7 @@ public class BleService extends Service implements SppInterface {
     }
 
 
-    private void writeData(byte[] data) {
+    private boolean writeData(byte[] data) {
         Log.d(TAG,"writeData " );
         if (mWriteCharacteristic != null &&
                 data != null) {
@@ -861,7 +899,9 @@ public class BleService extends Service implements SppInterface {
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);
+            return true;
         }
+        return  false;
     }
 
     /**

@@ -15,4 +15,9 @@
         <item>查询故障</item>
     </string-array>
 
+    <string-array name="sensor_types">
+        <item>列车管1传感器</item>
+        <item>列车管2传感器</item>
+    </string-array>
+
 </resources>

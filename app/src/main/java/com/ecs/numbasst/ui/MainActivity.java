@@ -10,8 +10,11 @@ import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.debug.DebugActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
+import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
+import com.ecs.numbasst.ui.sensor.SensorAdjustingActivity;
+import com.ecs.numbasst.ui.sensor.SensorAuthorityActivity;
 import com.ecs.numbasst.ui.state.DeviceStateActivity;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 
@@ -66,11 +69,6 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    private void goActivity(Class<?> cls) {
-        Intent intent = new Intent();
-        intent.setClass(context, cls);
-        context.startActivity(intent);
-    }
 
     @Override
     public void onClick(View v) {
@@ -86,9 +84,10 @@ public class MainActivity extends BaseActivity {
         } else if (id == R.id.view_get_device_state) {
             goActivity(DeviceStateActivity.class);
         }else if(id == R.id.view_sensor_check){
-
+            //goActivity(SensorAuthorityActivity.class);
+            goActivity(SensorAdjustingActivity.class);
         }else if(id == R.id.view_set_device_id){
-
+            goActivity(DeviceIDActivity.class);
         }else if(id == R.id.view_debugging){
             goActivity(DebugActivity.class);
         }else if(id == R.id.view_about_numb_asst){

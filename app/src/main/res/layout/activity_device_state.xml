@@ -6,9 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="400dp"
         tools:context=".ui.state.DeviceStateActivity">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -57,29 +58,581 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <TextView
-            android:id="@+id/tv_state_car_number"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="6dp"
-            android:text="车号"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/action_bar_device_status" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gl_v1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.25" />
 
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gl_v2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.85" />
+
+        <!--第一行 车号-->
         <TextView
             android:id="@+id/tv_state_car_number_title"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_marginTop="6dp"
-            android:gravity="right"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
             android:text="车号"
-            android:textSize="16sp"
+            android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/action_bar_device_status" />
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/action_bar_device_status"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_car_number"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="1809"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toStartOf="@+id/btn_state_change_car_number"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_number_title"
+
+             />
+
+        <Button
+            android:id="@+id/btn_state_change_car_number"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:background="@drawable/selector_btn_deeper"
+            android:text="更改"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_car_number"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_car_number_title"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_number_title" />
+
+        <ImageButton
+            android:id="@+id/ib_state_refresh_car_number"
+            android:background="@drawable/selector_btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_number_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_car_number_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <!--第二行 设备ID-->
+        <TextView
+            android:id="@+id/tv_state_device_id_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="设备ID"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_car_number_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_device_id"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="1809"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toStartOf="@+id/btn_state_change_device_id"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_device_id_title"
+
+            />
+
+        <Button
+            android:id="@+id/btn_state_change_device_id"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:background="@drawable/selector_btn_deeper"
+            android:text="更改"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_device_id_title"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_device_id"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_device_id_title" />
+        <ImageButton
+            android:id="@+id/ib_state_refresh_device_id"
+            android:background="@drawable/selector_btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_device_id_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_device_id_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+
+        <!--第三行 列车管 -->
+        <TextView
+            android:id="@+id/tv_state_car_pipe_press_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="列车管"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_device_id_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_car_pipe_press_1"
+            app:layout_constrainedWidth="true"
+
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="596kPa"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toStartOf="@+id/tv_state_car_pipe_press_2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_pipe_press_title"
+
+            />
+
+        <TextView
+            android:id="@+id/tv_state_car_pipe_press_2"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="580kPa"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_car_pipe_press_1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_pipe_press_title"
+
+            />
+        <ImageButton
+            android:id="@+id/ib_state_refresh_car_pipe_press"
+            android:background="@drawable/selector_btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_pipe_press_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_car_pipe_press_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <!--第四行 故障-->
+        <TextView
+            android:id="@+id/tv_state_car_error_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="故障"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_car_pipe_press_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_error_content"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="XXXXXXXXXXX故障"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_error_title"
+            />
+
+        <ImageButton
+            android:id="@+id/ib_state_car_error"
+            android:background="@drawable/selector_btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_car_error_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_car_error_title"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 电池状态-->
+        <View
+            android:id="@+id/view_split_battery_1"
+            app:layout_constraintTop_toTopOf="@+id/tv_state__battery_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state__battery_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tv_state__battery_title"
+            android:background="@color/gray_8f"
+            android:layout_width="0dp"
+            android:layout_height="1dp"/>
+
+        <TextView
+            android:id="@+id/tv_state__battery_title"
+            app:layout_constrainedWidth="true"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_marginTop="12dp"
+            android:text="电池状态"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+              app:layout_constraintTop_toBottomOf="@+id/tv_state_car_error_title"
+            />
+
+        <View
+            android:id="@+id/view_split_battery_2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state__battery_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state__battery_title"
+            app:layout_constraintStart_toEndOf="@+id/tv_state__battery_title"
+            app:layout_constraintEnd_toStartOf="@+id/gl_v2"
+            android:background="@color/gray_8f"
+            android:layout_width="0dp"
+            android:layout_height="1dp"/>
+
+        <ImageButton
+            android:id="@+id/ib_state_battery_refresh"
+            android:background="@drawable/selector_btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state__battery_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state__battery_title"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 电池容量-->
+
+        <TextView
+            android:id="@+id/tv_state_battery_capacity_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="电池容量"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state__battery_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_battery_capacity_content"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="0%"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_battery_capacity_title"
+            />
+
+        <!-- 电池电压-->
+
+        <TextView
+            android:id="@+id/tv_state_battery_v_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="电池电压"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_battery_capacity_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_battery_v_1"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="5V"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toStartOf="@+id/tv_state_battery_v_2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_battery_v_title"
+
+            />
+
+        <TextView
+            android:id="@+id/tv_state_battery_v_2"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="5V"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_battery_v_1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_battery_v_title"
+
+            />
+
+
+        <!-- 工作电流-->
+
+        <TextView
+            android:id="@+id/tv_state_work_a_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="工作电流"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_battery_v_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_work_a_content"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="100mA"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_work_a_title"
+            />
+
+
+        <!-- 工作电压-->
+
+        <TextView
+            android:id="@+id/tv_state_work_v_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="工作电压"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_work_a_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_work_v_content"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text="4.5V"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_work_v_title"
+            />
+
+
+        <!-- TCU状态-->
+        <View
+            android:id="@+id/view_split_tcu_1"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_tcu_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_tcu_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tv_state_tcu_title"
+            android:background="@color/gray_8f"
+            android:layout_width="0dp"
+            android:layout_height="1dp"/>
+
+        <TextView
+            android:id="@+id/tv_state_tcu_title"
+            app:layout_constrainedWidth="true"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_marginTop="12dp"
+            android:text="TCU状态"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_work_v_title"
+            />
+
+        <View
+            android:id="@+id/view_split_tcu_2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_tcu_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_tcu_title"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_tcu_title"
+            app:layout_constraintEnd_toStartOf="@+id/gl_v2"
+            android:background="@color/gray_8f"
+            android:layout_width="0dp"
+            android:layout_height="1dp"/>
+
+        <ImageButton
+            android:id="@+id/ib_state_tcu_refresh"
+            android:background="@drawable/selector_btn_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_tcu_title"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_tcu_title"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+
+        <!-- 通讯状态-->
+
+        <TextView
+            android:id="@+id/tv_state_tcu_communicate_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="通讯状态"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_tcu_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_tcu_communicate_content"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:text=""
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_tcu_communicate_title"
+            />
+
+
+        <!-- 工作状态-->
+
+        <TextView
+            android:id="@+id/tv_state_tcu_work_state_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="工作状态"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_tcu_communicate_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_work_state_1"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toStartOf="@+id/tv_state_work_state_2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_tcu_work_state_title"
+
+            />
+
+        <TextView
+            android:id="@+id/tv_state_work_state_2"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_work_state_1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_work_state_1"
+
+            />
+
+
+
+        <!-- 信号强度-->
+
+        <TextView
+            android:id="@+id/tv_state_signal_strength_title"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="end|center_vertical"
+            android:text="信号强度"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_tcu_work_state_title"
+            />
+
+        <TextView
+            android:id="@+id/tv_state_signal_strength_1"
+            app:layout_constrainedWidth="true"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintStart_toStartOf="@+id/gl_v1"
+            app:layout_constraintEnd_toStartOf="@+id/tv_state_signal_strength_2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_signal_strength_title"
+
+            />
+
+        <TextView
+            android:id="@+id/tv_state_signal_strength_2"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:background="@color/gray_cc"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_signal_strength_1"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_signal_strength_1"
+
+            />
+
+        <View
+            app:layout_constraintTop_toBottomOf="@+id/tv_state_signal_strength_title"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="30dp"/>
+
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

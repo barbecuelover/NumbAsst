@@ -4,8 +4,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.number.CarNumberFragment">
+    tools:context=".ui.number.NumberActivity">
 
+    <include
+        android:id="@+id/action_bar_number"
+        layout="@layout/action_bar" />
 
     <TextView
         android:id="@+id/select_download_start_time"
@@ -16,7 +19,7 @@
         android:text="当前车号："
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/action_bar_number" />
 
     <TextView
         android:id="@+id/car_number_current"
@@ -92,6 +95,7 @@
         android:layout_marginTop="8dp"
         android:enabled="true"
         android:text="设置"
+        android:background="@drawable/selector_btn_deeper"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_new_numb"

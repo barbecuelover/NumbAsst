@@ -26,7 +26,7 @@ import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.DebugCallback;
-import com.ecs.numbasst.manager.callback.DemarcateCallback;
+import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
@@ -37,7 +37,6 @@ import com.ecs.numbasst.manager.contants.BleSppGattAttributes;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -45,7 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class BleService extends Service implements SppInterface , IDebugging {
+public class BleService extends Service implements SppInterface, IDebugging {
 
     private final static String TAG = "BLEService";
 
@@ -81,7 +80,7 @@ public class BleService extends Service implements SppInterface , IDebugging {
 
     private static NumberCallback numberCallback;
     private static DeviceIDCallback deviceIDCallback;
-    private static DemarcateCallback demarcateCallback;
+    private static AdjustCallback adjustCallback;
 
     private static UpdateCallback updateCallback;
     private static DownloadCallback downloadCallBack;
@@ -103,24 +102,14 @@ public class BleService extends Service implements SppInterface , IDebugging {
 
     private long totalPackage;
     private int curUpdatePackage = 0;
+
     @Override
     public void onCreate() {
         super.onCreate();
         initialize();
         msgHandler = new MsgHandler();
         protocolHelper = new ProtocolHelper();
-
-        executorService = (ThreadPoolExecutor)Executors.newFixedThreadPool(1);
-
-
-        //Test
-//        saveDataPath = getExternalFilesDir(DIRECTORY_DOWNLOADS).getAbsolutePath();
-//        downFile = new File(saveDataPath);
-//        try {
-//            outStream = new BufferedOutputStream(new FileOutputStream(downFile));
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
+        executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     }
 
     @Override
@@ -129,98 +118,6 @@ public class BleService extends Service implements SppInterface , IDebugging {
         cancelAction();
     }
 
-
-
-    public static class MsgHandler extends Handler {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            switch (msg.what) {
-                case MSG_CONNECTED:
-                    if (connectionCallBack != null) {
-                        connectionCallBack.onSucceed((String) msg.obj);
-                    }
-                    break;
-                case MSG_DISCONNECTED:
-                    if (connectionCallBack != null) {
-                        connectionCallBack.onFailed((String) msg.obj);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_DEVICE_STATUS:
-                    if (queryStateCallback != null) {
-                        queryStateCallback.onGetState((StateInfo) msg.obj);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
-                    if (numberCallback != null) {
-                        numberCallback.onUnsubscribed(msg.arg1);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_SET:
-                    if (numberCallback != null) {
-                        numberCallback.onNumberSet(msg.arg1);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_GET:
-                    if (numberCallback != null) {
-                        numberCallback.onNumberGot((String) msg.obj);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
-                    if (deviceIDCallback != null) {
-                        deviceIDCallback.onDeviceIDSet(msg.arg1);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
-                    if (deviceIDCallback != null) {
-                        deviceIDCallback.onDeviceIDGot((String) msg.obj);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_SENSOR_DEMARCATE:
-                    if (demarcateCallback != null) {
-                        demarcateCallback.onSensorDemarcated(msg.arg1,msg.arg2);
-                    }
-                    break;
-
-                case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                    if (updateCallback != null) {
-                        if (msg.arg2 == ProtocolHelper.STATE_SUCCEED) {
-                            updateCallback.onRequestSucceed();
-                        } else {
-                            updateCallback.onFailed("更新单元请求失败！");
-                        }
-                    }
-                    break;
-                case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
-                    //传输文件 主机回复
-                    if (updateCallback != null) {
-                        updateCallback.onUpdateProgressChanged(msg.arg1);
-//                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
-//                            updateCallback.onUpdateProgressChanged(msg.arg2);
-//                        }else {
-//                            updateCallback.onUpdateError();
-//                        }
-                    }
-                    break;
-                case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
-                    if (updateCallback != null) {
-                        updateCallback.onUpdateCompleted(msg.arg1, msg.arg2);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
-                    if (downloadCallBack != null) {
-                        long size = (long) msg.obj;
-                        downloadCallBack.onConfirmed(size);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
-                    if (downloadCallBack != null) {
-                        byte[] data = (byte[]) msg.obj;
-                        downloadCallBack.onTransferred(data);
-                    }
-                    break;
-            }
-        }
-    }
 
     public class LocalBinder extends Binder {
         BleService getService() {
@@ -297,7 +194,7 @@ public class BleService extends Service implements SppInterface , IDebugging {
                 {
                     if (service != null) {
                         mWriteCharacteristic = service.getCharacteristic(BleSppGattAttributes.UUID_BLE_SPP_NOTIFY);
-                        Log.d(TAG,"mWriteCharacteristic == mNotifyCharacteristic");
+                        Log.d(TAG, "mWriteCharacteristic == mNotifyCharacteristic");
                     } else {
                         Log.v("log", "service is null");
                         broadcastUpdate(BleConstants.ACTION_GATT_SERVICES_NO_DISCOVERED);
@@ -373,8 +270,12 @@ public class BleService extends Service implements SppInterface , IDebugging {
             return;
         }
 
+        if (inDebugging && debugCallback != null) {
+            debugCallback.onReceiveData(data);
+        }
+
         if (headType == ProtocolHelper.HEAD_SEND) {
-            handleInitiativeMsgFromServer(dataType,content);
+            handleInitiativeMsgFromServer(dataType, content);
         } else if (headType == ProtocolHelper.HEAD_REPLY) {
             handleReplyMsg(dataType, content);
         } else {
@@ -382,7 +283,6 @@ public class BleService extends Service implements SppInterface , IDebugging {
             return;
         }
     }
-
 
 
     private void sendHandlerMessage(Callback callback, int what, Object obj, int arg1, int arg2) {
@@ -396,14 +296,13 @@ public class BleService extends Service implements SppInterface , IDebugging {
         }
     }
 
-    private void handleInitiativeMsgFromServer(byte type,byte[] content) {
+    private void handleInitiativeMsgFromServer(byte type, byte[] content) {
 
         switch (type) {
             //主机主动下发的升级完成指令
 
         }
     }
-
 
 
     private void handleReplyMsg(byte type, byte[] content) {
@@ -414,7 +313,7 @@ public class BleService extends Service implements SppInterface , IDebugging {
                 break;
             //注销车号
             case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
-            //设置车号 的返回状态
+                //设置车号 的返回状态
             case ProtocolHelper.TYPE_NUMBER_SET:
                 sendHandlerMessage(numberCallback, type, null, content[0], 0);
                 break;
@@ -433,39 +332,47 @@ public class BleService extends Service implements SppInterface , IDebugging {
                 sendHandlerMessage(deviceIDCallback, type, id, 0, 0);
                 break;
             //标定传感器返回信息
-            case ProtocolHelper.TYPE_NUMBER_SENSOR_DEMARCATE:
+            case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
                 int[] result = protocolHelper.formatDemarcateSensor(content);
-                sendHandlerMessage(demarcateCallback, type, null, result[0],  result[1]);
+                sendHandlerMessage(adjustCallback, type, null, result[0], result[1]);
                 break;
 
             //主机回复 单元升级请求 的返回状态
             case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                sendHandlerMessage(updateCallback, type, null, content[0],  content[1]);
+                sendHandlerMessage(updateCallback, type, null, content[0], content[1]);
                 break;
             //升级Unit传输1kb包过程中返回信息
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                 byte transferIndex = content[0];
-                if(transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED){
+                if (transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED) {
                     //1kb已经传完开始下一个1kb
                     sendHandlerMessage(updateCallback, type, null, curUpdatePackage, 0);
                     curUpdatePackage++;
-                    if(updateFile!=null && curUpdatePackage == totalPackage){
+                    if (updateFile != null && curUpdatePackage == totalPackage) {
                         //传输完成
-                        //sendHandlerMessage(updateCallback,ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED,null,unit,ProtocolHelper.STATE_SUCCEED);
-                        updateUnitCompletedResult(unitType,ProtocolHelper.STATE_SUCCEED);
-                    }else {
+                        updateUnitCompletedResult(unitType, ProtocolHelper.STATE_SUCCEED);
+                    } else {
                         sendWhole1KBPackage();
                     }
 
-                }else if (transferIndex > 0 && transferIndex <63 ){
+                } else if (transferIndex > 0 && transferIndex < 63) {
                     //传输出问题。transferIndex 继续开始传
                     send1KBPackageFromIndex(transferIndex);
+                } else {
+                    /**
+                     #define ERR_NOT_0x21    100  //C 第1个数据包不是0x21（更新软件准备).
+                     #define ERR_NOT_SEQ_0    101  //C 等待流水号为0的数据包，收到的数据包流水号不为0。
+                     #define ERR_FLASH_PROG    102  //C There is err during flash programming.
+                     #define ERR_FLASH_ERASE    103  //C There is err during flash erase.
+                     #define ERR_NOT_DATA    104  //C 等待数据包时，接收到非数据包。
+                     */
+
                 }
                 break;
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
                 curUpdatePackage = 0;
-                sendHandlerMessage(updateCallback,type,null,content[0],content[1]);
+                sendHandlerMessage(updateCallback, type, null, content[0], content[1]);
                 break;
 
 
@@ -487,6 +394,97 @@ public class BleService extends Service implements SppInterface , IDebugging {
                     msgHandler.sendMessage(msg);
                 }
                 break;
+        }
+    }
+
+    public static class MsgHandler extends Handler {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            switch (msg.what) {
+                case MSG_CONNECTED:
+                    if (connectionCallBack != null) {
+                        connectionCallBack.onSucceed((String) msg.obj);
+                    }
+                    break;
+                case MSG_DISCONNECTED:
+                    if (connectionCallBack != null) {
+                        connectionCallBack.onFailed((String) msg.obj);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DEVICE_STATUS:
+                    if (queryStateCallback != null) {
+                        queryStateCallback.onGetState((StateInfo) msg.obj);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
+                    if (numberCallback != null) {
+                        numberCallback.onUnsubscribed(msg.arg1);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_SET:
+                    if (numberCallback != null) {
+                        numberCallback.onNumberSet(msg.arg1);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_GET:
+                    if (numberCallback != null) {
+                        numberCallback.onNumberGot((String) msg.obj);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
+                    if (deviceIDCallback != null) {
+                        deviceIDCallback.onDeviceIDSet(msg.arg1);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
+                    if (deviceIDCallback != null) {
+                        deviceIDCallback.onDeviceIDGot((String) msg.obj);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
+                    if (adjustCallback != null) {
+                        adjustCallback.onSensorAdjusted(msg.arg1, msg.arg2);
+                    }
+                    break;
+
+                case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
+                    if (updateCallback != null) {
+                        if (msg.arg2 == ProtocolHelper.STATE_SUCCEED) {
+                            updateCallback.onRequestSucceed();
+                        } else {
+                            updateCallback.onFailed("更新单元请求失败！");
+                        }
+                    }
+                    break;
+                case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
+                    //传输文件 主机回复
+                    if (updateCallback != null) {
+                        updateCallback.onUpdateProgressChanged(msg.arg1);
+//                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
+//                            updateCallback.onUpdateProgressChanged(msg.arg2);
+//                        }else {
+//                            updateCallback.onUpdateError();
+//                        }
+                    }
+                    break;
+                case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                    if (updateCallback != null) {
+                        updateCallback.onUpdateCompleted(msg.arg1, msg.arg2);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
+                    if (downloadCallBack != null) {
+                        long size = (long) msg.obj;
+                        downloadCallBack.onConfirmed(size);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
+                    if (downloadCallBack != null) {
+                        byte[] data = (byte[]) msg.obj;
+                        downloadCallBack.onTransferred(data);
+                    }
+                    break;
+            }
         }
     }
 
@@ -630,16 +628,16 @@ public class BleService extends Service implements SppInterface , IDebugging {
     }
 
     @Override
-    public void demarcateSensor(int type, int pressure, DemarcateCallback callback) {
-        byte[] order = protocolHelper.createOrderDemarcate(type,pressure);
-        demarcateCallback = callback;
+    public void adjustSensor(int type, int pressure, AdjustCallback callback) {
+        byte[] order = protocolHelper.createOrderDemarcate(type, pressure);
+        adjustCallback = callback;
         writeDataWithRetry(order, callback);
     }
 
     @Override
     public void updateUnitRequest(int unitType, File file, UpdateCallback callback) {
-        int more = file.length()%1024 ==0?0:1;
-        totalPackage = file.length()/1024 +more;
+        int more = file.length() % 1024 == 0 ? 0 : 1;
+        totalPackage = file.length() / 1024 + more;
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024);
         this.unitType = unitType;
         updateCallback = callback;
@@ -672,7 +670,7 @@ public class BleService extends Service implements SppInterface , IDebugging {
 
     @Override
     public void updateUnitCompletedResult(int unitType, int state) {
-        byte[] order = protocolHelper.createOrderUpdateCompleted(unitType,state);
+        byte[] order = protocolHelper.createOrderUpdateCompleted(unitType, state);
         writeData(order);
     }
 
@@ -711,7 +709,8 @@ public class BleService extends Service implements SppInterface , IDebugging {
     @Override
     public void sendDebuggingData(String data) {
         boolean state = writeData(ByteUtils.string16ToBytes(data));
-        if (debugCallback!=null){
+        if (debugCallback != null) {
+            Log.d("zwcc","1111");
             debugCallback.onSendState(state);
         }
     }
@@ -727,28 +726,29 @@ public class BleService extends Service implements SppInterface , IDebugging {
     }
 
 
-    private void sendWhole1KBPackage(){
-        updateList = ProtocolHelper.getUpdateData1KBList(updateFile.getAbsolutePath(),curUpdatePackage);
+    private void sendWhole1KBPackage() {
+        updateList = ProtocolHelper.getUpdateData1KBList(updateFile.getAbsolutePath(), curUpdatePackage);
         send1KBPackageFromIndex(0);
     }
+
     //传输线程应该只且只有一个，出错时应该取消掉当前任务
-    private void send1KBPackageFromIndex(int index){
+    private void send1KBPackageFromIndex(int index) {
 
         executorService.execute(new Runnable() {
             @Override
             public void run() {
 
-                if (updateList== null){
-                    Log.d(TAG,"包解析错误");
+                if (updateList == null) {
+                    Log.d(TAG, "包解析错误");
                     return;
                 }
-                for (int i =index ; i< updateList.size();i++){
+                for (int i = index; i < updateList.size(); i++) {
 
                     int queueSize = executorService.getQueue().size();
-                    if (queueSize!=0 && i !=index){
+                    if (queueSize != 0 && i != index) {
                         return;
                     }
-                    Log.d("zwcc"," index = "+ i + " 排队队列="+queueSize);
+                    Log.d("zwcc", " index = " + i + " 排队队列=" + queueSize);
                     writeData(updateList.get(i));
                     //Test
                     try {
@@ -757,7 +757,7 @@ public class BleService extends Service implements SppInterface , IDebugging {
                         e.printStackTrace();
                     }
                 }
-                Log.d("zwcc"," send1KBPackageFromIndex   curUpdatePackage= "+ curUpdatePackage );
+                Log.d("zwcc", " send1KBPackageFromIndex   curUpdatePackage= " + curUpdatePackage);
 
             }
         });
@@ -796,7 +796,7 @@ public class BleService extends Service implements SppInterface , IDebugging {
                         }
 
                         try {
-                            Thread.sleep(25);
+                            Thread.sleep(30);
 
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -892,16 +892,16 @@ public class BleService extends Service implements SppInterface , IDebugging {
 
 
     private boolean writeData(byte[] data) {
-        Log.d(TAG,"writeData " );
+        Log.d(TAG, "writeData ");
         if (mWriteCharacteristic != null &&
                 data != null) {
-            Log.d(TAG,"writeData :" + ByteUtils.bytesToString(data));
+            Log.d(TAG, "writeData :" + ByteUtils.bytesToString(data));
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);
             return true;
         }
-        return  false;
+        return false;
     }
 
     /**

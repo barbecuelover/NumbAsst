@@ -8,7 +8,6 @@ import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,11 +33,11 @@ public class ProtocolHelper {
     public final static byte TYPE_NUMBER_GET = 0x12;
     public final static byte TYPE_NUMBER_DEVICE_ID_SET = 0x13;
     public final static byte TYPE_NUMBER_DEVICE_ID_GET = 0x14;
-    public final static byte TYPE_NUMBER_SENSOR_DEMARCATE = 0x15;
-    public final static byte DEMARCATE_POINT_ZERO = 0x01;
-    public final static byte DEMARCATE_POINT_HIGH = 0x02;
-    public final static byte DEMARCATE_CONFIRM = 0x03;
-    public final static byte DEMARCATE_QUIT = 0x04;
+    public final static byte TYPE_NUMBER_SENSOR_ADJUST = 0x15;
+    public final static byte ADJUST_POINT_ZERO = 0x01;
+    public final static byte ADJUST_POINT_HIGH = 0x02;
+    public final static byte ADJUST_CONFIRM = 0x03;
+    public final static byte ADJUST_QUIT = 0x04;
 
     public final static byte UNIT_STORE = 0x01;
     public final static byte UNIT_MAIN_CONTROL = 0x02;
@@ -144,7 +143,7 @@ public class ProtocolHelper {
      */
     public byte[] createOrderDemarcate(int type,int pressure) {
         byte[] press = ByteUtils.intToLow2Byte(pressure);
-        byte[] content = {HEAD_SEND, TYPE_NUMBER_SENSOR_DEMARCATE, 0x03,(byte)type,press[0],press[1]};
+        byte[] content = {HEAD_SEND, TYPE_NUMBER_SENSOR_ADJUST, 0x03,(byte)type,press[0],press[1]};
         byte[] order = CrcUtils.addCrc8MAXIM(content);
         Log.d(TAG, "createOrder##Demarcate  = " + ByteUtils.bytesToString(order));
         return order;

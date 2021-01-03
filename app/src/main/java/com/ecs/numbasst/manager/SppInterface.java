@@ -1,7 +1,7 @@
 package com.ecs.numbasst.manager;
 
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
-import com.ecs.numbasst.manager.callback.DemarcateCallback;
+import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
@@ -21,7 +21,7 @@ public interface SppInterface {
 
    void setDeviceID(String id, DeviceIDCallback callback);
    void getDeviceID(DeviceIDCallback callback);
-   void demarcateSensor(int type, int pressure, DemarcateCallback callback);
+   void adjustSensor(int type, int pressure, AdjustCallback callback);
 
    void updateUnitRequest(int unitType, File file, UpdateCallback callback);
    void updateUnitTransfer(String filePath);

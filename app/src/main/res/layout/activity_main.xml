@@ -20,9 +20,11 @@
     <Button
         android:id="@+id/view_discovery"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
+        android:layout_margin="2dp"
         android:text="1、设备连接"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
@@ -31,9 +33,11 @@
 
         android:id="@+id/view_get_device_state"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="2、列尾状态"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
@@ -42,18 +46,22 @@
 
         android:id="@+id/view_set_car_numb"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="3、设置车号"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
     <Button
         android:id="@+id/view_update"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="4、更新单元软件"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
@@ -61,45 +69,55 @@
     <Button
         android:id="@+id/view_download"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="5、下载数据"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
     <Button
         android:id="@+id/view_sensor_check"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="6、传感器校准"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
     <Button
         android:id="@+id/view_set_device_id"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="7、设置设备ID"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
     <Button
         android:id="@+id/view_debugging"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="8、调试"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
     <Button
         android:id="@+id/view_about_numb_asst"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:gravity="center_vertical"
         android:text="9、关于置号软件"
+        android:layout_margin="2dp"
+        android:background="@drawable/selector_btn_normal"
         android:textColor="@color/black"
         android:textSize="16sp" />
 

@@ -19,6 +19,7 @@ public class PipePressInfo extends StateInfo {
     private int pipePress_1;
     private int pipePress_2;
 
+    private final  String unit = "kPa";
     /**
      * public PipePressInfo(byte pipeLow_1, byte pipeHigh_1, byte pipeLow_2, byte pipeHigh_2) {
      * this.pipeLow_1 = pipeLow_1;
@@ -47,12 +48,12 @@ public class PipePressInfo extends StateInfo {
         return new byte[]{pipeLow_1, pipeHigh_1, pipeLow_2, pipeHigh_2};
     }
 
-    public int getPipePress_1() {
-        return pipePress_1;
+    public String  getPipePress_1() {
+        return pipePress_1 + unit;
     }
 
-    public int getPipePress_2() {
-        return pipePress_2;
+    public String getPipePress_2() {
+        return pipePress_2 +unit;
     }
 
     @NonNull

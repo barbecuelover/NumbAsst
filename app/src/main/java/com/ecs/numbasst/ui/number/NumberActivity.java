@@ -8,36 +8,27 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.base.BaseFragment;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.ProtocolHelper;
-import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
-import com.google.android.material.tabs.TabLayout;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NumberActivity extends BaseActivity{
 
     TextView tvTitle;
     ImageButton btnBack;
-    TabLayout tabLayout;
-    ViewPager viewPager;
+    ImageButton btnRefresh;
+    ImageButton btnNumberLogout;
+    ProgressBar progressBar;
+    Button btnSetCarNumber;
+    EditText etNewNumber;
+    TextView tvCarName;
+    TextView tvNumberStatus;
 
-    private String[] tabs = {"车号信息", "设备ID", "传感器标定"};
-    private List<BaseFragment> tabFragmentList = new ArrayList<>();
-    CarNumberFragment carNumberFragment;
-    DeviceIDFragment deviceIDFragment;
-    DemarcateFragment demarcateFragment;
+    private BleServiceManager manager;
+    private NumberCallback numberCallback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,49 +36,52 @@ public class NumberActivity extends BaseActivity{
 
     @Override
     protected int initLayout() {
-        return R.layout.activity_numb;
+        return R.layout.activity_car_number;
     }
 
     @Override
     protected void initView() {
         tvTitle = findViewById(R.id.action_bar_title);
         btnBack =findViewById(R.id.ib_action_back);
-        tabLayout =findViewById(R.id.tab_layout_number);
-        viewPager = findViewById(R.id.view_pager_number);
+        btnRefresh = findViewById(R.id.ib_get_car_number_refresh);
+        btnNumberLogout = findViewById(R.id.ib_number_logo_out);
+        progressBar = findViewById(R.id.progress_bar_set_car_number);
+        btnSetCarNumber = findViewById(R.id.btn_set_car_number);
+        etNewNumber = findViewById(R.id.et_new_numb);
+        tvCarName = findViewById(R.id.car_number_current);
+        tvNumberStatus = findViewById(R.id.tv_car_numb_status);
+
     }
 
     @Override
     protected void initData() {
         tvTitle.setText(getTitle());
-
-        tabFragmentList.clear();
-        carNumberFragment = new CarNumberFragment();
-        deviceIDFragment = new DeviceIDFragment();
-        demarcateFragment = new  DemarcateFragment();
-        tabFragmentList.add(carNumberFragment);
-        tabFragmentList.add(deviceIDFragment);
-        tabFragmentList.add(demarcateFragment);
-
-        viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(),FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
-            @NonNull
+        manager = BleServiceManager.getInstance();
+        numberCallback = new NumberCallback() {
             @Override
-            public Fragment getItem(int position) {
-                return  tabFragmentList.get(position);
+            public void onNumberGot(String number) {
+                tvCarName.setText(number);
+                updateStatus("获取车号为："+number);
             }
 
             @Override
-            public int getCount() {
-                return tabFragmentList.size();
+            public void onNumberSet(int state) {
+                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
+                String msg = "设置车号" + status;
+                updateStatus(msg);
             }
 
-            @Nullable
             @Override
-            public CharSequence getPageTitle(int position) {
-                return tabs[position];
+            public void onUnsubscribed(int state) {
+                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
+                updateStatus("注销车号" +status);
             }
-        });
-       tabLayout.setupWithViewPager(viewPager,false);
 
+            @Override
+            public void onRetryFailed() {
+                updateStatus("多次连接主机失败");
+            }
+        };
 
 
     }
@@ -95,6 +89,9 @@ public class NumberActivity extends BaseActivity{
     @Override
     protected void initEvent() {
         btnBack.setOnClickListener(this);
+        btnRefresh.setOnClickListener(this);
+        btnSetCarNumber.setOnClickListener(this);
+        btnNumberLogout.setOnClickListener(this);
     }
 
     @Override
@@ -102,6 +99,33 @@ public class NumberActivity extends BaseActivity{
         int id = v.getId();
         if (id == R.id.ib_action_back){
             finish();
+        }else if (id == R.id.ib_get_car_number_refresh) {
+            if (manager.getConnectedDeviceMac() == null) {
+                tvNumberStatus.setText(getString(R.string.check_device_connection));
+                return;
+            }
+            if (progressBar.getVisibility() == View.VISIBLE) {
+                tvNumberStatus.setText("获取或设置车号中，请稍后再试");
+
+            } else {
+                manager.getCarNumber(numberCallback);
+                tvNumberStatus.setText("获取车号中...");
+                progressBar.setVisibility(View.VISIBLE);
+            }
+        } else if (id == R.id.btn_set_car_number) {
+            if (etNewNumber.getText().toString().trim().equals("")) {
+                updateStatus("车号不能为空！");
+            } else {
+                if (manager.getConnectedDeviceMac() == null) {
+                    updateStatus(getString(R.string.check_device_connection));
+                    return;
+                }
+                manager.setCarNumber(etNewNumber.getText().toString().trim(), numberCallback);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+        }else if (id == R.id.ib_number_logo_out){
+            updateStatus("注销车号中！");
+            manager.logoutCarNumber(numberCallback);
         }
     }
 
@@ -110,5 +134,9 @@ public class NumberActivity extends BaseActivity{
         super.onDestroy();
     }
 
+    private void updateStatus(String msg) {
+        tvNumberStatus.setText(msg);
+        progressBar.setVisibility(View.GONE);
+    }
 
 }

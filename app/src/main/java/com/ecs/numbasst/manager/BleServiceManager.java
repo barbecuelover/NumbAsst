@@ -9,7 +9,7 @@ import android.os.IBinder;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.DebugCallback;
-import com.ecs.numbasst.manager.callback.DemarcateCallback;
+import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
@@ -139,9 +139,9 @@ public class BleServiceManager implements SppInterface , IDebugging {
     }
 
     @Override
-    public void demarcateSensor(int type, int pressure, DemarcateCallback callback) {
+    public void adjustSensor(int type, int pressure, AdjustCallback callback) {
         if (bleService != null) {
-            bleService.demarcateSensor(type, pressure, callback);
+            bleService.adjustSensor(type, pressure, callback);
         }
     }
 
@@ -198,11 +198,15 @@ public class BleServiceManager implements SppInterface , IDebugging {
 
     @Override
     public void enableDebugging(boolean enable) {
-
+        if (bleService != null) {
+            bleService.enableDebugging(enable);
+        }
     }
 
     @Override
     public void setDebugCallBack(DebugCallback callBack) {
-
+        if (bleService != null) {
+            bleService.setDebugCallBack(callBack);
+        }
     }
 }

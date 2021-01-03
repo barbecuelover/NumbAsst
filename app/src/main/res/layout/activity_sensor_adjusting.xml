@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.sensor.SensorAdjustingActivity">
+
+    <include
+        android:id="@+id/action_bar_sensor_adjust"
+        layout="@layout/action_bar"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <com.ecs.numbasst.view.CrossLine
+        android:id="@+id/_cross_line_sensor_adjust_sensor"
+        app:layout_constraintTop_toBottomOf="@+id/action_bar_sensor_adjust"
+        android:layout_width="match_parent"
+        app:cross_line_title="传感器"
+        android:layout_height="32dp"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_v1"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_sensor_adjust_sensor_select_title"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="12dp"
+        android:textColor="@color/black"
+        android:text="选择传感器："
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_sensor"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"/>
+
+    <Spinner
+        android:id="@+id/spinner_sensor_adjust_select_sensor"
+        android:background="@color/gray_8f"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:entries="@array/sensor_types"
+        android:layout_marginHorizontal="12dp"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/gl_v1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_sensor_adjust_sensor_select_title"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_sensor_adjust_sensor_select_title"/>
+
+    <com.ecs.numbasst.view.CrossLine
+        android:id="@+id/_cross_line_sensor_adjust_car_press"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sensor_adjust_sensor_select_title"
+        android:layout_width="match_parent"
+        app:cross_line_title="压力值"
+        android:layout_height="32dp"/>
+
+
+    <TextView
+        android:id="@+id/tv_sensor_adjust_car_pipe_title"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="12dp"
+        android:text="列车管1："
+        android:textColor="@color/black"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_car_press"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"/>
+
+    <TextView
+        android:id="@+id/tv_sensor_adjust_car_pipe_press"
+        app:layout_constraintStart_toStartOf="@+id/gl_v1"
+        android:textSize="18sp"
+        android:text="596kPa"
+        android:textColor="@color/green"
+        android:gravity="center"
+        android:layout_marginHorizontal="12dp"
+        android:background="@color/gray_8f"
+        app:layout_constraintTop_toTopOf="@+id/tv_sensor_adjust_car_pipe_title"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_sensor_adjust_car_pipe_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="30dp"/>
+
+    <com.ecs.numbasst.view.CrossLine
+        android:id="@+id/_cross_line_sensor_adjust_operation"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sensor_adjust_car_pipe_title"
+        android:layout_width="match_parent"
+        app:cross_line_title="操作"
+        android:layout_height="32dp"/>
+
+    <Button
+        android:id="@+id/btn_sensor_zero"
+        android:text="零点"
+        android:layout_width="0dp"
+        android:layout_marginTop="6dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_operation"
+        app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+        android:layout_marginHorizontal="12dp"
+        android:background="@color/dodgerblue"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="32dp"/>
+    <Button
+        android:id="@+id/btn_sensor_high"
+        android:text="高点"
+        android:layout_width="0dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toTopOf="@+id/btn_sensor_zero"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_sensor_zero"
+        app:layout_constraintStart_toEndOf="@+id/gl_v1"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="12dp"
+        android:background="@color/dodgerblue"
+        android:layout_height="32dp"/>
+
+
+
+    <TextView
+        android:id="@+id/tv_sensor_adjust_measure_title"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="12dp"
+        android:text="输入测量值："
+        android:textColor="@color/black"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/btn_sensor_zero"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"/>
+
+    <EditText
+        android:id="@+id/et_sensor_adjust_measure_content"
+        app:layout_constraintStart_toEndOf="@+id/gl_v1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_sensor_adjust_measure_title"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_sensor_adjust_measure_title"
+        android:background="@color/gray_8f"
+        android:text="600kPa"
+        android:gravity="center"
+        android:layout_marginHorizontal="12dp"
+        android:textColor="@color/green"
+        android:layout_width="0dp"
+        android:layout_height="0dp"/>
+
+    <Button
+        android:id="@+id/btn_sensor_save"
+        android:text="保存"
+        android:enabled="false"
+        android:layout_width="0dp"
+        android:layout_marginTop="6dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sensor_adjust_measure_title"
+        app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+        android:layout_marginHorizontal="12dp"
+        android:background="@color/gray_8f"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="32dp"/>
+    <Button
+        android:id="@+id/btn_sensor_quit"
+        android:text="退出"
+        android:layout_width="0dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toTopOf="@+id/btn_sensor_save"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_sensor_save"
+        app:layout_constraintStart_toEndOf="@+id/gl_v1"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="12dp"
+        android:background="@color/dodgerblue"
+        android:layout_height="32dp"/>
+
+
+    <com.ecs.numbasst.view.CrossLine
+        android:id="@+id/_cross_line_sensor_adjust_tips"
+        app:layout_constraintTop_toBottomOf="@+id/btn_sensor_save"
+        android:layout_width="match_parent"
+        app:cross_line_title="提示"
+        android:layout_height="32dp"/>
+    <TextView
+        android:id="@+id/tv_sensor_adjust_state"
+        app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_tips"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="6dp"
+        android:layout_marginHorizontal="12dp"
+        android:background="@drawable/shape_edit_text_border"
+        android:layout_width="0dp"
+        android:layout_height="48dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

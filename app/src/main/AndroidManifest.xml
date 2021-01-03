@@ -9,7 +9,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NumbAsst">
-        <activity android:name=".ui.debug.DebugActivity"/>
+        <activity android:name=".ui.sensor.SensorAdjustingActivity"
+            android:label="校准传感器"/>
+        <activity
+            android:name=".ui.sensor.SensorAuthorityActivity"
+            android:label="权限认证" />
+        <activity android:name=".ui.debug.DebugActivity" />
         <activity
             android:name=".ui.state.DeviceStateActivity"
             android:label="@string/function_get_device_state" />
@@ -22,6 +27,9 @@
         <activity
             android:name=".ui.number.NumberActivity"
             android:label="@string/function_set_car_numb" />
+        <activity
+            android:name=".ui.number.DeviceIDActivity"
+            android:label="设置设备ID" />
         <activity
             android:name=".ui.scan.DevicesScanActivity"
             android:label="@string/function_device_discovery" />
@@ -56,12 +64,12 @@
     <uses-feature
         android:name="android.bluetooth.le"
         android:required="true" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 </manifest>

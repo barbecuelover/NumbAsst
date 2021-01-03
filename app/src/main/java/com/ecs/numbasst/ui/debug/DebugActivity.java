@@ -23,7 +23,6 @@ public class DebugActivity extends BaseActivity {
     private Button btnDebugLogClear;
     private EditText etDebugSendContent;
     private Button btnDebugSend;
-    private boolean inDebugging =false;
 
     private BleServiceManager manager;
     DebugCallback debugCallback;
@@ -63,13 +62,13 @@ public class DebugActivity extends BaseActivity {
                 if (succeed){
                     showToast("指令发送成功");
                 }else {
-                    showToast("指令发送失败");
+                    showToast("指令发送失败,请检查连接");
                 }
             }
 
             @Override
             public void onReceiveData(byte[] data) {
-
+                tvDebugLog.append("\n " + ByteUtils.bytesToString(data));
             }
         };
         manager.setDebugCallBack(debugCallback);
@@ -92,11 +91,11 @@ public class DebugActivity extends BaseActivity {
         }else if(id ==R.id.btn_debug_log_clear){
             tvDebugLog.setText("");
         }else if(id ==R.id.btn_debug_enable){
-            inDebugging =true;
             manager.enableDebugging(true);
+            showToast("启动debug调试");
         }else if(id ==R.id.btn_debug_stop){
-            inDebugging = false;
             manager.enableDebugging(false);
+            showToast("停止debug调试");
         }else if(id ==R.id.btn_debug_send){
             tvDebugLog.setText("");
             String order = etDebugSendContent.getText().toString().trim();
@@ -105,7 +104,6 @@ public class DebugActivity extends BaseActivity {
             }else {
                 manager.sendDebuggingData(order);
             }
-
         }
     }
 

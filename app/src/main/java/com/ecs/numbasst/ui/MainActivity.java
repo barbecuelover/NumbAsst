@@ -8,6 +8,7 @@ import android.widget.Button;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.ui.about.AboutActivity;
 import com.ecs.numbasst.ui.debug.DebugActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
@@ -84,14 +85,14 @@ public class MainActivity extends BaseActivity {
         } else if (id == R.id.view_get_device_state) {
             goActivity(DeviceStateActivity.class);
         }else if(id == R.id.view_sensor_check){
-            //goActivity(SensorAuthorityActivity.class);
-            goActivity(SensorAdjustingActivity.class);
+            goActivity(SensorAuthorityActivity.class);
+            //goActivity(SensorAdjustingActivity.class);
         }else if(id == R.id.view_set_device_id){
             goActivity(DeviceIDActivity.class);
         }else if(id == R.id.view_debugging){
             goActivity(DebugActivity.class);
         }else if(id == R.id.view_about_numb_asst){
-
+            goActivity(AboutActivity.class);
         }
     }
 }

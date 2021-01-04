@@ -1,5 +1,6 @@
 package com.ecs.numbasst.manager;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +36,13 @@ public class BleServiceManager implements SppInterface , IDebugging {
     public String getConnectedDeviceMac() {
         if (bleService != null) {
             return bleService.getConnectedDeviceAddress();
+        }
+        return null;
+    }
+
+    public BluetoothDevice getConnectedDevice() {
+        if (bleService != null) {
+            return bleService.getConnectedDevice();
         }
         return null;
     }
@@ -82,6 +90,15 @@ public class BleServiceManager implements SppInterface , IDebugging {
         }
     }
 
+
+    public void setQueryStateCallback(QueryStateCallback callback){
+        if (bleService != null) {
+            bleService.setQueryStateCallback(callback);
+        }
+    }
+
+
+
     @Override
     public void getDeviceState(int type, QueryStateCallback callback) {
         if (bleService != null) {
@@ -90,9 +107,9 @@ public class BleServiceManager implements SppInterface , IDebugging {
     }
 
     @Override
-    public void disconnect() {
+    public void disconnect( ConnectionCallback callback) {
         if (bleService != null) {
-            bleService.disconnect();
+            bleService.disconnect(callback);
         }
     }
 

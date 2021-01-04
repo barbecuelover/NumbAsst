@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.callback.AdjustCallback;
@@ -64,10 +65,12 @@ public class SensorAdjustingActivity extends BaseActivity {
             if (type == ProtocolHelper.ADJUST_POINT_HIGH || type == ProtocolHelper.ADJUST_POINT_ZERO){
                 //回复校准 “零点” 或者 “高点” ，使能保存按键，  “零点” 和“高点”按键 失效
                 changeStateInAdjusting();
+                tvSensorAdjustCarPipePress.setText(pressure + "kPa");
                 changeState("校准中...");
             }else if (type == ProtocolHelper.ADJUST_CONFIRM){
                 //保存完成。 使能 “零点” 和“高点”按键 ，保存按键失效
                 resetState();
+                tvSensorAdjustCarPipePress.setText(pressure + "kPa");
                 changeState("校准完成。");
             }else if(type == ProtocolHelper.ADJUST_QUIT){
                 //退出校准 恢复到默认状态
@@ -89,6 +92,7 @@ public class SensorAdjustingActivity extends BaseActivity {
         btnSensorHigh.setClickable(false);
         btnSensorZero.setClickable(false);
         btnSensorSave.setClickable(true);
+        btnSensorSave.setBackgroundColor(getResources().getColor(R.color.blue_deep_sky));
     }
 
     private void resetState() {
@@ -96,6 +100,7 @@ public class SensorAdjustingActivity extends BaseActivity {
         btnSensorHigh.setClickable(true);
         btnSensorZero.setClickable(true);
         btnSensorSave.setClickable(false);
+        btnSensorSave.setBackgroundColor(getResources().getColor(R.color.gray_8f));
     }
 
 
@@ -129,7 +134,10 @@ public class SensorAdjustingActivity extends BaseActivity {
         }else if (id == R.id.btn_sensor_high){
             manager.adjustSensor(ProtocolHelper.ADJUST_POINT_HIGH,0,adjustCallback);
         }else if (id == R.id.btn_sensor_save){
-            manager.adjustSensor(ProtocolHelper.ADJUST_CONFIRM,0,adjustCallback);
+            String temp = etSensorAdjustMeasureContent.getText().toString();
+            Log.d("zwcc","temp =" +temp);
+            int pressure = Integer.valueOf(temp);
+            manager.adjustSensor(ProtocolHelper.ADJUST_CONFIRM,pressure,adjustCallback);
         }else if (id == R.id.btn_sensor_quit){
             manager.adjustSensor(ProtocolHelper.ADJUST_QUIT,0,adjustCallback);
         }

@@ -3,7 +3,6 @@ package com.ecs.numbasst.ui.scan;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -30,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.SharePreUtil;
 import com.ecs.numbasst.manager.BleDeviceInfo;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
@@ -57,7 +57,8 @@ public class DevicesScanActivity extends BaseActivity {
     private ProgressBar progressBar;
     private BluetoothLeScanner mLeScanner;
     private boolean mScanning;
-
+    private SharePreUtil sharePreUtil;
+    private String preConnectedDeviceMac;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +82,13 @@ public class DevicesScanActivity extends BaseActivity {
             }
         }
         deviceList.clear();
+        BluetoothDevice bluetoothDevice = BleServiceManager.getInstance().getConnectedDevice();
+        if (bluetoothDevice !=null && !preConnectedDeviceMac.equals("")){
+            BleDeviceInfo  connectedDevice = new BleDeviceInfo(bluetoothDevice.getAddress(),bluetoothDevice.getName());
+            connectedDevice.setStatus( DeviceListAdapter.STATUS_CONNECTED);
+            deviceList.add(connectedDevice);
+        }
+
         scanLeDevice(true);
     }
 
@@ -105,7 +113,9 @@ public class DevicesScanActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-
+        sharePreUtil = new SharePreUtil(this,SharePreUtil.CONNECTED_DEVICE);
+        preConnectedDeviceMac = sharePreUtil.getValue(SharePreUtil.DEVICE_MAC,"");
+        Log.d(TAG, "initData: preConnectedDeviceMac="+preConnectedDeviceMac);
         mHandler = new Handler();
         adapter = new DeviceListAdapter(deviceList);
         recyclerViewDeviceList.setAdapter(adapter);
@@ -134,20 +144,35 @@ public class DevicesScanActivity extends BaseActivity {
 
             @Override
             public void onItemViewLongClicked(int position) {
-                showConnectDialog(deviceList.get(position));
+
+                BleDeviceInfo device  = deviceList.get(position);
+                if (device.getStatus() == DeviceListAdapter.STATUS_CONNECTED){
+                    showDisconnectDialog(device);
+                }else {
+                    showConnectDialog(device);
+                }
             }
         });
     }
 
 
-    private void handleConnectionFailed(String reason) {
+
+    private void handleDisconnection(String reason) {
+        showToast(reason);
         for (BleDeviceInfo deviceInfo :deviceList){
             deviceInfo.resetStatus();
         }
         resetConnectionStatus();
+        preConnectedDeviceMac = "";
+        sharePreUtil.setValue(SharePreUtil.DEVICE_MAC,"");
     }
 
     private void handleConnectionSucceed(String mac) {
+//        if (!mac.equals(sharePreUtil.getValue(SharePreUtil.DEVICE_MAC,""))){
+//            sharePreUtil.setValue(SharePreUtil.DEVICE_MAC,mac);
+//        }
+        sharePreUtil.setValue(SharePreUtil.DEVICE_MAC,mac);
+        preConnectedDeviceMac = mac;
         for (int i =0; i<deviceList.size();i++){
             BleDeviceInfo device = deviceList.get(i);
             if (device.getAddress().equals(mac)){
@@ -162,6 +187,8 @@ public class DevicesScanActivity extends BaseActivity {
     }
 
     private void resetConnectionStatus(){
+
+
         adapter.notifyDataSetChanged();
         //mHandler.removeCallbacksAndMessages(null);
         if (!mScanning){
@@ -172,17 +199,17 @@ public class DevicesScanActivity extends BaseActivity {
     private ConnectionCallback connectionCallback = new ConnectionCallback() {
         @Override
         public void onRetryFailed() {
-
+            handleDisconnection("多次尝试连接失败");
         }
 
         @Override
-        public void onSucceed(String msg) {
+        public void onConnected(String msg) {
             handleConnectionSucceed(msg);
         }
 
         @Override
-        public void onFailed(String reason) {
-            handleConnectionFailed(reason);
+        public void onDisconnected(String mac) {
+            handleDisconnection(mac);
         }
     };
 
@@ -203,7 +230,8 @@ public class DevicesScanActivity extends BaseActivity {
                     }
                 }
                 BleDeviceInfo  bleDeviceInfo = new BleDeviceInfo(device.getAddress(),device.getName());
-                if (device.getAddress().equals(BleServiceManager.getInstance().getConnectedDeviceMac())){
+                //如果扫描到上次连接过的设备，则自动连接
+                if (device.getAddress().equals(preConnectedDeviceMac)){
                     bleDeviceInfo.setStatus(DeviceListAdapter.STATUS_CONNECTING);
                     BleServiceManager.getInstance().connect(device.getAddress(),connectionCallback);
                 }
@@ -242,11 +270,8 @@ public class DevicesScanActivity extends BaseActivity {
 
 
     private void showConnectDialog(BleDeviceInfo device){
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("连接设备");
-        builder.setMessage("是否要连接设备：" +device.getName());
-        builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
+        showDialog("连接设备", "是否要连接设备：" + device.getName(), new DialogInterface.OnClickListener() {
+            @Override
             public void onClick(DialogInterface dialog, int which) {
                 BleServiceManager.getInstance().connect(device.getAddress(),connectionCallback);
                 device.setStatus(DeviceListAdapter.STATUS_CONNECTING);
@@ -256,27 +281,30 @@ public class DevicesScanActivity extends BaseActivity {
                     @Override
                     public void run() {
                         progressBar.setVisibility(View.GONE);
-
                         device.resetStatus();
                         adapter.notifyDataSetChanged();
-
                     }
                 },CONNECT_TIME_OUT);
-
             }
         });
-        builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
+    }
+
+    private void showDisconnectDialog(BleDeviceInfo device) {
+        showDialog("断开设备", "是否要断开连接：" + device.getName(), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+                BleServiceManager.getInstance().disconnect(connectionCallback);
+                progressBar.setVisibility(View.VISIBLE);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                    }
+                },CONNECT_TIME_OUT);
             }
         });
-
-        builder.setCancelable(false);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
     }
+
 
     @Override
     public void onClick(View v) {
@@ -335,16 +363,10 @@ public class DevicesScanActivity extends BaseActivity {
     }
 
 
-
-
     private void updateDeviceCountView(){
         String temp = getResources().getString(R.string.device_discovery);
         String count = String.format(temp,deviceList.size());
         tvDeviceCount.setText(count);
     }
-
-
-
-
 
 }

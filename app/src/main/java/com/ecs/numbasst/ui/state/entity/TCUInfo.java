@@ -26,12 +26,12 @@ public class TCUInfo extends StateInfo {
      */
     public TCUInfo(byte[] data) {
         super(data);
-        if (data != null && data.length == 5)
-            this.communicationStatus = data[0];
-        this.tcuWorkStatus_1 = data[1];
-        this.tcuSignalStrength_1 = data[2];
-        this.tcuWorkStatus_2 = data[3];
-        this.tcuSignalStrength_2 = data[4];
+        if (data != null && data.length == 6)
+            this.communicationStatus = data[1];
+        this.tcuWorkStatus_1 = data[2];
+        this.tcuSignalStrength_1 = data[3];
+        this.tcuWorkStatus_2 = data[4];
+        this.tcuSignalStrength_2 = data[5];
     }
 
 

@@ -1,7 +1,9 @@
 package com.ecs.numbasst.base;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -197,6 +199,43 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
             imm.showSoftInputFromInputMethod(getCurrentFocus().getWindowToken(), 0);
         }
     }
+
+    public void showDialog(String title,String msg, DialogInterface.OnClickListener onClickListener){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setPositiveButton("确定", onClickListener);
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setCancelable(false);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
+    private void showDialog(String title,String msg,String positive,String negative, DialogInterface.OnClickListener onClickListener){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setPositiveButton(positive, onClickListener);
+        builder.setNegativeButton(negative, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setCancelable(false);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
 
     @Override
     protected void onDestroy() {

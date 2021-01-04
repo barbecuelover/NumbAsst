@@ -35,17 +35,16 @@ public class ExampleUnitTest {
         return ret == retCalc;
     }
 
+    public static int byte2Int(byte low,byte high){
+        return (low & 0xFF) << 8 | high & 0xFF;
+    }
+
 
 
     @Test
     public void test (){
         //20180
-        byte[] data = new byte[]{0x11 ,0x0B};
-        byte a = getCrcSum(data);
-        System.out.println(a);
-        System.out.println(0x1c);
-        byte[] crct = new byte[]{0x11 ,0x0B,0x1c};
-        boolean check = checkDataWithCrc8SUM(crct);
+        int check = byte2Int(0x10,0x20);
         System.out.println(check);
     }
 

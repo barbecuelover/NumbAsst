@@ -86,7 +86,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
     private static DownloadCallback downloadCallBack;
     private static QueryStateCallback queryStateCallback;
 
-    private DebugCallback debugCallback;
+    private static DebugCallback debugCallback;
     private boolean inDebugging;
 
     private Handler msgHandler;
@@ -158,16 +158,18 @@ public class BleService extends Service implements SppInterface, IDebugging {
 //                intentAction = BleConstants.ACTION_GATT_CONNECTED;
 //                broadcastUpdate(intentAction);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                mConnectionState = STATE_DISCONNECTED;
-                connectedDeviceAddress = null;
-                if (connectionCallBack != null) {
-                    //创建所需的消息对象
-                    Message msg = Message.obtain();
-                    msg.what = MSG_DISCONNECTED;
-                    msg.obj = "断开连接";
-                    msgHandler.sendMessage(msg);
+                if (gatt.getDevice().getAddress().equals(connectedDeviceAddress)){
+                    mConnectionState = STATE_DISCONNECTED;
+                    connectedDeviceAddress = null;
+                    if (connectionCallBack != null) {
+                        //创建所需的消息对象
+                        Message msg = Message.obtain();
+                        msg.what = MSG_DISCONNECTED;
+                        msg.obj = connectedDeviceAddress;
+                        msgHandler.sendMessage(msg);
+                    }
+                    Log.i(TAG, "Disconnected from GATT server. status=" + status);
                 }
-                Log.i(TAG, "Disconnected from GATT server. status=" + status);
 //                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;
 //                broadcastUpdate(intentAction);
             }
@@ -231,6 +233,9 @@ public class BleService extends Service implements SppInterface, IDebugging {
             if (retryTimer != null) {
                 retryTimer.cancel();
             }
+            if (inDebugging && debugCallback != null) {
+                sendHandlerMessage(debugCallback,ProtocolHelper.TYPE_DEBUGGING,data,0,0);
+            }
             Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
             handleMsgFromBleDevice(data);
 
@@ -270,9 +275,6 @@ public class BleService extends Service implements SppInterface, IDebugging {
             return;
         }
 
-        if (inDebugging && debugCallback != null) {
-            debugCallback.onReceiveData(data);
-        }
 
         if (headType == ProtocolHelper.HEAD_SEND) {
             handleInitiativeMsgFromServer(dataType, content);
@@ -346,8 +348,8 @@ public class BleService extends Service implements SppInterface, IDebugging {
                 byte transferIndex = content[0];
                 if (transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED) {
                     //1kb已经传完开始下一个1kb
-                    sendHandlerMessage(updateCallback, type, null, curUpdatePackage, 0);
                     curUpdatePackage++;
+                    sendHandlerMessage(updateCallback, type, null, curUpdatePackage, (int)totalPackage);
                     if (updateFile != null && curUpdatePackage == totalPackage) {
                         //传输完成
                         updateUnitCompletedResult(unitType, ProtocolHelper.STATE_SUCCEED);
@@ -403,12 +405,12 @@ public class BleService extends Service implements SppInterface, IDebugging {
             switch (msg.what) {
                 case MSG_CONNECTED:
                     if (connectionCallBack != null) {
-                        connectionCallBack.onSucceed((String) msg.obj);
+                        connectionCallBack.onConnected((String) msg.obj);
                     }
                     break;
                 case MSG_DISCONNECTED:
                     if (connectionCallBack != null) {
-                        connectionCallBack.onFailed((String) msg.obj);
+                        connectionCallBack.onDisconnected((String) msg.obj);
                     }
                     break;
                 case ProtocolHelper.TYPE_DEVICE_STATUS:
@@ -459,7 +461,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
                 case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                     //传输文件 主机回复
                     if (updateCallback != null) {
-                        updateCallback.onUpdateProgressChanged(msg.arg1);
+                        updateCallback.onUpdateProgressChanged(msg.arg1 * 100 / msg.arg1);
 //                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
 //                            updateCallback.onUpdateProgressChanged(msg.arg2);
 //                        }else {
@@ -482,6 +484,12 @@ public class BleService extends Service implements SppInterface, IDebugging {
                     if (downloadCallBack != null) {
                         byte[] data = (byte[]) msg.obj;
                         downloadCallBack.onTransferred(data);
+                    }
+                    break;
+                case ProtocolHelper.TYPE_DEBUGGING:
+                    if (debugCallback != null) {
+                        byte[] data = (byte[]) msg.obj;
+                        debugCallback.onReceiveData(data);
                     }
                     break;
             }
@@ -527,7 +535,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
         if (mBluetoothAdapter == null || address == null) {
             if (!initialize()) {
                 Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
-                callback.onFailed("BluetoothAdapter not initialized or unspecified address.");
+                callback.onDisconnected("BluetoothAdapter not initialized or unspecified address.");
                 return;
             }
         }
@@ -540,7 +548,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
             if (mBluetoothGatt.connect()) {
                 mConnectionState = STATE_CONNECTING;
             } else {
-                callback.onFailed("RemoteException :the connection attempt was initiated failed");
+                callback.onDisconnected("RemoteException :the connection attempt was initiated failed");
             }
             return;
         }
@@ -548,7 +556,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
             Log.e(TAG, "Device not found.  Unable to connect.");
-            callback.onFailed("没有找到设备,无法连接！");
+            callback.onDisconnected("没有找到设备,无法连接！");
             return;
         }
         // We want to directly connect to the device, so we are setting the autoConnect
@@ -565,11 +573,12 @@ public class BleService extends Service implements SppInterface, IDebugging {
      * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
      * callback.
      */
-    public void disconnect() {
+    public void disconnect(ConnectionCallback callback) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
+        connectionCallBack = callback;
         mBluetoothGatt.disconnect();
     }
 
@@ -585,9 +594,26 @@ public class BleService extends Service implements SppInterface, IDebugging {
         mBluetoothGatt = null;
     }
 
+    public String getConnectedDeviceAddress() {
+        Log.d(TAG, "connectedDeviceAddress =" + connectedDeviceAddress);
+        return connectedDeviceAddress;
+    }
+
+    public BluetoothDevice getConnectedDevice() {
+        if (connectedDeviceAddress!=null && mBluetoothGatt!=null){
+            return mBluetoothGatt.getDevice();
+        }
+        return null;
+    }
+
+
+    public void setQueryStateCallback(QueryStateCallback callback){
+        queryStateCallback = callback;
+    }
+
     @Override
     public void getDeviceState(int type, QueryStateCallback callback) {
-        queryStateCallback = callback;
+      //  queryStateCallback = callback;
         byte[] order = protocolHelper.createOrderGetDeviceStatus(type);
         writeDataWithRetry(order, callback);
     }
@@ -700,17 +726,14 @@ public class BleService extends Service implements SppInterface, IDebugging {
     }
 
 
-    public String getConnectedDeviceAddress() {
-        Log.d(TAG, "connectedDeviceAddress =" + connectedDeviceAddress);
-        return connectedDeviceAddress;
-    }
+
+
 
 
     @Override
     public void sendDebuggingData(String data) {
         boolean state = writeData(ByteUtils.string16ToBytes(data));
         if (debugCallback != null) {
-            Log.d("zwcc","1111");
             debugCallback.onSendState(state);
         }
     }

@@ -9,8 +9,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NumbAsst">
-        <activity android:name=".ui.sensor.SensorAdjustingActivity"
-            android:label="校准传感器"/>
+        <activity android:name=".ui.about.AboutActivity" android:label="关于"/>
+        <activity
+            android:name=".ui.sensor.SensorAdjustingActivity"
+            android:label="校准传感器" />
         <activity
             android:name=".ui.sensor.SensorAuthorityActivity"
             android:label="权限认证" />
@@ -38,19 +40,19 @@
             android:label="@string/title_activity_login" />
         <activity android:name=".ui.WelcomeActivity">
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
+             <intent-filter>
+             <action android:name="android.intent.action.MAIN" />
 
 
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
+             <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
         </activity>
         <activity android:name=".ui.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity>
 
         <service
@@ -58,18 +60,18 @@
             android:enabled="true" />
     </application>
     <uses-feature
-        android:name="android.hardware.bluetooth_le"
+        android:name="android.bluetooth.le"
         android:required="true" />
 
     <uses-feature
-        android:name="android.bluetooth.le"
+        android:name="android.hardware.bluetooth_le"
         android:required="true" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
 </manifest>

@@ -52,6 +52,7 @@ public class DeviceIDActivity extends BaseActivity {
         callback = new DeviceIDCallback() {
             @Override
             public void onDeviceIDGot(String number) {
+
                 tvCurrentDeviceId.setText(number);
                 updateStatus("获取设备ID为："+number);
             }

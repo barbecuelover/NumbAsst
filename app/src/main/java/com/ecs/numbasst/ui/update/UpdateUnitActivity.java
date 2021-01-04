@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
@@ -92,9 +91,8 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onUpdateProgressChanged(int progress) {
-            int process = (int)(progress*100/(dataFile.length()/1024));
-            progressBarProcess.setProgress(process);
-            tvProcess.setText(process + "%");
+            progressBarProcess.setProgress(progress);
+            tvProcess.setText(progress + "%");
         }
 
         @Override
@@ -162,7 +160,7 @@ public class UpdateUnitActivity extends BaseActivity {
 
     private void testFile() {
         copyAssetAndWrite("ble.rar");
-        dataFile=new File(getCacheDir(),"ble.rar");
+        dataFile=new File(getCacheDir(), "ble.rar");
         path = dataFile.getAbsolutePath();
     }
 

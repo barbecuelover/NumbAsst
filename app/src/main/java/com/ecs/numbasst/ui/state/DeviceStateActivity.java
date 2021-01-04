@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
@@ -16,6 +17,7 @@ import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
+import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
@@ -95,6 +97,13 @@ public class DeviceStateActivity extends BaseActivity {
     @Override
     protected void initData() {
         manager = BleServiceManager.getInstance();
+        manager.setQueryStateCallback(queryStateCallback);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        manager.setQueryStateCallback(null);
     }
 
     private final QueryStateCallback queryStateCallback = new QueryStateCallback() {
@@ -116,11 +125,14 @@ public class DeviceStateActivity extends BaseActivity {
                     tvStateCarPipePress2.setText(pressInfo.getPipePress_2());
                 }else if (info instanceof BatteryInfo){
                     BatteryInfo batteryInfo = (BatteryInfo)info;
+                    Log.d(TAG," onGetState = BatteryInfo");
                     tvStateBatteryCapacityContent.setText(batteryInfo.getBatteryCapacity()+"%");
                     tvStateBatteryV1.setText(batteryInfo.getBatteryV_1() + "V");
                     tvStateBatteryV2.setText(batteryInfo.getBatteryV_2()+ "V");
                     tvStateWorkAContent.setText(batteryInfo.getWorkA() +"mA");
                     tvStateWorkVContent.setText(batteryInfo.getWorkV() +"V");
+
+                    Log.d(TAG," batteryInfo.getBatteryCapacity() ="+batteryInfo.getBatteryCapacity());
                 }else if (info instanceof TCUInfo){
                     TCUInfo  tcuInfo= (TCUInfo)info;
                     tvStateTcuCommunicateContent.setText(String.valueOf(tcuInfo.getCommunicationStatus()));
@@ -128,8 +140,9 @@ public class DeviceStateActivity extends BaseActivity {
                     tvStateWorkState2.setText(String.valueOf(tcuInfo.getTcuWorkStatus_2()));
                     tvStateSignalStrength1.setText(String.valueOf(tcuInfo.getTcuSignalStrength_1()));
                     tvStateSignalStrength2.setText(String.valueOf(tcuInfo.getTcuSignalStrength_2()));
+                }else if (info instanceof ErrorInfo){
+                    tvStateErrorContent.setText(info.toString());
                 }
-
             }
         }
 

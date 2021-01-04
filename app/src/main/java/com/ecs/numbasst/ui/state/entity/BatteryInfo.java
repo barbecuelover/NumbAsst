@@ -38,17 +38,17 @@ public class BatteryInfo extends StateInfo{
   */
     public BatteryInfo(byte[] data) {
         super(data);
-        if (data != null && data.length == 7) {
-            this.workVLow = data[0];
-            this.workVHigh = data[1];
-            this.workALow = data[2];
-            this.workAHigh = data[3];
+        if (data != null && data.length == 8) {
+            this.workVLow = data[1];
+            this.workVHigh = data[2];
+            this.workALow = data[3];
+            this.workAHigh = data[4];
 
             this.workV = ByteUtils.byte2Int(workVLow, workVHigh);
             this.workA = ByteUtils.byte2Int(workALow, workAHigh);
-            this.batteryCapacity = data[4];
-            this.batteryV_1 = data[5];
-            this.batteryV_2 = data[6];
+            this.batteryCapacity = data[5];
+            this.batteryV_1 = data[6];
+            this.batteryV_2 = data[7];
         }
     }
 

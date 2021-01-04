@@ -12,7 +12,7 @@ import java.io.File;
 import java.util.Date;
 
 public interface SppInterface {
-   void connect(String address, ConnectionCallback callback);
+
    void getDeviceState(int type, QueryStateCallback callback);
    void setCarNumber(String number,NumberCallback callback);
    void getCarNumber(NumberCallback callback);
@@ -31,7 +31,9 @@ public interface SppInterface {
    void downloadDataRequest(Date startTime, Date endTime, DownloadCallback callback);
    void replyDownloadConfirm(boolean download);
    void cancelAction();
-   void disconnect();
+
+   void connect(String address, ConnectionCallback callback);
+   void disconnect(ConnectionCallback callback);
    void close();
 
 }

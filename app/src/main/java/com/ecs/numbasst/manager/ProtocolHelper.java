@@ -4,6 +4,7 @@ import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
+import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
@@ -23,8 +24,8 @@ public class ProtocolHelper {
 
     public final static byte TYPE_DEVICE_STATUS = 0x01;
     public final static byte DEVICE_STATUS_PIPE_PRESS = 0x01;//0X01:列车管压力
-    public final static byte DEVICE_STATUS_DATA_STORE = 0x02; //0X02:数据存储器使用状态，包括已使用空间和剩余空间
-    public final static byte DEVICE_STATUS_BATTERY_LEVEL  = 0x03; //0X03:查询电池电量
+    public final static byte DEVICE_STATUS_DATA_STORE = 0x03; //0X02:数据存储器使用状态，包括已使用空间和剩余空间
+    public final static byte DEVICE_STATUS_BATTERY_LEVEL  = 0x02; //0X03:查询电池电量
     public final static byte DEVICE_STATUS_FAULT_DIAGNOSIS  = 0x04; //0X04:查询故障
     public final static byte DEVICE_STATUS_TCU  = 0x05; //0X05:查询TCU状态
 
@@ -54,6 +55,7 @@ public class ProtocolHelper {
     public final static byte TYPE_DOWNLOAD_HEAD = 0X32;
     public final static byte TYPE_DOWNLOAD_TRANSFER = 0X33;
 
+    public final static byte TYPE_DEBUGGING = 0X59;
 
     public final static byte STATE_FAILED = 0x01;
     public final static byte  STATE_SUCCEED = 0x00;
@@ -112,7 +114,7 @@ public class ProtocolHelper {
      * 获取 查询车号 的指令
      */
     public byte[] createOrderGetCarNumber() {
-        byte[] content = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_SET, 0x00};
+        byte[] content = {HEAD_SEND, TYPE_NUMBER_GET, 0x00};
         byte[] order = CrcUtils.addCrc8MAXIM(content);
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
         return order;
@@ -122,7 +124,7 @@ public class ProtocolHelper {
      * 获取 查询设备ID 的指令 ID为6位
      */
     public byte[] createOrderSetDeviceID(String id) {
-        byte[] head = {HEAD_SEND, TYPE_NUMBER_GET, 0x06};
+        byte[] head = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_SET, 0x06};
         byte[] msg = ByteUtils.string16ToBytes( ByteUtils.str2Hex16Str(id));
         byte[] content = ByteUtils.joinArray(head, msg);
         byte[] order = CrcUtils.addCrc8MAXIM(content);
@@ -250,6 +252,8 @@ public class ProtocolHelper {
      */
     public StateInfo formatGetDeviceStatus(byte[] content) {
         StateInfo info = null;
+        Log.d(TAG," formatGetDeviceStatus content[0]= "+ content[0]);
+        Log.d(TAG," formatGetDeviceStatus = " + ByteUtils.bytesToString(content));
         switch (content[0]){
             case DEVICE_STATUS_PIPE_PRESS:
                 info = new PipePressInfo(content);
@@ -260,6 +264,7 @@ public class ProtocolHelper {
                 info = new BatteryInfo(content);
                 break;
             case DEVICE_STATUS_FAULT_DIAGNOSIS:
+                info = new ErrorInfo(content);
                 break;
             case DEVICE_STATUS_TCU:
                 info = new TCUInfo(content);
@@ -273,7 +278,7 @@ public class ProtocolHelper {
      * @return 车号
      */
     public String formatGetCarNumber(byte[] content) {
-        return String.valueOf(ByteUtils.byte2Int(content));
+        return new String (content);
     }
 
     /**
@@ -281,7 +286,7 @@ public class ProtocolHelper {
      * @return 车号
      */
     public String formatGetDeviceID(byte[] content) {
-        return ByteUtils.bytesToString(content);
+        return  new String (content);
     }
 
 
@@ -351,6 +356,9 @@ public class ProtocolHelper {
         byte contentLength = data[2];
         int start = 3;
         int end = 3 + contentLength;
+        if (data.length-2 < contentLength){
+            return null;
+        }
         int j = 0;
         byte[] content = new byte[contentLength];
         for (int i = start; i < end; i++) {

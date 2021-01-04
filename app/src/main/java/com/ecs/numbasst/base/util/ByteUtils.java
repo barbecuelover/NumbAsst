@@ -96,7 +96,7 @@ public class ByteUtils {
      * 低位在前，高位在后
      */
     public static int byte2Int(byte low,byte high){
-        return (low & 0xFF) << 8 | high & 0xFF;
+        return ( high & 0xFF) << 8 | low & 0xFF;
     }
 
     /**

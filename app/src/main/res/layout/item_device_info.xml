@@ -27,7 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="name"
-        android:textSize="20sp" />
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/device_address"
@@ -42,5 +42,5 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:text="status"
-        android:textSize="18sp" />
+        android:textSize="16sp" />
 </LinearLayout>

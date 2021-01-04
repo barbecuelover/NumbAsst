@@ -58,6 +58,11 @@ public class DebugActivity extends BaseActivity {
         manager = BleServiceManager.getInstance();
         debugCallback = new DebugCallback() {
             @Override
+            public void onRetryFailed() {
+                showToast("多次连接主机失败");
+            }
+
+            @Override
             public void onSendState(boolean succeed) {
                 if (succeed){
                     showToast("指令发送成功");
@@ -98,7 +103,8 @@ public class DebugActivity extends BaseActivity {
             showToast("停止debug调试");
         }else if(id ==R.id.btn_debug_send){
             tvDebugLog.setText("");
-            String order = etDebugSendContent.getText().toString().trim();
+            String temp = etDebugSendContent.getText().toString().trim();
+            String order = temp.replace(" ","");
             if (order.length()==0 || order.length()%2 !=0){
                 showToast("请输入正确格式的命令");
             }else {

@@ -60,6 +60,7 @@ public class SensorAuthorityActivity extends BaseActivity {
             if (etSensorAuth.getText().toString().equals("123321")){
                 showToast("验证成功！");
                 goActivity(SensorAdjustingActivity.class);
+                finish();
             }else{
                 tvSensorAuthState.setText("密码错误请重试...");
                 showToast("密码错误请重试！");

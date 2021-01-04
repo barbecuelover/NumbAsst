@@ -97,12 +97,19 @@ public class BleServiceManager implements SppInterface , IDebugging {
         }
     }
 
+    public void setUpdateCallback(UpdateCallback callback){
+        if (bleService != null) {
+            bleService.setUpdateCallback(callback);
+        }
+    }
+
+
 
 
     @Override
-    public void getDeviceState(int type, QueryStateCallback callback) {
+    public void getDeviceState(int type) {
         if (bleService != null) {
-            bleService.getDeviceState(type, callback);
+            bleService.getDeviceState(type);
         }
     }
 
@@ -163,9 +170,9 @@ public class BleServiceManager implements SppInterface , IDebugging {
     }
 
     @Override
-    public void updateUnitRequest(int unitType, File file, UpdateCallback callback) {
+    public void updateUnitRequest(int unitType, File file) {
         if (bleService != null) {
-            bleService.updateUnitRequest(unitType, file, callback);
+            bleService.updateUnitRequest(unitType, file);
         }
     }
 

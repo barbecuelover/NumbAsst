@@ -226,13 +226,13 @@ public class DeviceStateActivity extends BaseActivity {
         }else if (id == R.id.ib_state_refresh_device_id){
             manager.getDeviceID(deviceIDCallback);
         }else if (id == R.id.ib_state_refresh_car_pipe_press){
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS,queryStateCallback);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
         }else if (id == R.id.ib_state_car_error){
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS,queryStateCallback);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
         }else if (id == R.id.ib_state_battery_refresh){
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL,queryStateCallback);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
         }else if (id == R.id.ib_state_tcu_refresh){
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU,queryStateCallback);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
         }
     }
 
@@ -240,10 +240,10 @@ public class DeviceStateActivity extends BaseActivity {
         if(manager!=null){
             manager.getCarNumber(numberCallback);
             manager.getDeviceID(deviceIDCallback);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS,queryStateCallback);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL,queryStateCallback);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS,queryStateCallback);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU,queryStateCallback);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
         }
     }
 

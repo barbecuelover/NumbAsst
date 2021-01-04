@@ -1,5 +1,8 @@
 package com.ecs.numbasst.ui.update;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -8,9 +11,12 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.FileChooseUtil;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
@@ -30,11 +36,11 @@ public class UpdateUnitActivity extends BaseActivity {
     private ProgressBar progressBarProcess;
     private TextView unitStatus;
     private TextView tvProcess;
-    Handler  handler;
+    Handler handler;
     private BleServiceManager manager;
-    private String path ="file:///android_asset/ble.rar";
+    private String path = "file:///android_asset/ble.rar";
     private File dataFile;
-
+    private final int REQUEST_CODE_FILE_EXP = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +55,9 @@ public class UpdateUnitActivity extends BaseActivity {
     @Override
     protected void initView() {
         tvTitle = findViewById(R.id.action_bar_title);
-        btnBack= findViewById(R.id.ib_action_back);
-        spinnerUnit =findViewById(R.id.spinner_select_unit);
-        btnUpdateUnit =findViewById(R.id.btn_update_unit);
+        btnBack = findViewById(R.id.ib_action_back);
+        spinnerUnit = findViewById(R.id.spinner_select_unit);
+        btnUpdateUnit = findViewById(R.id.btn_update_unit);
         progressBarStatus = findViewById(R.id.progress_bar_update_unit_status);
         progressBarProcess = findViewById(R.id.progress_bar_unit_update);
         unitStatus = findViewById(R.id.tv_data_download_status);
@@ -63,12 +69,16 @@ public class UpdateUnitActivity extends BaseActivity {
         tvTitle.setText(getTitle());
         handler = new Handler();
         manager = BleServiceManager.getInstance();
-
+        manager.setUpdateCallback(updateCallback);
         testFile();
 
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        manager.setUpdateCallback(null);
+    }
 
     private final UpdateCallback updateCallback = new UpdateCallback() {
 
@@ -85,8 +95,8 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onUpdateCompleted(int unitType, int status) {
-            updateUnitStatus( spinnerUnit.getItemAtPosition(unitType-1).toString() + "固件升级完成！");
-           // manager.updateUnitCompletedResult(unitType,status);
+            updateUnitStatus(spinnerUnit.getItemAtPosition(unitType - 1).toString() + "固件升级完成！");
+            // manager.updateUnitCompletedResult(unitType,status);
         }
 
         @Override
@@ -116,11 +126,11 @@ public class UpdateUnitActivity extends BaseActivity {
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        if(id == R.id.ib_action_back){
+        if (id == R.id.ib_action_back) {
             finish();
-        }else if(id == R.id.btn_update_unit){
-            prepareUnitUpdate();
-            //testUpdate();
+        } else if (id == R.id.btn_update_unit) {
+            //prepareUnitUpdate();
+            openFileExplorer();
         }
     }
 
@@ -129,13 +139,13 @@ public class UpdateUnitActivity extends BaseActivity {
         BleServiceManager.getInstance().updateUnitTransfer(path);
     }
 
-    private void prepareUnitUpdate(){
+    private void prepareUnitUpdate() {
 
-        if (manager.getConnectedDeviceMac()==null){
+        if (manager.getConnectedDeviceMac() == null) {
             showToast("请先连接设备");
             return;
         }
-        if (progressBarStatus.getVisibility()==View.VISIBLE ){
+        if (progressBarStatus.getVisibility() == View.VISIBLE) {
             showToast("更新操作中请勿重复点击");
             return;
         }
@@ -143,52 +153,73 @@ public class UpdateUnitActivity extends BaseActivity {
         int unitType = spinnerUnit.getSelectedItemPosition();
         //File file = new File("");
         //long fileSize = file.length();
-        long fileSize =dataFile.length();
+        long fileSize = dataFile.length();
         progressBarStatus.setVisibility(View.VISIBLE);
-        unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中..." );
-        BleServiceManager.getInstance().updateUnitRequest(unitType +1,dataFile, updateCallback);
+        unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中...");
+        BleServiceManager.getInstance().updateUnitRequest(unitType + 1, dataFile);
 
         //sendFile2Device();
     }
 
-    private void updateUnitStatus(String msg){
+    private void updateUnitStatus(String msg) {
         progressBarStatus.setVisibility(View.GONE);
         unitStatus.setText(msg);
     }
 
 
-
     private void testFile() {
         copyAssetAndWrite("ble.rar");
-        dataFile=new File(getCacheDir(), "ble.rar");
+        dataFile = new File(getCacheDir(), "ble.rar");
         path = dataFile.getAbsolutePath();
     }
 
 
-    private void testUpdate(){
+    private void testUpdate() {
 
         sendFile2Device();
     }
 
 
-    private boolean copyAssetAndWrite(String fileName){
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
+            if (requestCode == REQUEST_CODE_FILE_EXP) {
+                Uri uri = data.getData();
+                path = FileChooseUtil.getPath(this, uri);
+                showToast(path);
+                Log.d(TAG, "uri path= " + path);
+            }
+        }
+    }
+
+    private void openFileExplorer() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, REQUEST_CODE_FILE_EXP);
+
+    }
+
+
+    private boolean copyAssetAndWrite(String fileName) {
         try {
-            File cacheDir=getCacheDir();
-            if (!cacheDir.exists()){
+            File cacheDir = getCacheDir();
+            if (!cacheDir.exists()) {
                 cacheDir.mkdirs();
             }
-            File outFile =new File(cacheDir,fileName);
-            if (!outFile.exists()){
-                boolean res=outFile.createNewFile();
-                if (!res){
+            File outFile = new File(cacheDir, fileName);
+            if (!outFile.exists()) {
+                boolean res = outFile.createNewFile();
+                if (!res) {
                     return false;
                 }
-            }else {
-                if (outFile.length()>10){//表示已经写入一次
+            } else {
+                if (outFile.length() > 10) {//表示已经写入一次
                     return true;
                 }
             }
-            InputStream is=getAssets().open(fileName);
+            InputStream is = getAssets().open(fileName);
             FileOutputStream fos = new FileOutputStream(outFile);
             byte[] buffer = new byte[1024];
             int byteCount;

@@ -611,11 +611,16 @@ public class BleService extends Service implements SppInterface, IDebugging {
         queryStateCallback = callback;
     }
 
+    public void setUpdateCallback(UpdateCallback callback){
+        updateCallback = callback;
+    }
+
+
     @Override
-    public void getDeviceState(int type, QueryStateCallback callback) {
-      //  queryStateCallback = callback;
+    public void getDeviceState(int type) {
+      // queryStateCallback = callback;
         byte[] order = protocolHelper.createOrderGetDeviceStatus(type);
-        writeDataWithRetry(order, callback);
+        writeDataWithRetry(order, queryStateCallback);
     }
 
     @Override
@@ -661,14 +666,12 @@ public class BleService extends Service implements SppInterface, IDebugging {
     }
 
     @Override
-    public void updateUnitRequest(int unitType, File file, UpdateCallback callback) {
+    public void updateUnitRequest(int unitType, File file) {
         int more = file.length() % 1024 == 0 ? 0 : 1;
         totalPackage = file.length() / 1024 + more;
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024);
         this.unitType = unitType;
-        updateCallback = callback;
-        currCallback = callback;
-        writeDataWithRetry(order, callback);
+        writeDataWithRetry(order, updateCallback);
     }
 
     /**

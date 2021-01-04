@@ -13,19 +13,17 @@ import java.util.Date;
 
 public interface SppInterface {
 
-   void getDeviceState(int type, QueryStateCallback callback);
+   void getDeviceState(int type);
    void setCarNumber(String number,NumberCallback callback);
    void getCarNumber(NumberCallback callback);
    void logoutCarNumber(NumberCallback callback);
-
 
    void setDeviceID(String id, DeviceIDCallback callback);
    void getDeviceID(DeviceIDCallback callback);
    void adjustSensor(int type, int pressure, AdjustCallback callback);
 
-   void updateUnitRequest(int unitType, File file, UpdateCallback callback);
+   void updateUnitRequest(int unitType, File file);
    void updateUnitTransfer(String filePath);
-
    void updateUnitCompletedResult(int unitType, int state);
 
    void downloadDataRequest(Date startTime, Date endTime, DownloadCallback callback);

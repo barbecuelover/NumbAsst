@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -25,6 +27,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UpdateUnitActivity extends BaseActivity {
 
@@ -47,7 +51,10 @@ public class UpdateUnitActivity extends BaseActivity {
     private File  dirMainControl;
     private File  dirStore;
     private File  dirDisplay;
+    private Spinner spinnerFile;
 
+    private ArrayAdapter adapter;
+    List<String> fileList = new ArrayList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +71,7 @@ public class UpdateUnitActivity extends BaseActivity {
         tvTitle = findViewById(R.id.action_bar_title);
         btnBack = findViewById(R.id.ib_action_back);
         spinnerUnit = findViewById(R.id.spinner_select_unit);
+        spinnerFile = findViewById(R.id.spinner_select_file);
         btnUpdateUnit = findViewById(R.id.btn_update_unit);
         progressBarStatus = findViewById(R.id.progress_bar_update_unit_status);
         progressBarProcess = findViewById(R.id.progress_bar_unit_update);
@@ -136,6 +144,48 @@ public class UpdateUnitActivity extends BaseActivity {
         btnBack.setOnClickListener(this);
         btnUpdateUnit.setOnClickListener(this);
         btnSelectFile.setOnClickListener(this);
+        spinnerUnit.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG,"view  position= " +position + " view = "+ spinnerUnit.getSelectedItem().toString());
+                adapterSelectFileSpinner(position + 1);
+
+                //spinnerFile.setAdapter();
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    private void adapterSelectFileSpinner(int type) {
+        File[] files;
+        fileList.clear();
+        spinnerFile.setEnabled(true);
+        if (type == ProtocolHelper.UNIT_MAIN_CONTROL){
+            files = dirMainControl.listFiles();
+        }else if (type == ProtocolHelper.UNIT_INDICATE){
+            files = dirDisplay.listFiles();
+        }else {
+            files = dirStore.listFiles();
+        }
+        if (files.length == 0){
+            fileList.add("请检查文件夹");
+            spinnerFile.setEnabled(false);
+            showToast("未找到升级软件！");
+        }else {
+            for (File file:files){
+                fileList.add(file.getName());
+            }
+
+        }
+        adapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item, fileList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFile.setAdapter(adapter);
+
     }
 
     @Override

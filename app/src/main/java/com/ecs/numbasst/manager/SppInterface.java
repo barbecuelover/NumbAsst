@@ -1,12 +1,9 @@
 package com.ecs.numbasst.manager;
 
-import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
-import com.ecs.numbasst.manager.callback.QueryStateCallback;
-import com.ecs.numbasst.manager.callback.UpdateCallback;
 
 import java.io.File;
 import java.util.Date;
@@ -30,8 +27,8 @@ public interface SppInterface {
    void replyDownloadConfirm(boolean download);
    void cancelAction();
 
-   void connect(String address, ConnectionCallback callback);
-   void disconnect(ConnectionCallback callback);
+   void connect(String address);
+   void disconnect();
    void close();
 
 }

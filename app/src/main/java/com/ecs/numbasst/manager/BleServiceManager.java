@@ -91,9 +91,9 @@ public class BleServiceManager implements SppInterface , IDebugging {
     }
 
     @Override
-    public void connect(String address, ConnectionCallback callback) {
+    public void connect(String address) {
         if (bleService != null) {
-            bleService.connect(address, callback);
+            bleService.connect(address);
         }
     }
 
@@ -109,6 +109,13 @@ public class BleServiceManager implements SppInterface , IDebugging {
         }
     }
 
+    public void setConnectionCallback(ConnectionCallback callback){
+        if (bleService != null) {
+            bleService.setConnectionCallback(callback);
+        }
+    }
+
+
     @Override
     public void getDeviceState(int type) {
         if (bleService != null) {
@@ -117,9 +124,9 @@ public class BleServiceManager implements SppInterface , IDebugging {
     }
 
     @Override
-    public void disconnect( ConnectionCallback callback) {
+    public void disconnect( ) {
         if (bleService != null) {
-            bleService.disconnect(callback);
+            bleService.disconnect();
         }
     }
 

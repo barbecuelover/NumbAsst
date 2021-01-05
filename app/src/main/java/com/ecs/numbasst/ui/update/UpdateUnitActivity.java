@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.DataKeeper;
 import com.ecs.numbasst.base.util.FileChooseUtil;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
@@ -40,8 +41,13 @@ public class UpdateUnitActivity extends BaseActivity {
     private TextView tvProcess;
 
     private BleServiceManager manager;
-    private String path = "";
-    private File dataFile; //test file
+    private String path = "";  // update file path
+    //private File dataFile; //test file
+
+    private File  dirMainControl;
+    private File  dirStore;
+    private File  dirDisplay;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +78,10 @@ public class UpdateUnitActivity extends BaseActivity {
         manager = BleServiceManager.getInstance();
         manager.setUpdateCallback(updateCallback);
         //testFile();
+        dirMainControl = new File(DataKeeper.unit_main_control);
+        dirDisplay = new File(DataKeeper.unit_display);
+        dirStore = new File (DataKeeper.unit_store);
+
     }
 
     @Override
@@ -208,45 +218,45 @@ public class UpdateUnitActivity extends BaseActivity {
     }
 
 
-    private void testFile() {
-        copyAssetAndWrite("ble.bin");
-        dataFile = new File(getCacheDir(), "ble.bin");
-        path = dataFile.getAbsolutePath();
-    }
-
-
-    private boolean copyAssetAndWrite(String fileName) {
-        try {
-            File cacheDir = getCacheDir();
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs();
-            }
-            File outFile = new File(cacheDir, fileName);
-            if (!outFile.exists()) {
-                boolean res = outFile.createNewFile();
-                if (!res) {
-                    return false;
-                }
-            } else {
-                if (outFile.length() > 10) {//表示已经写入一次
-                    return true;
-                }
-            }
-            InputStream is = getAssets().open(fileName);
-            FileOutputStream fos = new FileOutputStream(outFile);
-            byte[] buffer = new byte[1024];
-            int byteCount;
-            while ((byteCount = is.read(buffer)) != -1) {
-                fos.write(buffer, 0, byteCount);
-            }
-            fos.flush();
-            is.close();
-            fos.close();
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
+//    private void testFile() {
+//        copyAssetAndWrite("ble.bin");
+//        dataFile = new File(getCacheDir(), "ble.bin");
+//        path = dataFile.getAbsolutePath();
+//    }
+//
+//
+//    private boolean copyAssetAndWrite(String fileName) {
+//        try {
+//            File cacheDir = getCacheDir();
+//            if (!cacheDir.exists()) {
+//                cacheDir.mkdirs();
+//            }
+//            File outFile = new File(cacheDir, fileName);
+//            if (!outFile.exists()) {
+//                boolean res = outFile.createNewFile();
+//                if (!res) {
+//                    return false;
+//                }
+//            } else {
+//                if (outFile.length() > 10) {//表示已经写入一次
+//                    return true;
+//                }
+//            }
+//            InputStream is = getAssets().open(fileName);
+//            FileOutputStream fos = new FileOutputStream(outFile);
+//            byte[] buffer = new byte[1024];
+//            int byteCount;
+//            while ((byteCount = is.read(buffer)) != -1) {
+//                fos.write(buffer, 0, byteCount);
+//            }
+//            fos.flush();
+//            is.close();
+//            fos.close();
+//            return true;
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return false;
+//    }
 }

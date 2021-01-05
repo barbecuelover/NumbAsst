@@ -1,12 +1,20 @@
 package com.ecs.numbasst.ui;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.DataKeeper;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.about.AboutActivity;
 import com.ecs.numbasst.ui.debug.DebugActivity;
@@ -20,6 +28,8 @@ import com.ecs.numbasst.ui.state.DeviceStateActivity;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 
 public class MainActivity extends BaseActivity {
+
+    private final int REQUEST_ENABLE_WRITE_FILE = 0X11;
 
     Button btnDiscovery, btnGetState, btnSetNumb, btnUpdate, btnDownload;
     private Button btnSensorCheck;
@@ -53,6 +63,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+        checkPermission();
         BleServiceManager.getInstance().initManager(this);
     }
 
@@ -95,4 +106,29 @@ public class MainActivity extends BaseActivity {
             goActivity(AboutActivity.class);
         }
     }
+
+    private void checkPermission() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
+                //判断是否需要 向用户解释，为什么要申请该权限
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_ENABLE_WRITE_FILE);
+            }else {
+                DataKeeper.init(this);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // User chose not to enable Bluetooth.
+        if (requestCode == REQUEST_ENABLE_WRITE_FILE && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+        }else if(requestCode == REQUEST_ENABLE_WRITE_FILE && resultCode == Activity.RESULT_OK){
+            DataKeeper.init(this);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
 }

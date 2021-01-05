@@ -119,6 +119,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
     }
 
 
+
     public class LocalBinder extends Binder {
         BleService getService() {
             return BleService.this;
@@ -535,21 +536,19 @@ public class BleService extends Service implements SppInterface, IDebugging {
      * Connects to the GATT server hosted on the Bluetooth LE device.
      *
      * @param address  The device address of the destination device.
-     * @param callback connection status callback.
-     *                 {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     *                 callback.
      */
     @Override
-    public void connect(final String address, ConnectionCallback callback) {
+    public void connect(final String address) {
         if (mBluetoothAdapter == null || address == null) {
             if (!initialize()) {
                 Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
-                callback.onDisconnected("BluetoothAdapter not initialized or unspecified address.");
+                if (connectionCallBack!=null){
+                    connectionCallBack.onConnectFailed("BluetoothAdapter not initialized or unspecified address.");
+                }
+
                 return;
             }
         }
-        connectionCallBack = callback;
-        currCallback = connectionCallBack;
         // Previously connected device.  Try to reconnect.
         if (address != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
@@ -557,7 +556,9 @@ public class BleService extends Service implements SppInterface, IDebugging {
             if (mBluetoothGatt.connect()) {
                 mConnectionState = STATE_CONNECTING;
             } else {
-                callback.onDisconnected("RemoteException :the connection attempt was initiated failed");
+                if (connectionCallBack!=null){
+                    connectionCallBack.onConnectFailed("RemoteException :the connection attempt was initiated failed");
+                }
             }
             return;
         }
@@ -565,7 +566,9 @@ public class BleService extends Service implements SppInterface, IDebugging {
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
             Log.e(TAG, "Device not found.  Unable to connect.");
-            callback.onDisconnected("没有找到设备,无法连接！");
+            if (connectionCallBack!=null){
+                connectionCallBack.onConnectFailed("没有找到设备,无法连接！");
+            }
             return;
         }
         // We want to directly connect to the device, so we are setting the autoConnect
@@ -576,20 +579,15 @@ public class BleService extends Service implements SppInterface, IDebugging {
         mConnectionState = STATE_CONNECTING;
     }
 
-    /**
-     * Disconnects an existing connection or cancel a pending connection. The disconnection result
-     * is reported asynchronously through the
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
-     */
-    public void disconnect(ConnectionCallback callback) {
+    @Override
+    public void disconnect() {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
-        connectionCallBack = callback;
         mBluetoothGatt.disconnect();
     }
+
 
     /**
      * After using a given BLE device, the app must call this method to ensure resources are
@@ -622,6 +620,10 @@ public class BleService extends Service implements SppInterface, IDebugging {
 
     public void setUpdateCallback(UpdateCallback callback){
         updateCallback = callback;
+    }
+
+    public void setConnectionCallback(ConnectionCallback callback) {
+        connectionCallBack = callback;
     }
 
 

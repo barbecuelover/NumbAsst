@@ -83,13 +83,19 @@ public class BleServiceManager implements SppInterface , IDebugging {
     };
 
 
+    public boolean isConnected(){
+        if (bleService != null) {
+            return bleService.isConnected();
+        }
+        return false;
+    }
+
     @Override
     public void connect(String address, ConnectionCallback callback) {
         if (bleService != null) {
             bleService.connect(address, callback);
         }
     }
-
 
     public void setQueryStateCallback(QueryStateCallback callback){
         if (bleService != null) {
@@ -102,9 +108,6 @@ public class BleServiceManager implements SppInterface , IDebugging {
             bleService.setUpdateCallback(callback);
         }
     }
-
-
-
 
     @Override
     public void getDeviceState(int type) {

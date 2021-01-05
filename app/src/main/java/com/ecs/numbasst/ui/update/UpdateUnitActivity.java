@@ -11,7 +11,6 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
@@ -28,19 +27,20 @@ import java.io.InputStream;
 public class UpdateUnitActivity extends BaseActivity {
 
 
+    private final int REQUEST_CODE_FILE_EXP = 1001;
     private TextView tvTitle;
     private ImageButton btnBack;
     private Spinner spinnerUnit;
     private Button btnUpdateUnit;
+    private Button btnSelectFile;
     private ProgressBar progressBarStatus;
     private ProgressBar progressBarProcess;
     private TextView unitStatus;
     private TextView tvProcess;
-    Handler handler;
+
     private BleServiceManager manager;
-    private String path = "file:///android_asset/ble.rar";
-    private File dataFile;
-    private final int REQUEST_CODE_FILE_EXP = 1001;
+    private String path = "";
+    private File dataFile; //test file
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,16 +62,15 @@ public class UpdateUnitActivity extends BaseActivity {
         progressBarProcess = findViewById(R.id.progress_bar_unit_update);
         unitStatus = findViewById(R.id.tv_data_download_status);
         tvProcess = findViewById(R.id.tv_progress_percent);
+        btnSelectFile = findViewById(R.id.btn_select_file);
     }
 
     @Override
     protected void initData() {
         tvTitle.setText(getTitle());
-        handler = new Handler();
         manager = BleServiceManager.getInstance();
         manager.setUpdateCallback(updateCallback);
-        testFile();
-
+        //testFile();
     }
 
     @Override
@@ -121,6 +120,7 @@ public class UpdateUnitActivity extends BaseActivity {
     protected void initEvent() {
         btnBack.setOnClickListener(this);
         btnUpdateUnit.setOnClickListener(this);
+        btnSelectFile.setOnClickListener(this);
     }
 
     @Override
@@ -129,7 +129,8 @@ public class UpdateUnitActivity extends BaseActivity {
         if (id == R.id.ib_action_back) {
             finish();
         } else if (id == R.id.btn_update_unit) {
-            //prepareUnitUpdate();
+            prepareUnitUpdate();
+        }else if (id == R.id.btn_select_file){
             openFileExplorer();
         }
     }
@@ -141,7 +142,7 @@ public class UpdateUnitActivity extends BaseActivity {
 
     private void prepareUnitUpdate() {
 
-        if (manager.getConnectedDeviceMac() == null) {
+        if (!manager.isConnected()) {
             showToast("请先连接设备");
             return;
         }
@@ -149,34 +150,22 @@ public class UpdateUnitActivity extends BaseActivity {
             showToast("更新操作中请勿重复点击");
             return;
         }
+        if (path == null || !path.contains("bin")){
+            showToast("请先选择正确的升级固件！");
+            return;
+        }
 
-        int unitType = spinnerUnit.getSelectedItemPosition();
-        //File file = new File("");
-        //long fileSize = file.length();
-        long fileSize = dataFile.length();
+        int unitType = spinnerUnit.getSelectedItemPosition() + 1;
+        File file = new File(path);
         progressBarStatus.setVisibility(View.VISIBLE);
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中...");
-        BleServiceManager.getInstance().updateUnitRequest(unitType + 1, dataFile);
-
-        //sendFile2Device();
+        BleServiceManager.getInstance().updateUnitRequest(unitType , file);
+        //BleServiceManager.getInstance().updateUnitRequest(unitType , dataFile);
     }
 
     private void updateUnitStatus(String msg) {
         progressBarStatus.setVisibility(View.GONE);
         unitStatus.setText(msg);
-    }
-
-
-    private void testFile() {
-        copyAssetAndWrite("ble.rar");
-        dataFile = new File(getCacheDir(), "ble.rar");
-        path = dataFile.getAbsolutePath();
-    }
-
-
-    private void testUpdate() {
-
-        sendFile2Device();
     }
 
 
@@ -186,9 +175,22 @@ public class UpdateUnitActivity extends BaseActivity {
         if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
             if (requestCode == REQUEST_CODE_FILE_EXP) {
                 Uri uri = data.getData();
-                path = FileChooseUtil.getPath(this, uri);
-                showToast(path);
-                Log.d(TAG, "uri path= " + path);
+                String pathTemp = FileChooseUtil.getPath(this, uri);
+                Log.d(TAG, "uri path= " + pathTemp);
+                if (pathTemp == null || !pathTemp.contains(".bin")) {
+                    showToast("选择的文件路径或者类型不正确");
+                    path = null;
+                } else {
+                    int index = pathTemp.lastIndexOf("/");
+                    if (index >0){
+                        String name = pathTemp.substring(index+1);
+                        btnSelectFile.setText(name);
+                        path = pathTemp;
+                    }else {
+                        showToast("选择的文件路径或者类型不正确");
+                        path = null;
+                    }
+                }
             }
         }
     }
@@ -198,7 +200,13 @@ public class UpdateUnitActivity extends BaseActivity {
         intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, REQUEST_CODE_FILE_EXP);
+    }
 
+
+    private void testFile() {
+        copyAssetAndWrite("ble.bin");
+        dataFile = new File(getCacheDir(), "ble.bin");
+        path = dataFile.getAbsolutePath();
     }
 
 

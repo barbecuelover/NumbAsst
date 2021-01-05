@@ -522,6 +522,13 @@ public class BleService extends Service implements SppInterface, IDebugging {
     }
 
 
+    public boolean isConnected(){
+        if (mConnectionState == STATE_CONNECTED){
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Connects to the GATT server hosted on the Bluetooth LE device.
      *

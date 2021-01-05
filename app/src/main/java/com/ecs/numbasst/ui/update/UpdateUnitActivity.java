@@ -17,6 +17,7 @@ import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.util.FileChooseUtil;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
 
 import java.io.File;
@@ -94,7 +95,11 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onUpdateCompleted(int unitType, int status) {
-            updateUnitStatus(spinnerUnit.getItemAtPosition(unitType - 1).toString() + "固件升级完成！");
+            if (status == ProtocolHelper.STATE_SUCCEED){
+                updateUnitStatus(spinnerUnit.getItemAtPosition(unitType - 1).toString() + "固件升级完成！");
+            }else {
+                updateUnitStatus(spinnerUnit.getItemAtPosition(unitType - 1).toString() + "固件升级失败！");
+            }
             // manager.updateUnitCompletedResult(unitType,status);
         }
 

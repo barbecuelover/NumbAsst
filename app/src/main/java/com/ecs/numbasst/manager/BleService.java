@@ -360,7 +360,8 @@ public class BleService extends Service implements SppInterface, IDebugging {
                 } else if (transferIndex > 0 && transferIndex < 63) {
                     //传输出问题。transferIndex 继续开始传
                     send1KBPackageFromIndex(transferIndex);
-                } else {
+                } else if (transferIndex == 65){
+                    sendWhole1KBPackage();
                     /**
                      #define ERR_NOT_0x21    100  //C 第1个数据包不是0x21（更新软件准备).
                      #define ERR_NOT_SEQ_0    101  //C 等待流水号为0的数据包，收到的数据包流水号不为0。
@@ -368,7 +369,8 @@ public class BleService extends Service implements SppInterface, IDebugging {
                      #define ERR_FLASH_ERASE    103  //C There is err during flash erase.
                      #define ERR_NOT_DATA    104  //C 等待数据包时，接收到非数据包。
                      */
-
+                }else if (transferIndex == 68){
+                    send1KBPackageFromIndex(63);
                 }
                 break;
 
@@ -461,7 +463,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
                 case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                     //传输文件 主机回复
                     if (updateCallback != null) {
-                        updateCallback.onUpdateProgressChanged(msg.arg1 * 100 / msg.arg1);
+                        updateCallback.onUpdateProgressChanged(msg.arg1 * 100 / msg.arg2);
 //                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
 //                            updateCallback.onUpdateProgressChanged(msg.arg2);
 //                        }else {
@@ -676,6 +678,7 @@ public class BleService extends Service implements SppInterface, IDebugging {
     public void updateUnitRequest(int unitType, File file) {
         int more = file.length() % 1024 == 0 ? 0 : 1;
         totalPackage = file.length() / 1024 + more;
+        Log.d(TAG,"totalPackage ="+totalPackage);
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024);
         this.unitType = unitType;
         writeDataWithRetry(order, updateCallback);

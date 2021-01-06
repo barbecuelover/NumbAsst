@@ -49,6 +49,35 @@ public class ByteUtils {
         return sb.toString().trim();
     }
 
+    /**
+     * 数据固定长度为5字节，依次：个、十、百、千、 万，不足补0；如2345，
+     * 发送数据为 0x05 0x04 0x03 0x02 0x00 。
+     * @param str
+     * @return
+     */
+    public static byte[] number5ToNumberByte(String str) {
+        int number = Integer.parseInt(str);
+        byte num1 = (byte) (number % 10);
+        byte num2 = (byte) ((number % 100)/10);
+        byte num3 = (byte) ((number % 1000)/100);
+        byte num4 = (byte) ((number % 10000)/1000);
+        byte num5 = (byte) (number/10000);
+        byte[] ary = {num1,num2,num3,num4,num5};
+        return ary;
+    }
+
+    /**
+     * 将5位 的byte数组  0x05 0x04 0x03 0x02 0x00 数字转为 字符串 02345
+     * @param data
+     * @return
+     */
+    public static String numberByteToStr(byte[] data) {
+        return new StringBuilder(new String(data)).reverse().toString();
+    }
+
+
+
+
 
     //使用1字节就可以表示b
     public static String numToHex8(int b) {

@@ -1,6 +1,5 @@
 package com.ecs.numbasst.ui.scan;
 
-import android.bluetooth.BluetoothDevice;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ecs.numbasst.R;
-import com.ecs.numbasst.manager.BleDeviceInfo;
 
 import java.util.List;
 
@@ -96,6 +94,11 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Vi
     @Override
     public int getItemCount() {
         return deviceList.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
     public static class ViewHolder extends  RecyclerView.ViewHolder{

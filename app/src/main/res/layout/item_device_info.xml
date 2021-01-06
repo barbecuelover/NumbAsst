@@ -17,6 +17,7 @@
     android:layout_height="wrap_content"
     android:maxHeight="240dp"
     android:layout_margin="6dp"
+    android:focusable="true"
     android:background="@drawable/selector_bg_item_device_list"
     android:id="@+id/device_info_container"
     android:padding="2dp"

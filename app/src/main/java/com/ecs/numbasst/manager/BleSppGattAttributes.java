@@ -1,4 +1,4 @@
-package com.ecs.numbasst.manager.contants;
+package com.ecs.numbasst.manager;
 
 import java.util.HashMap;
 import java.util.UUID;

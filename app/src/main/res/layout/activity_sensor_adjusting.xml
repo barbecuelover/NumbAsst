@@ -15,7 +15,7 @@
         android:id="@+id/_cross_line_sensor_adjust_sensor"
         app:layout_constraintTop_toBottomOf="@+id/action_bar_sensor_adjust"
         android:layout_width="match_parent"
-        app:cross_line_title="传感器"
+        app:cross_line_title="压力值"
         android:layout_height="32dp"/>
 
     <androidx.constraintlayout.widget.Guideline
@@ -32,32 +32,27 @@
         android:layout_marginTop="6dp"
         android:layout_marginStart="12dp"
         android:textColor="@color/black"
-        android:text="选择传感器："
+        android:text="列车管1："
         android:gravity="center_vertical"
         app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_sensor"
         android:layout_width="wrap_content"
         android:layout_height="30dp"/>
 
-    <Spinner
-        android:id="@+id/spinner_sensor_adjust_select_sensor"
-        android:background="@color/gray_8f"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:entries="@array/sensor_types"
-        android:layout_marginHorizontal="12dp"
+
+    <TextView
+        android:id="@+id/tv_sensor_adjust_car_pipe2_press"
         android:textSize="18sp"
+        android:text="596kPa"
+        android:textColor="@color/green"
+        android:gravity="center"
+        android:layout_marginHorizontal="12dp"
+        android:background="@color/gray_8f"
         app:layout_constraintStart_toStartOf="@+id/gl_v1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tv_sensor_adjust_sensor_select_title"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_sensor_adjust_sensor_select_title"/>
-
-    <com.ecs.numbasst.view.CrossLine
-        android:id="@+id/_cross_line_sensor_adjust_car_press"
-        app:layout_constraintTop_toBottomOf="@+id/tv_sensor_adjust_sensor_select_title"
-        android:layout_width="match_parent"
-        app:cross_line_title="压力值"
-        android:layout_height="32dp"/>
-
+        app:layout_constraintBottom_toBottomOf="@+id/tv_sensor_adjust_sensor_select_title"
+        android:layout_width="0dp"
+        android:layout_height="30dp"/>
 
     <TextView
         android:id="@+id/tv_sensor_adjust_car_pipe_title"
@@ -65,15 +60,15 @@
         android:textSize="18sp"
         android:layout_marginTop="6dp"
         android:layout_marginStart="12dp"
-        android:text="列车管1："
+        android:text="列车管2："
         android:textColor="@color/black"
         android:gravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_car_press"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sensor_adjust_sensor_select_title"
         android:layout_width="wrap_content"
         android:layout_height="30dp"/>
 
     <TextView
-        android:id="@+id/tv_sensor_adjust_car_pipe_press"
+        android:id="@+id/tv_sensor_adjust_car_pipe1_press"
         app:layout_constraintStart_toStartOf="@+id/gl_v1"
         android:textSize="18sp"
         android:text="596kPa"
@@ -103,7 +98,7 @@
         app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_operation"
         app:layout_constraintEnd_toEndOf="@+id/gl_v1"
         android:layout_marginHorizontal="12dp"
-        android:background="@color/dodgerblue"
+        android:background="@drawable/selector_btn_deeper"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_height="32dp"/>
     <Button
@@ -116,7 +111,7 @@
         app:layout_constraintStart_toEndOf="@+id/gl_v1"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginHorizontal="12dp"
-        android:background="@color/dodgerblue"
+        android:background="@drawable/selector_btn_deeper"
         android:layout_height="32dp"/>
 
 
@@ -187,7 +182,7 @@
         app:layout_constraintStart_toEndOf="@+id/gl_v1"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginHorizontal="12dp"
-        android:background="@color/dodgerblue"
+        android:background="@drawable/selector_btn_deeper"
         android:layout_height="32dp"/>
 
 

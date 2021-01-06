@@ -19,8 +19,14 @@ public class BatteryInfo extends StateInfo{
     private int workV;
     private int workA;
     private int batteryCapacity;
-    private int batteryV_1;
-    private int batteryV_2;
+    private double batteryV_1;
+    private double batteryV_2;
+
+    private final String workVUnit = "mV";
+    private final String workAUnit = "mA";
+    private final String batteryVUnit = "V";
+    private final String batteryCapacityUnit = "%";
+
 
     /**
     public BatteryInfo(byte workVLow, byte workVHigh, byte workALow, byte workAHigh, byte batteryCapacity, byte batteryV_1, byte batteryV_2) {
@@ -47,8 +53,8 @@ public class BatteryInfo extends StateInfo{
             this.workV = ByteUtils.byte2Int(workVLow, workVHigh);
             this.workA = ByteUtils.byte2Int(workALow, workAHigh);
             this.batteryCapacity = data[5];
-            this.batteryV_1 = data[6];
-            this.batteryV_2 = data[7];
+            this.batteryV_1 = ((double) data[6])/10.0;
+            this.batteryV_2 = ((double) data[7])/10.0;
         }
     }
 
@@ -56,20 +62,40 @@ public class BatteryInfo extends StateInfo{
         return workV;
     }
 
+    public String getWorkVStr(){
+        return workV + workVUnit;
+    }
+
     public int getWorkA() {
         return workA;
+    }
+
+    public String  getWorkAStr() {
+        return workA + workAUnit;
     }
 
     public int getBatteryCapacity() {
         return batteryCapacity;
     }
 
-    public int getBatteryV_1() {
-        return batteryV_1;
+    public String getBatteryCapacityStr() {
+        return batteryCapacity + batteryCapacityUnit;
     }
 
-    public int getBatteryV_2() {
-        return batteryV_2;
+    public double getBatteryV_1() {
+        return batteryV_1 ;
+    }
+
+    public double getBatteryV_2() {
+        return batteryV_2 ;
+    }
+
+    public String  getBatteryV_1Str() {
+        return batteryV_1 + batteryVUnit ;
+    }
+
+    public String getBatteryV_2Str() {
+        return batteryV_2 + batteryVUnit;
     }
 
     @NonNull

@@ -35,8 +35,38 @@ public class TCUInfo extends StateInfo {
     }
 
 
-    public byte getCommunicationStatus() {
-        return communicationStatus;
+    /**
+     * TCU1---Bit0：未注册；bit1：已注册；bit2：已注销
+     * TCU2---Bit4：未注册；bit5：已注册；bit6：已注销
+     * @return
+     */
+    public String getCommunicationStatus() {
+        String state;
+        switch (communicationStatus){
+            case  0:
+                state = "TCU1未注册";
+                break;
+            case  1:
+                state = "TCU1已注册";
+                break;
+            case  2:
+                state = "TCU1已注销";
+                break;
+            case  4:
+                state = "TCU2未注册";
+                break;
+            case  5:
+                state = "TCU2已注册";
+                break;
+            case  6:
+                state = "TCU2已注销";
+                break;
+            default:
+                state = "未知";
+                break;
+        }
+
+        return state;
     }
 
     public byte getTcuWorkStatus_1() {

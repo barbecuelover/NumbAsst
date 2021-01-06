@@ -30,7 +30,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.util.SharePreUtil;
-import com.ecs.numbasst.manager.BleDeviceInfo;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
 
@@ -122,7 +121,9 @@ public class DevicesScanActivity extends BaseActivity {
         Log.d(TAG, "initData: preConnectedDeviceMac="+preConnectedDeviceMac);
         mHandler = new Handler();
         adapter = new DeviceListAdapter(deviceList);
+        adapter.setHasStableIds(true);
         recyclerViewDeviceList.setAdapter(adapter);
+        recyclerViewDeviceList.setItemAnimator(null);
         tvTitle.setText(getTitle());
 
         final BluetoothManager bluetoothManager =

@@ -2,20 +2,21 @@ package com.ecs.numbasst;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class ExampleUnitTest {
+public class ExampleUnitTest2 {
     @Test
     public void addition_isCorrect() {
         assertEquals(4, 2 + 2);
     }
 
 
+    //查表法
     static int CRC8_table[] =  //reversed, 8-bit, poly=0x07
             {
                     0x00,0x31,0x62,0x53,0xc4,0xf5,0xa6,0x97,0xb9,0x88,0xdb,0xea,0x7d,0x4c,0x1f,0x2e,
@@ -38,49 +39,14 @@ public class ExampleUnitTest {
 
 
 
-    public  byte  crc888(byte[] data){
-        int crc=0x00; /* 计算的初始crc值 */
-        for (int bb : data){
-            System.out.println(crc^bb);
-            crc = CRC8_table[ crc^bb];
-        }
-        return (byte) crc;
-    }
-
-    public  int  crc888Int(byte[] data){
-        int crc=0x00; /* 计算的初始crc值 */
-        for (int bb : data){
-            crc = CRC8_table[ crc^bb];
-        }
-        return  crc;
-    }
-
-
-
-    public static String bytesToString(byte[] bytes) {
-        final char[] hexArray = "0123456789ABCDEF".toCharArray();
-        char[] hexChars = new char[bytes.length * 2];
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            int v = bytes[i] & 0xFF;
-            hexChars[i * 2] = hexArray[v >>> 4];
-            hexChars[i * 2 + 1] = hexArray[v & 0x0F];
-
-            sb.append(hexChars[i * 2]);
-            sb.append(hexChars[i * 2 + 1]);
-            sb.append(' ');
-        }
-        return sb.toString();
-    }
-
 
     /**
      * 计算数组的CRC8校验值并返回添加校验后的数组
      * @param data 需要计算的数组
      * @return 带CRC8和校验的整个数组
      */
-    public  byte[] addCrc8Table(byte[] data) {
-        byte ret = crc888(data);
+    public static byte[] addCrc8Table(byte[] data) {
+        byte ret = crc888Table(data);
         byte[] order = new byte[data.length+1];
         System.arraycopy(data, 0, order, 0, data.length);
         order[order.length -1] = ret;
@@ -88,26 +54,48 @@ public class ExampleUnitTest {
     }
 
 
+    public static boolean checkDataWithCrc8Table(byte[] data) {
+        byte ret = data[data.length-1];
+        byte[] order = new byte[data.length-1];
+        System.arraycopy(data, 0, order, 0, data.length-1);
+        byte retCalc = crc888Table(order);
+        return ret == retCalc;
+    }
+
+
+    public static byte crc888Table(byte[] data){
+        int crc=0x00; /* 计算的初始crc值 */
+        for (int bb : data){
+            crc = CRC8_table[ crc^bb];
+        }
+        return (byte) crc;
+    }
+
+
+
 
     @Test
     public void test (){
 
+
         //55 10 01 00 1D
-        byte[] data = {0x55,0x10,0x01,0x00};
+        byte[] data = {0x55,0x10,0x01,0x00,0x1D};
         //55 11 01 00 5B
-        byte[] data0 = {0x55,0x11,0x01,0x00};
+        byte[] data0 = {0x55,0x11,0x01,0x00,0X5B};
 
         //55 01 05 01 58 02 58 02 93
-        byte[] data1 = {0x55,0x01,0x05,0x01,0x58,0x02,0x58,0x02};
+        byte[] data1 = {0x55,0x01,0x05,0x01,0x58,0x02,0x58,0x02,(byte)0x93};
 
         //55 01 08 02 22 1D 48 00 62 4A 00 9D
-        byte[] data2 = {0x55,0x01,0x08,0x02,0x22,0x1D,0x48,0x00,0x62,0x4A,0x00};
+        byte[] data2 = {0x55,0x01,0x08,0x02,0x22,0x1D,0x48,0x00,0x62,0x4A,0x00,(byte)0x9D};
 
 
-        System.out.println(bytesToString(addCrc8Table(data2)));
+        System.out.println( checkDataWithCrc8Table(data));
+        System.out.println( checkDataWithCrc8Table(data));
+        System.out.println( checkDataWithCrc8Table(data));
+        System.out.println( checkDataWithCrc8Table(data));
 
-        int ddd= crc888Int(data2);
-        System.out.println(ddd);
+
     }
 
 }

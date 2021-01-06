@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.ecs.numbasst.R;
@@ -21,8 +20,8 @@ public class SensorAdjustingActivity extends BaseActivity {
 
     private ImageButton ibActionBack;
     private TextView actionBarTitle;
-    private Spinner spinnerSensorAdjustSelectSensor;
-    private TextView tvSensorAdjustCarPipePress;
+    private TextView tvCarPipe1Press;
+    private TextView tvCarPipe2Press;
     private Button btnSensorZero;
     private Button btnSensorHigh;
     private EditText etSensorAdjustMeasureContent;
@@ -32,6 +31,7 @@ public class SensorAdjustingActivity extends BaseActivity {
 
     private BleServiceManager manager;
     private boolean inAdjusting;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +49,8 @@ public class SensorAdjustingActivity extends BaseActivity {
 
         ibActionBack = findViewById(R.id.ib_action_back);
         actionBarTitle =  findViewById(R.id.action_bar_title);
-        spinnerSensorAdjustSelectSensor =  findViewById(R.id.spinner_sensor_adjust_select_sensor);
-        tvSensorAdjustCarPipePress =  findViewById(R.id.tv_sensor_adjust_car_pipe_press);
+        tvCarPipe1Press =  findViewById(R.id.tv_sensor_adjust_car_pipe1_press);
+        tvCarPipe2Press =  findViewById(R.id.tv_sensor_adjust_car_pipe2_press);
         btnSensorZero =  findViewById(R.id.btn_sensor_zero);
         btnSensorHigh =  findViewById(R.id.btn_sensor_high);
         etSensorAdjustMeasureContent =  findViewById(R.id.et_sensor_adjust_measure_content);
@@ -59,46 +59,25 @@ public class SensorAdjustingActivity extends BaseActivity {
         tvSensorAdjustState =  findViewById(R.id.tv_sensor_adjust_state);
     }
 
-    private  final AdjustCallback adjustCallback = new AdjustCallback() {
-        @Override
-        public void onSensorAdjusted(int type, int pressure) {
-            if (type == ProtocolHelper.ADJUST_POINT_HIGH || type == ProtocolHelper.ADJUST_POINT_ZERO){
-                //回复校准 “零点” 或者 “高点” ，使能保存按键，  “零点” 和“高点”按键 失效
-                changeStateInAdjusting();
-                tvSensorAdjustCarPipePress.setText(pressure + "kPa");
-                changeState("校准中...");
-            }else if (type == ProtocolHelper.ADJUST_CONFIRM){
-                //保存完成。 使能 “零点” 和“高点”按键 ，保存按键失效
-                resetState();
-                tvSensorAdjustCarPipePress.setText(pressure + "kPa");
-                changeState("校准完成。");
-            }else if(type == ProtocolHelper.ADJUST_QUIT){
-                //退出校准 恢复到默认状态
-                resetState();
-                changeState("退出校准。");
 
-            }
-        }
-
-        @Override
-        public void onRetryFailed() {
-
-        }
-    };
 
 
     private void changeStateInAdjusting(){
         inAdjusting = true;
         btnSensorHigh.setClickable(false);
         btnSensorZero.setClickable(false);
+        btnSensorHigh.setBackgroundColor(getResources().getColor(R.color.gray_8f));
+        btnSensorZero.setBackgroundColor(getResources().getColor(R.color.gray_8f));
         btnSensorSave.setClickable(true);
-        btnSensorSave.setBackgroundColor(getResources().getColor(R.color.blue_deep_sky));
+        btnSensorSave.setBackground(getResources().getDrawable(R.drawable.selector_btn_deeper,null ));
     }
 
     private void resetState() {
         inAdjusting = false;
         btnSensorHigh.setClickable(true);
         btnSensorZero.setClickable(true);
+        btnSensorHigh.setBackground(getResources().getDrawable(R.drawable.selector_btn_deeper,null ));
+        btnSensorZero.setBackground(getResources().getDrawable(R.drawable.selector_btn_deeper,null ));
         btnSensorSave.setClickable(false);
         btnSensorSave.setBackgroundColor(getResources().getColor(R.color.gray_8f));
     }
@@ -108,6 +87,34 @@ public class SensorAdjustingActivity extends BaseActivity {
     protected void initData() {
         actionBarTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
+        AdjustCallback adjustCallback = new AdjustCallback() {
+            @Override
+            public void onSensorAdjusted(int type, int pressure) {
+                if (type == ProtocolHelper.ADJUST_POINT_HIGH || type == ProtocolHelper.ADJUST_POINT_ZERO){
+                    //回复校准 “零点” 或者 “高点” ，使能保存按键，  “零点” 和“高点”按键 失效
+                    changeStateInAdjusting();
+                    tvCarPipe1Press.setText(pressure + "kPa");
+                    changeState("校准中...");
+                }else if (type == ProtocolHelper.ADJUST_SAVE){
+                    //保存完成。 使能 “零点” 和“高点”按键 ，保存按键失效
+                    resetState();
+                    tvCarPipe1Press.setText(pressure + "kPa");
+                    changeState("校准完成。");
+                }else if(type == ProtocolHelper.ADJUST_QUIT){
+                    //退出校准 恢复到默认状态
+                    resetState();
+                    changeState("退出校准。");
+
+                }
+            }
+
+            @Override
+            public void onRetryFailed() {
+                showToast("多次重试与主机通信失败");
+            }
+        };
+
+        manager.setAdjustCallback( adjustCallback);
     }
 
     @Override
@@ -123,23 +130,23 @@ public class SensorAdjustingActivity extends BaseActivity {
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.ib_action_back) {
-            showQuitDialog();
-//            if (inAdjusting){
-//                showQuitDialog();
-//            }else {
-//                finish();
-//            }
+            //showQuitDialog();
+            if (inAdjusting){
+                showQuitDialog();
+            }else {
+                finish();
+            }
         }else if (id == R.id.btn_sensor_zero){
-            manager.adjustSensor(ProtocolHelper.ADJUST_POINT_ZERO,0,adjustCallback);
+            manager.adjustSensor(ProtocolHelper.ADJUST_POINT_ZERO,0);
         }else if (id == R.id.btn_sensor_high){
-            manager.adjustSensor(ProtocolHelper.ADJUST_POINT_HIGH,0,adjustCallback);
+            manager.adjustSensor(ProtocolHelper.ADJUST_POINT_HIGH,0);
         }else if (id == R.id.btn_sensor_save){
             String temp = etSensorAdjustMeasureContent.getText().toString();
             Log.d("zwcc","temp =" +temp);
             int pressure = Integer.valueOf(temp);
-            manager.adjustSensor(ProtocolHelper.ADJUST_CONFIRM,pressure,adjustCallback);
+            manager.adjustSensor(ProtocolHelper.ADJUST_SAVE,pressure);
         }else if (id == R.id.btn_sensor_quit){
-            manager.adjustSensor(ProtocolHelper.ADJUST_QUIT,0,adjustCallback);
+            manager.adjustSensor(ProtocolHelper.ADJUST_QUIT,0);
         }
     }
 

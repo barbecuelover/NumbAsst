@@ -69,7 +69,7 @@ public class DeviceIDActivity extends BaseActivity {
                 updateStatus("多次连接主机失败");
             }
         };
-
+        manager.setDeviceIDCallback(callback);
     }
 
     @Override
@@ -83,11 +83,11 @@ public class DeviceIDActivity extends BaseActivity {
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.ib_get_device_id_refresh) {
-            if (manager.getConnectedDeviceMac() == null) {
+            if (!manager.isConnected()) {
                 updateStatus(getString(R.string.check_device_connection));
                 return;
             }
-            manager.getDeviceID(callback);
+            manager.getDeviceID();
             updateStatus("获取设备ID中...");
             //showLoading
         }else if(id == R.id.ib_action_back){
@@ -99,13 +99,13 @@ public class DeviceIDActivity extends BaseActivity {
             if (dID.equals("")) {
                 updateStatus("设备ID不能为空！");
             } else {
-                if (manager.getConnectedDeviceMac() == null) {
+                if (!manager.isConnected()) {
                     updateStatus(getString(R.string.check_device_connection));
                     return;
                 }
 
                 if (dID.length() == 6){
-                    manager.setDeviceID(dID,callback);
+                    manager.setDeviceID(dID);
                     //showLoading
                 }
 

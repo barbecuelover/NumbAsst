@@ -9,41 +9,46 @@
     <Button
         android:id="@+id/btn_update_unit"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/btn_normal_height"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="4dp"
         android:enabled="true"
         android:text="更新"
+        android:background="@drawable/selector_btn_deeper"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/spinner_select_file"
         app:layout_constraintVertical_bias="0.2" />
 
     <Button
-        android:id="@+id/btn_select_file"
-        android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="6dp"
-        android:text="请选择文件"
-        android:textAllCaps="false"
         android:visibility="gone"
-        android:background="@drawable/shape_edit_text_border"
+        android:id="@+id/btn_select_file"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="32dp"
+        android:text="浏览"
+        android:textAllCaps="false"
+
+        android:background="@drawable/selector_btn_deeper"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_set_new_numb_title" />
+        app:layout_constraintStart_toEndOf="@+id/spinner_select_file"
+        app:layout_constraintTop_toTopOf="@+id/spinner_select_file" />
 
 
     <Spinner
         android:id="@+id/spinner_select_file"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="40dp"
-        android:layout_marginHorizontal="32dp"
+        android:layout_marginStart="32dp"
+        app:layout_goneMarginEnd="32dp"
         android:layout_marginTop="6dp"
         android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
+
+        app:layout_constraintEnd_toStartOf="@+id/btn_select_file"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_set_new_numb_title" />
+
 
 
     <ProgressBar
@@ -55,7 +60,7 @@
         android:layout_marginEnd="70dp"
         android:layout_marginBottom="18dp"
         android:max="100"
-        android:progress="10"
+        android:progress="0"
         android:progressDrawable="@drawable/progress_bar_style"
         app:layout_constraintBottom_toTopOf="@+id/tv_data_download_status"
         app:layout_constraintEnd_toEndOf="parent"
@@ -110,7 +115,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="12dp"
-        android:text="10%"
+        android:text="0%"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/progress_bar_unit_update"
@@ -125,7 +130,7 @@
         android:background="@drawable/shape_text_view_status"
         android:gravity="center"
         android:minHeight="80dp"
-        android:text="更新中"
+        android:text="更新状态"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -38,8 +38,6 @@ public class DataDownloadActivity extends BaseActivity {
 
     DialogDatePicker datePickerSelect;
 
-    private DownloadCallback downloadCallback;
-
     private BleServiceManager manager;
     private long dataTotalSize;
     private long currentSize;
@@ -82,7 +80,7 @@ public class DataDownloadActivity extends BaseActivity {
         tvStartTime.setText(date);
         tvEndTime.setText(date);
         Log.d("zwcc"," Unix :" + new Date().getTime());
-        downloadCallback = new DownloadCallback() {
+        DownloadCallback downloadCallback = new DownloadCallback() {
             @Override
             public void onRetryFailed() {
 
@@ -106,6 +104,8 @@ public class DataDownloadActivity extends BaseActivity {
                }
             }
         };
+
+        manager.setDownloadCallback(downloadCallback);
     }
 
 
@@ -149,7 +149,7 @@ public class DataDownloadActivity extends BaseActivity {
 
     private void prepareDownloadData() {
 
-        if (manager.getConnectedDeviceMac()==null){
+        if (!manager.isConnected()){
             showToast(getString(R.string.check_device_connection));
             return;
         }
@@ -165,7 +165,7 @@ public class DataDownloadActivity extends BaseActivity {
             Date dateStart = dateFormat.parse(tvStartTime.getText().toString());
             Date dateEnd = dateFormat.parse(tvEndTime.getText().toString());
             dataTotalSize = 0;
-            BleServiceManager.getInstance().downloadDataRequest(dateStart,dateEnd,downloadCallback);
+            BleServiceManager.getInstance().downloadDataRequest(dateStart,dateEnd);
         } catch (ParseException e) {
             e.printStackTrace();
         }

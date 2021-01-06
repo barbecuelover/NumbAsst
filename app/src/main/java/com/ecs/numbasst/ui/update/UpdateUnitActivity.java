@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +52,8 @@ public class UpdateUnitActivity extends BaseActivity {
     private File  dirMainControl;
     private File  dirStore;
     private File  dirDisplay;
+
+    private File  dirCur;
     private Spinner spinnerFile;
 
     private ArrayAdapter adapter;
@@ -90,6 +93,10 @@ public class UpdateUnitActivity extends BaseActivity {
         dirDisplay = new File(DataKeeper.unit_display);
         dirStore = new File (DataKeeper.unit_store);
 
+        adapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item, fileList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFile.setAdapter(adapter);
+
     }
 
     @Override
@@ -118,7 +125,6 @@ public class UpdateUnitActivity extends BaseActivity {
             }else {
                 updateUnitStatus(spinnerUnit.getItemAtPosition(unitType - 1).toString() + "固件升级失败！");
             }
-            // manager.updateUnitCompletedResult(unitType,status);
         }
 
         @Override
@@ -149,9 +155,6 @@ public class UpdateUnitActivity extends BaseActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG,"view  position= " +position + " view = "+ spinnerUnit.getSelectedItem().toString());
                 adapterSelectFileSpinner(position + 1);
-
-                //spinnerFile.setAdapter();
-
             }
 
             @Override
@@ -162,30 +165,29 @@ public class UpdateUnitActivity extends BaseActivity {
     }
 
     private void adapterSelectFileSpinner(int type) {
-        File[] files;
         fileList.clear();
         spinnerFile.setEnabled(true);
         if (type == ProtocolHelper.UNIT_MAIN_CONTROL){
-            files = dirMainControl.listFiles();
+            dirCur = dirMainControl;
         }else if (type == ProtocolHelper.UNIT_INDICATE){
-            files = dirDisplay.listFiles();
+            dirCur = dirDisplay;
         }else {
-            files = dirStore.listFiles();
+            dirCur = dirStore;
         }
-        if (files.length == 0){
-            fileList.add("请检查文件夹");
+        File[] files = dirCur.listFiles();
+        if (files==null || files.length == 0){
+            fileList.add("请检查"+spinnerUnit.getSelectedItem().toString()+"软件文件夹");
             spinnerFile.setEnabled(false);
-            showToast("未找到升级软件！");
+            showToast("未找到升级所需软件！");
         }else {
             for (File file:files){
                 fileList.add(file.getName());
             }
-
         }
-        adapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item, fileList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerFile.setAdapter(adapter);
-
+//        adapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item, fileList);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        spinnerFile.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -215,13 +217,21 @@ public class UpdateUnitActivity extends BaseActivity {
             showToast("更新操作中请勿重复点击");
             return;
         }
-        if (path == null || !path.contains("bin")){
+        if (!spinnerFile.isEnabled()){
+            showToast("请先选择正确的升级固件！");
+            return;
+        }
+
+        path = dirCur.getAbsolutePath()+ "/" + spinnerFile.getSelectedItem().toString();
+        Log.d(TAG,"prepareUnitUpdate path="+path);
+        File file = new File(path);
+        if (!file.exists()){
             showToast("请先选择正确的升级固件！");
             return;
         }
 
         int unitType = spinnerUnit.getSelectedItemPosition() + 1;
-        File file = new File(path);
+
         progressBarStatus.setVisibility(View.VISIBLE);
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中...");
         BleServiceManager.getInstance().updateUnitRequest(unitType , file);
@@ -242,18 +252,22 @@ public class UpdateUnitActivity extends BaseActivity {
                 Uri uri = data.getData();
                 String pathTemp = FileChooseUtil.getPath(this, uri);
                 Log.d(TAG, "uri path= " + pathTemp);
-                if (pathTemp == null || !pathTemp.contains(".bin")) {
+                //|| !pathTemp.contains(".bin")
+                if (pathTemp == null ) {
                     showToast("选择的文件路径或者类型不正确");
-                    path = null;
+                    //path = null;
                 } else {
                     int index = pathTemp.lastIndexOf("/");
                     if (index >0){
                         String name = pathTemp.substring(index+1);
-                        btnSelectFile.setText(name);
+                        //btnSelectFile.setText(name);
                         path = pathTemp;
+
+
+
                     }else {
                         showToast("选择的文件路径或者类型不正确");
-                        path = null;
+                        //path = null;
                     }
                 }
             }
@@ -262,6 +276,9 @@ public class UpdateUnitActivity extends BaseActivity {
 
     private void openFileExplorer() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        String explorerPath =  URLDecoder.decode(dirCur.getAbsolutePath(),"UTF-8");
+//        intent.setDataAndType(Uri.parse(explorerPath), "*/*");
+
         intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, REQUEST_CODE_FILE_EXP);

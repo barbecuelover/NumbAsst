@@ -24,8 +24,8 @@ public class ProtocolHelper {
 
     public final static byte TYPE_DEVICE_STATUS = 0x01;
     public final static byte DEVICE_STATUS_PIPE_PRESS = 0x01;//0X01:列车管压力
-    public final static byte DEVICE_STATUS_DATA_STORE = 0x03; //0X02:数据存储器使用状态，包括已使用空间和剩余空间
-    public final static byte DEVICE_STATUS_BATTERY_LEVEL  = 0x02; //0X03:查询电池电量
+    public final static byte DEVICE_STATUS_BATTERY_LEVEL  = 0x02; //0X02:查询电池电量
+    public final static byte DEVICE_STATUS_DATA_STORE = 0x03; //0X03:数据存储器使用状态，包括已使用空间和剩余空间
     public final static byte DEVICE_STATUS_FAULT_DIAGNOSIS  = 0x04; //0X04:查询故障
     public final static byte DEVICE_STATUS_TCU  = 0x05; //0X05:查询TCU状态
 
@@ -37,7 +37,7 @@ public class ProtocolHelper {
     public final static byte TYPE_NUMBER_SENSOR_ADJUST = 0x15;
     public final static byte ADJUST_POINT_ZERO = 0x01;
     public final static byte ADJUST_POINT_HIGH = 0x02;
-    public final static byte ADJUST_CONFIRM = 0x03;
+    public final static byte ADJUST_SAVE = 0x03;
     public final static byte ADJUST_QUIT = 0x04;
 
     public final static byte UNIT_STORE = 0x01;
@@ -75,7 +75,7 @@ public class ProtocolHelper {
     public byte[] createOrderGetDeviceStatus(int statusType) {
         byte[] content = {HEAD_SEND, TYPE_DEVICE_STATUS, 0x01,(byte)statusType};
         //最终发送的字段
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##GetDeviceStatus =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -85,27 +85,25 @@ public class ProtocolHelper {
      */
     public byte[] createOrderUnsubscribeNumber() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_UNSUBSCRIBE, 0x00};
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##UnsubscribeNumber =  " + ByteUtils.bytesToString(order));
         return order;
     }
 
     /**
      * 获取 设置车号为&number的指令
-     * @param number 车号 如：FXD1-123456
+     * @param number 车号 如：12345
      */
     public byte[] createOrderSetCarNumber(String number) {
-        byte length = (byte) number.length();
         // AA , msg类型, msg长度
-        byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, length};
+        byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, 0x05};
         //先将 车号转换成16进制字符串
-        String carNumber = ByteUtils.str2Hex16Str(number);
         //消息内容
-        byte[] msg = ByteUtils.string16ToBytes(carNumber);
+        byte[] msg = ByteUtils.number5ToNumberByte(number);
         //不包含crc验证的全部字段
         byte[] content = ByteUtils.joinArray(head, msg);
         //最终发送的字段
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##SetCarNumber =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -115,7 +113,7 @@ public class ProtocolHelper {
      */
     public byte[] createOrderGetCarNumber() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_GET, 0x00};
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -127,14 +125,14 @@ public class ProtocolHelper {
         byte[] head = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_SET, 0x06};
         byte[] msg = ByteUtils.string16ToBytes( ByteUtils.str2Hex16Str(id));
         byte[] content = ByteUtils.joinArray(head, msg);
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
         return order;
     }
 
     public byte[] createOrderGetDeviceID() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_GET, 0x00};
-        return  CrcUtils.addCrc8MAXIM(content);
+        return  CrcUtils.addCrc8Table(content);
     }
 
 
@@ -146,7 +144,7 @@ public class ProtocolHelper {
     public byte[] createOrderDemarcate(int type,int pressure) {
         byte[] press = ByteUtils.intToLow2Byte(pressure);
         byte[] content = {HEAD_SEND, TYPE_NUMBER_SENSOR_ADJUST, 0x03,(byte)type,press[0],press[1]};
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##Demarcate  = " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -167,7 +165,7 @@ public class ProtocolHelper {
         Log.d(TAG, "createOrder##UpdateUnitRequest  size =" +  ByteUtils.bytesToString(size));
         //String fileCrc = CrcUtils.calcCrc16(ByteUtils.getFile2Bytes(file.getAbsolutePath()));
         byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X07, (byte) unitType, size[0], size[1],size[2],size[3],0x22,0x22};
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##UpdateUnitRequest =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -204,7 +202,7 @@ public class ProtocolHelper {
                 index += 16;
                 byte[] head = {HEAD_SEND, TYPE_UNIT_UPDATE_FILE_TRANSFER, (byte)list.size()};
                 byte[] content = ByteUtils.joinArray(head, currentData);
-                byte[] order = CrcUtils.addCrc8MAXIM(content);
+                byte[] order = CrcUtils.addCrc8Table(content);
                 list.add(order);
             } while (index < data.length);
         }
@@ -217,7 +215,7 @@ public class ProtocolHelper {
 
     public byte[] createOrderUpdateCompleted(int unitType, int state) {
         byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_COMPLETED, 0X02,(byte)unitType,(byte)state};
-        return CrcUtils.addCrc8MAXIM(content);
+        return CrcUtils.addCrc8Table(content);
     }
 
 
@@ -228,7 +226,7 @@ public class ProtocolHelper {
       //  byte[] time = ByteUtils.joinArray(ByteUtils.string16ToBytes(startTime), ByteUtils.string16ToBytes(endTime));
         byte[] time = null;
         byte[] content = ByteUtils.joinArray(head, time);
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -239,7 +237,7 @@ public class ProtocolHelper {
     public byte[] createOrderReplyDownloadConfirm(boolean download) {
         byte status = download ? (byte) 0x01 : (byte) 0x00;
         byte[] content = {HEAD_REPLY, TYPE_DOWNLOAD_HEAD, 0X01, status};
-        byte[] order = CrcUtils.addCrc8MAXIM(content);
+        byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
         return order;
     }
@@ -278,7 +276,7 @@ public class ProtocolHelper {
      * @return 车号
      */
     public String formatGetCarNumber(byte[] content) {
-        return new String (content);
+        return ByteUtils.numberByteToStr(content);
     }
 
     /**
@@ -286,7 +284,7 @@ public class ProtocolHelper {
      * @return 车号
      */
     public String formatGetDeviceID(byte[] content) {
-        return  new String (content);
+        return  ByteUtils.numberByteToStr(content);
     }
 
 

@@ -27,7 +27,6 @@ public class NumberActivity extends BaseActivity{
     TextView tvNumberStatus;
 
     private BleServiceManager manager;
-    private NumberCallback numberCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +56,7 @@ public class NumberActivity extends BaseActivity{
     protected void initData() {
         tvTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        numberCallback = new NumberCallback() {
+        NumberCallback numberCallback = new NumberCallback() {
             @Override
             public void onNumberGot(String number) {
                 tvCarName.setText(number);
@@ -83,6 +82,7 @@ public class NumberActivity extends BaseActivity{
             }
         };
 
+        manager.setNumberCallback(numberCallback);
 
     }
 
@@ -100,7 +100,7 @@ public class NumberActivity extends BaseActivity{
         if (id == R.id.ib_action_back){
             finish();
         }else if (id == R.id.ib_get_car_number_refresh) {
-            if (manager.getConnectedDeviceMac() == null) {
+            if (!manager.isConnected()) {
                 tvNumberStatus.setText(getString(R.string.check_device_connection));
                 return;
             }
@@ -108,7 +108,7 @@ public class NumberActivity extends BaseActivity{
                 tvNumberStatus.setText("获取或设置车号中，请稍后再试");
 
             } else {
-                manager.getCarNumber(numberCallback);
+                manager.getCarNumber();
                 tvNumberStatus.setText("获取车号中...");
                 progressBar.setVisibility(View.VISIBLE);
             }
@@ -116,22 +116,23 @@ public class NumberActivity extends BaseActivity{
             if (etNewNumber.getText().toString().trim().equals("")) {
                 updateStatus("车号不能为空！");
             } else {
-                if (manager.getConnectedDeviceMac() == null) {
+                if (!manager.isConnected()) {
                     updateStatus(getString(R.string.check_device_connection));
                     return;
                 }
-                manager.setCarNumber(etNewNumber.getText().toString().trim(), numberCallback);
+                manager.setCarNumber(etNewNumber.getText().toString().trim());
                 progressBar.setVisibility(View.VISIBLE);
             }
         }else if (id == R.id.ib_number_logo_out){
             updateStatus("注销车号中！");
-            manager.logoutCarNumber(numberCallback);
+            manager.logoutCarNumber();
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //manager.setNumberCallback(null);
     }
 
     private void updateStatus(String msg) {

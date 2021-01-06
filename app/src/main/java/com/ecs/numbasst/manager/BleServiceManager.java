@@ -16,14 +16,21 @@ import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.callback.UpdateCallback;
+import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
+import com.ecs.numbasst.manager.interfaces.ICarNumber;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
+import com.ecs.numbasst.manager.interfaces.IDeviceID;
+import com.ecs.numbasst.manager.interfaces.IDownloadData;
+import com.ecs.numbasst.manager.interfaces.IState;
+import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
+import com.ecs.numbasst.manager.interfaces.SppInterface;
 
 import java.io.File;
 import java.util.Date;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
-public class BleServiceManager implements SppInterface , IDebugging {
+public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdateUnit ,IDownloadData,IAdjustSensor, IDeviceID, IDebugging {
     private static final String TAG = "BLEManager";
 
     private static volatile BleServiceManager instance;
@@ -32,21 +39,6 @@ public class BleServiceManager implements SppInterface , IDebugging {
 
     private BleServiceManager() {
     }
-
-    public String getConnectedDeviceMac() {
-        if (bleService != null) {
-            return bleService.getConnectedDeviceAddress();
-        }
-        return null;
-    }
-
-    public BluetoothDevice getConnectedDevice() {
-        if (bleService != null) {
-            return bleService.getConnectedDevice();
-        }
-        return null;
-    }
-
 
     public static BleServiceManager getInstance() {
         if (instance == null) {
@@ -83,13 +75,7 @@ public class BleServiceManager implements SppInterface , IDebugging {
     };
 
 
-    public boolean isConnected(){
-        if (bleService != null) {
-            return bleService.isConnected();
-        }
-        return false;
-    }
-
+    ///2.设备连接
     @Override
     public void connect(String address) {
         if (bleService != null) {
@@ -97,36 +83,17 @@ public class BleServiceManager implements SppInterface , IDebugging {
         }
     }
 
-    public void setQueryStateCallback(QueryStateCallback callback){
-        if (bleService != null) {
-            bleService.setQueryStateCallback(callback);
-        }
-    }
-
-    public void setUpdateCallback(UpdateCallback callback){
-        if (bleService != null) {
-            bleService.setUpdateCallback(callback);
-        }
-    }
-
-    public void setConnectionCallback(ConnectionCallback callback){
-        if (bleService != null) {
-            bleService.setConnectionCallback(callback);
-        }
-    }
-
-
     @Override
-    public void getDeviceState(int type) {
-        if (bleService != null) {
-            bleService.getDeviceState(type);
-        }
-    }
-
-    @Override
-    public void disconnect( ) {
+    public void disconnect() {
         if (bleService != null) {
             bleService.disconnect();
+        }
+    }
+
+    @Override
+    public void cancelAction() {
+        if (bleService != null) {
+            bleService.cancelAction();
         }
     }
 
@@ -138,47 +105,74 @@ public class BleServiceManager implements SppInterface , IDebugging {
     }
 
     @Override
-    public void setCarNumber(String number, NumberCallback callback) {
+    public boolean isConnected() {
         if (bleService != null) {
-            bleService.setCarNumber(number, callback);
+            return bleService.isConnected();
+        }
+        return false;
+    }
+
+    @Override
+    public BluetoothDevice getConnectedDevice() {
+        if (bleService != null) {
+            return bleService.getConnectedDevice();
+        }
+        return null;
+    }
+
+    @Override
+    public void setConnectionCallback(ConnectionCallback callback) {
+        if (bleService != null) {
+            bleService.setConnectionCallback(callback);
+        }
+    }
+
+ ///2.查询列尾状态
+    @Override
+    public void getDeviceState(int type) {
+        if (bleService != null) {
+            bleService.getDeviceState(type);
         }
     }
 
     @Override
-    public void getCarNumber(NumberCallback callback) {
+    public void setQueryStateCallback(QueryStateCallback callback) {
         if (bleService != null) {
-            bleService.getCarNumber(callback);
+            bleService.setQueryStateCallback(callback);
+        }
+    }
+
+    ///3.设置车号
+    @Override
+    public void setCarNumber(String number) {
+        if (bleService != null) {
+            bleService.setCarNumber(number);
         }
     }
 
     @Override
-    public void logoutCarNumber(NumberCallback callback) {
+    public void getCarNumber() {
         if (bleService != null) {
-            bleService.logoutCarNumber(callback);
+            bleService.getCarNumber();
         }
     }
 
     @Override
-    public void setDeviceID(String id, DeviceIDCallback callback) {
+    public void logoutCarNumber() {
         if (bleService != null) {
-            bleService.setDeviceID(id,callback);
+            bleService.logoutCarNumber();
         }
     }
 
     @Override
-    public void getDeviceID(DeviceIDCallback callback) {
+    public void setNumberCallback(NumberCallback callback) {
         if (bleService != null) {
-            bleService.getDeviceID(callback);
+            bleService.setNumberCallback(callback);
         }
     }
 
-    @Override
-    public void adjustSensor(int type, int pressure, AdjustCallback callback) {
-        if (bleService != null) {
-            bleService.adjustSensor(type, pressure, callback);
-        }
-    }
 
+   ///4.更新单元软件
     @Override
     public void updateUnitRequest(int unitType, File file) {
         if (bleService != null) {
@@ -193,17 +187,29 @@ public class BleServiceManager implements SppInterface , IDebugging {
         }
     }
 
+    /**
+     * 确认仪 主动发给  主机
+     * @param unitType
+     * @param state
+     */
     @Override
     public void updateUnitCompletedResult(int unitType, int state) {
         if (bleService != null) {
-            bleService.updateUnitCompletedResult(unitType,state);
+            bleService.updateUnitCompletedResult(unitType, state);
+        }
+    }
+    @Override
+    public void setUpdateCallback(UpdateCallback callback) {
+        if (bleService != null) {
+            bleService.setUpdateCallback(callback);
         }
     }
 
+    ///5.下载数据
     @Override
-    public void downloadDataRequest(Date startTime, Date endTime, DownloadCallback callback) {
+    public void downloadDataRequest(Date startTime, Date endTime) {
         if (bleService != null) {
-            bleService.downloadDataRequest(startTime, endTime, callback);
+            bleService.downloadDataRequest(startTime, endTime);
         }
     }
 
@@ -214,15 +220,56 @@ public class BleServiceManager implements SppInterface , IDebugging {
         }
     }
 
-
-
     @Override
-    public void cancelAction() {
+    public void setDownloadCallback(DownloadCallback callBack) {
         if (bleService != null) {
-            bleService.cancelAction();
+            bleService.setDownloadCallback(callBack);
         }
     }
 
+
+    ///6.传感器校准
+
+    @Override
+    public void adjustSensor(int type, int pressure) {
+        if (bleService != null) {
+            bleService.adjustSensor(type, pressure);
+        }
+    }
+
+    @Override
+    public void setAdjustCallback(AdjustCallback callBack) {
+        if (bleService != null) {
+            bleService.setAdjustCallback(callBack);
+        }
+    }
+
+
+    ///7.设置设备ID
+
+    @Override
+    public void setDeviceID(String id) {
+        if (bleService != null) {
+            bleService.setDeviceID(id);
+        }
+    }
+
+    @Override
+    public void getDeviceID() {
+        if (bleService != null) {
+            bleService.getDeviceID();
+        }
+    }
+
+    @Override
+    public void setDeviceIDCallback(DeviceIDCallback callBack) {
+        if (bleService != null) {
+            bleService.setDeviceIDCallback(callBack);
+        }
+    }
+
+
+    ///8.调试
     @Override
     public void sendDebuggingData(String data) {
         if (bleService != null) {

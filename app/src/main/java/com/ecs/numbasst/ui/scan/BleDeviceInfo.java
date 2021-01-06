@@ -1,4 +1,4 @@
-package com.ecs.numbasst.manager;
+package com.ecs.numbasst.ui.scan;
 
 public class BleDeviceInfo {
 

@@ -70,7 +70,8 @@
         android:layout_marginTop="8dp"
         android:selectAllOnFocus="true"
         android:inputType="number"
-        android:text="823456"
+        android:text="82345"
+        android:maxLength="5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_set_new_device_id_title" />
@@ -79,11 +80,12 @@
     <Button
         android:id="@+id/btn_set_device_id"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/btn_normal_height"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="8dp"
         android:enabled="true"
         android:text="设置"
+        android:background="@drawable/selector_btn_deeper"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_new_device_id"

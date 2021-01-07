@@ -87,7 +87,6 @@ public class UpdateUnitActivity extends BaseActivity {
     protected void initData() {
         tvTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        manager.setUpdateCallback(updateCallback);
         //testFile();
         dirMainControl = new File(DataKeeper.unit_main_control);
         dirDisplay = new File(DataKeeper.unit_display);
@@ -100,8 +99,14 @@ public class UpdateUnitActivity extends BaseActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onResume() {
+        super.onResume();
+        manager.setUpdateCallback(updateCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
         manager.setUpdateCallback(null);
     }
 
@@ -262,9 +267,6 @@ public class UpdateUnitActivity extends BaseActivity {
                         String name = pathTemp.substring(index+1);
                         //btnSelectFile.setText(name);
                         path = pathTemp;
-
-
-
                     }else {
                         showToast("选择的文件路径或者类型不正确");
                         //path = null;

@@ -27,6 +27,7 @@ public class NumberActivity extends BaseActivity{
     TextView tvNumberStatus;
 
     private BleServiceManager manager;
+    private NumberCallback numberCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +57,7 @@ public class NumberActivity extends BaseActivity{
     protected void initData() {
         tvTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        NumberCallback numberCallback = new NumberCallback() {
+        numberCallback = new NumberCallback() {
             @Override
             public void onNumberGot(String number) {
                 tvCarName.setText(number);
@@ -81,9 +82,6 @@ public class NumberActivity extends BaseActivity{
                 updateStatus("多次连接主机失败");
             }
         };
-
-        manager.setNumberCallback(numberCallback);
-
     }
 
     @Override
@@ -92,6 +90,18 @@ public class NumberActivity extends BaseActivity{
         btnRefresh.setOnClickListener(this);
         btnSetCarNumber.setOnClickListener(this);
         btnNumberLogout.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        manager.setNumberCallback(numberCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        manager.setNumberCallback(null);
     }
 
     @Override
@@ -132,7 +142,6 @@ public class NumberActivity extends BaseActivity{
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //manager.setNumberCallback(null);
     }
 
     private void updateStatus(String msg) {

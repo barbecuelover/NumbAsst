@@ -59,16 +59,6 @@ public class DeviceStateActivity extends BaseActivity {
         initView();
     }
 
-    /**
-     * 跳转 车号和设备ID 界面返回时要重新设置 NumberCallback 和DeviceIDCallback
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        manager.setNumberCallback(numberCallback);
-        manager.setDeviceIDCallback(deviceIDCallback);
-    }
-
     @Override
     protected int initLayout() {
         return R.layout.activity_device_state;
@@ -107,13 +97,6 @@ public class DeviceStateActivity extends BaseActivity {
     @Override
     protected void initData() {
         manager = BleServiceManager.getInstance();
-        manager.setQueryStateCallback(queryStateCallback);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        manager.setQueryStateCallback(null);
     }
 
     private final QueryStateCallback queryStateCallback = new QueryStateCallback() {
@@ -216,6 +199,26 @@ public class DeviceStateActivity extends BaseActivity {
         ibStateBatteryRefresh.setOnClickListener(this);
         ibStateTcuRefresh.setOnClickListener(this);
 
+    }
+
+
+    /**
+     * 跳转 车号和设备ID 界面返回时要重新设置 NumberCallback 和DeviceIDCallback
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        manager.setNumberCallback(numberCallback);
+        manager.setDeviceIDCallback(deviceIDCallback);
+        manager.setQueryStateCallback(queryStateCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        manager.setQueryStateCallback(null);
+        manager.setDeviceIDCallback(null);
+        manager.setNumberCallback(null);
     }
 
     @Override

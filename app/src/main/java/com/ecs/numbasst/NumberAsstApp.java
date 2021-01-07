@@ -18,11 +18,7 @@ public class NumberAsstApp extends Application {
         super.onCreate();
         //init data
         if (SystemUtils.isCurrentAppProcess(this)){
-            DataKeeper.init(getApplicationContext());
+
         }
     }
-
-
-
-
 }

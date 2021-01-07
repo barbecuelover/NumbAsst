@@ -4,6 +4,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -25,6 +26,7 @@ public class DeviceIDActivity extends BaseActivity {
     private Button btnSetDeviceId;
     private TextView tvDeviceIdStatus;
     private BleServiceManager manager;
+    private ProgressBar progressBar;
     private DeviceIDCallback callback;
 
 
@@ -43,6 +45,7 @@ public class DeviceIDActivity extends BaseActivity {
         tvDeviceIdStatus = findViewById(R.id.tv_device_id_status);
         tvTitle  = findViewById(R.id.action_bar_title);
         btnBack =findViewById(R.id.ib_action_back);
+        progressBar = findViewById(R.id.progress_bar_set_device_id);
     }
 
     @Override
@@ -54,7 +57,7 @@ public class DeviceIDActivity extends BaseActivity {
             public void onDeviceIDGot(String number) {
 
                 tvCurrentDeviceId.setText(number);
-                updateStatus("获取设备ID为："+number);
+                updateStatus("获取设备ID为：" + number);
             }
 
             @Override
@@ -69,7 +72,7 @@ public class DeviceIDActivity extends BaseActivity {
                 updateStatus("多次连接主机失败");
             }
         };
-        manager.setDeviceIDCallback(callback);
+
     }
 
     @Override
@@ -77,6 +80,18 @@ public class DeviceIDActivity extends BaseActivity {
         ibGetDeviceIdRefresh.setOnClickListener(this);
         btnSetDeviceId.setOnClickListener(this);
         btnBack.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        manager.setDeviceIDCallback(callback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        manager.setDeviceIDCallback(null);
     }
 
     @Override
@@ -89,13 +104,13 @@ public class DeviceIDActivity extends BaseActivity {
             }
             manager.getDeviceID();
             updateStatus("获取设备ID中...");
+            progressBar.setVisibility(View.VISIBLE);
             //showLoading
         }else if(id == R.id.ib_action_back){
             finish();
         }
         else if (id == R.id.btn_set_device_id) {
             String dID = etNewDeviceId.getText().toString().trim();
-
             if (dID.equals("")) {
                 updateStatus("设备ID不能为空！");
             } else {
@@ -103,18 +118,15 @@ public class DeviceIDActivity extends BaseActivity {
                     updateStatus(getString(R.string.check_device_connection));
                     return;
                 }
-
-                if (dID.length() == 6){
-                    manager.setDeviceID(dID);
-                    //showLoading
-                }
-
+                manager.setDeviceID(dID);
+                progressBar.setVisibility(View.VISIBLE);
             }
         }
     }
 
     private void updateStatus(String msg) {
         tvDeviceIdStatus.setText(msg);
+        progressBar.setVisibility(View.GONE);
     }
 
 }

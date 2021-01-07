@@ -55,11 +55,8 @@ public class DataKeeper {
 	//不能实例化
 	private DataKeeper() {}
 
-	private static Context context;
 	//获取context，获取存档数据库引用
-	public static void init(Context context_) {
-		context = context_;
-		
+	public static void init() {
 		Log.i(TAG, "init fileRootPath = " + fileRootPath);
 		//判断SD卡存在
 		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {

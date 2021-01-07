@@ -31,6 +31,7 @@ public class SensorAdjustingActivity extends BaseActivity {
 
     private BleServiceManager manager;
     private boolean inAdjusting;
+    private AdjustCallback adjustCallback;
 
 
     @Override
@@ -87,7 +88,7 @@ public class SensorAdjustingActivity extends BaseActivity {
     protected void initData() {
         actionBarTitle.setText(getTitle());
         manager = BleServiceManager.getInstance();
-        AdjustCallback adjustCallback = new AdjustCallback() {
+        adjustCallback = new AdjustCallback() {
             @Override
             public void onSensorAdjusted(int type, int pressure) {
                 if (type == ProtocolHelper.ADJUST_POINT_HIGH || type == ProtocolHelper.ADJUST_POINT_ZERO){
@@ -104,7 +105,6 @@ public class SensorAdjustingActivity extends BaseActivity {
                     //退出校准 恢复到默认状态
                     resetState();
                     changeState("退出校准。");
-
                 }
             }
 
@@ -114,7 +114,6 @@ public class SensorAdjustingActivity extends BaseActivity {
             }
         };
 
-        manager.setAdjustCallback( adjustCallback);
     }
 
     @Override
@@ -124,6 +123,18 @@ public class SensorAdjustingActivity extends BaseActivity {
         btnSensorHigh.setOnClickListener(this);
         btnSensorSave.setOnClickListener(this);
         btnSensorQuit.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        manager.setAdjustCallback(adjustCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        manager.setAdjustCallback(null);
     }
 
     @Override

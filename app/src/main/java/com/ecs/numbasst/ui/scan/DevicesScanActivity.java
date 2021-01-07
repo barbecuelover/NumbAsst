@@ -73,6 +73,7 @@ public class DevicesScanActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        manager.setConnectionCallback(connectionCallback);
 
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
@@ -89,6 +90,8 @@ public class DevicesScanActivity extends BaseActivity {
             connectedDevice.setStatus( DeviceListAdapter.STATUS_CONNECTED);
             deviceList.add(connectedDevice);
         }
+
+
 
         scanLeDevice(true);
     }
@@ -115,7 +118,6 @@ public class DevicesScanActivity extends BaseActivity {
     @Override
     protected void initData() {
         manager = BleServiceManager.getInstance();
-        manager.setConnectionCallback(connectionCallback);
         sharePreUtil = new SharePreUtil(this,SharePreUtil.CONNECTED_DEVICE);
         preConnectedDeviceMac = sharePreUtil.getValue(SharePreUtil.DEVICE_MAC,"");
         Log.d(TAG, "initData: preConnectedDeviceMac="+preConnectedDeviceMac);
@@ -161,11 +163,6 @@ public class DevicesScanActivity extends BaseActivity {
     }
 
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        manager.setConnectionCallback(null);
-    }
 
     private void handleDisconnection(String reason) {
         showToast(reason);
@@ -342,6 +339,8 @@ public class DevicesScanActivity extends BaseActivity {
             mHandler.removeCallbacksAndMessages(null);
         }
         adapter.clear();
+        manager.setConnectionCallback(null);
+
     }
 
 

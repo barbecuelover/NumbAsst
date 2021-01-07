@@ -75,22 +75,15 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     public String connectedDeviceAddress;
 
-    private String intentAction;
-
     private final IBinder mBinder = new LocalBinder();
 
-    private Callback currCallback;
-
     private static ConnectionCallback connectionCallBack;
-
     private static NumberCallback numberCallback;
     private static DeviceIDCallback deviceIDCallback;
     private static AdjustCallback adjustCallback;
-
     private static UpdateCallback updateCallback;
     private static DownloadCallback downloadCallBack;
     private static QueryStateCallback queryStateCallback;
-
     private static DebugCallback debugCallback;
     private boolean inDebugging;
 

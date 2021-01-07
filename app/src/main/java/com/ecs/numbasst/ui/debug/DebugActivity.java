@@ -76,7 +76,7 @@ public class DebugActivity extends BaseActivity {
                 tvDebugLog.append("\n " + ByteUtils.bytesToString(data));
             }
         };
-        manager.setDebugCallBack(debugCallback);
+
     }
 
     @Override
@@ -86,6 +86,18 @@ public class DebugActivity extends BaseActivity {
         btnDebugLogClear.setOnClickListener(this);
         btnDebugSend.setOnClickListener(this);
         ibActionBack.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        manager.setDebugCallBack(debugCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        manager.setDebugCallBack(null);
     }
 
     @Override

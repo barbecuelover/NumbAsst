@@ -58,12 +58,12 @@ public class SensorAuthorityActivity extends BaseActivity {
             finish();
         }else if (id ==R.id.btn_sensor_auth){
             if (etSensorAuth.getText().toString().equals("123321")){
-                showToast("验证成功！");
+                tvSensorAuthState.setText("验证成功!");
                 goActivity(SensorAdjustingActivity.class);
                 finish();
             }else{
                 tvSensorAuthState.setText("密码错误请重试...");
-                showToast("密码错误请重试！");
+
             }
         }
     }

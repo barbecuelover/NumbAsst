@@ -44,6 +44,7 @@ public class DataDownloadActivity extends BaseActivity {
 
     private boolean isDownloading;
     private SimpleDateFormat dateFormat;
+    private DownloadCallback downloadCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +81,7 @@ public class DataDownloadActivity extends BaseActivity {
         tvStartTime.setText(date);
         tvEndTime.setText(date);
         Log.d("zwcc"," Unix :" + new Date().getTime());
-        DownloadCallback downloadCallback = new DownloadCallback() {
+        downloadCallback = new DownloadCallback() {
             @Override
             public void onRetryFailed() {
 
@@ -105,7 +106,7 @@ public class DataDownloadActivity extends BaseActivity {
             }
         };
 
-        manager.setDownloadCallback(downloadCallback);
+
     }
 
 
@@ -130,6 +131,18 @@ public class DataDownloadActivity extends BaseActivity {
             }
 
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        manager.setDownloadCallback(downloadCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        manager.setDownloadCallback(null);
     }
 
     @Override

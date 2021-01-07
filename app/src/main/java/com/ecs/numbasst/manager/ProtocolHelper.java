@@ -122,8 +122,9 @@ public class ProtocolHelper {
      * 获取 查询设备ID 的指令 ID为6位
      */
     public byte[] createOrderSetDeviceID(String id) {
-        byte[] head = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_SET, 0x06};
-        byte[] msg = ByteUtils.string16ToBytes( ByteUtils.str2Hex16Str(id));
+        byte[] head = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_SET, 0x05};
+        //消息内容
+        byte[] msg = ByteUtils.number5ToNumberByte(id);
         byte[] content = ByteUtils.joinArray(head, msg);
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));

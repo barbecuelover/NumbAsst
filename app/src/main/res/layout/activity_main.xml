@@ -7,15 +7,32 @@
     android:orientation="vertical"
     tools:context=".ui.MainActivity">
 
-    <TextView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:background="@color/teal_700"
-        android:gravity="center"
-        android:text="@string/select_function"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:layout_height="32dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/teal_700"
+            android:gravity="center"
+            android:text="@string/select_function"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:textColor="@color/white"
+            android:id="@+id/view_connected_device"
+            android:layout_gravity="end"
+            android:gravity="center"
+            android:layout_marginEnd="32dp"
+            android:textSize="16sp"
+            android:text=""
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"/>
+
+    </FrameLayout>
 
     <Button
         android:id="@+id/view_discovery"

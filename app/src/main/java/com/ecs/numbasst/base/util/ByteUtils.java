@@ -72,7 +72,11 @@ public class ByteUtils {
      * @return
      */
     public static String numberByteToStr(byte[] data) {
-        return new StringBuilder(new String(data)).reverse().toString();
+        StringBuilder sb = new StringBuilder();
+        for (byte num :data){
+            sb.append(String.valueOf(num));
+        }
+        return sb.reverse().toString();
     }
 
 

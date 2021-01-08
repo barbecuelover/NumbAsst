@@ -40,8 +40,11 @@ import com.ecs.numbasst.manager.interfaces.IDownloadData;
 import com.ecs.numbasst.manager.interfaces.IState;
 import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
+import com.ecs.numbasst.ui.scan.ConnectionState;
 import com.ecs.numbasst.ui.sensor.SensorState;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.Date;
@@ -144,6 +147,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 connectedDeviceAddress = mBluetoothDeviceAddress;
                 mConnectionState = STATE_CONNECTED;
+
                 if (connectionCallBack != null) {
                     //创建所需的消息对象
                     Message msg = Message.obtain();
@@ -151,6 +155,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     msg.obj = connectedDeviceAddress;
                     msgHandler.sendMessage(msg);
                 }
+                ConnectionState state = new ConnectionState(ConnectionState.CONNECTED,gatt.getDevice().getAddress(),gatt.getDevice().getName());
+                EventBus.getDefault().post(state);
                 //Attempts to discover services after successful connection,start service discovery
                 Log.i(TAG, "Connected to GATT server.Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
@@ -167,6 +173,9 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                         msg.obj = connectedDeviceAddress;
                         msgHandler.sendMessage(msg);
                     }
+                    ConnectionState state = new ConnectionState();
+                    state.setType(ConnectionState.DISCONNECTED);
+                    EventBus.getDefault().post(state);
                     Log.i(TAG, "Disconnected from GATT server. status=" + status);
                 }
 //                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;

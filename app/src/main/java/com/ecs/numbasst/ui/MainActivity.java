@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -21,11 +22,16 @@ import com.ecs.numbasst.ui.debug.DebugActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
+import com.ecs.numbasst.ui.scan.ConnectionState;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.sensor.SensorAdjustingActivity;
 import com.ecs.numbasst.ui.sensor.SensorAuthorityActivity;
 import com.ecs.numbasst.ui.state.DeviceStateActivity;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class MainActivity extends BaseActivity {
 
@@ -36,11 +42,12 @@ public class MainActivity extends BaseActivity {
     private Button btnSetDeviceId;
     private Button btnDebugging;
     private Button btnAboutNumbAsst;
+    private TextView tvConnected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initView();
+        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -49,8 +56,25 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onConnectionChanged(ConnectionState state) {
+        if (state!=null && state.getType() == ConnectionState.CONNECTED ){
+            tvConnected.setText(state.getName());
+        }else {
+            tvConnected.setText("");
+        }
+    }
+
+
+    @Override
     protected void initView() {
         btnDiscovery = findViewById(R.id.view_discovery);
+        tvConnected = findViewById(R.id.view_connected_device);
         btnGetState = findViewById(R.id.view_get_device_state);
         btnSetNumb = findViewById(R.id.view_set_car_numb);
         btnUpdate = findViewById(R.id.view_update);

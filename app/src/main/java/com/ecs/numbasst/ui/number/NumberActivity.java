@@ -134,6 +134,10 @@ public class NumberActivity extends BaseActivity{
                 progressBar.setVisibility(View.VISIBLE);
             }
         }else if (id == R.id.ib_number_logo_out){
+            if (!manager.isConnected()) {
+                updateStatus(getString(R.string.check_device_connection));
+                return;
+            }
             updateStatus("注销车号中！");
             manager.logoutCarNumber();
         }

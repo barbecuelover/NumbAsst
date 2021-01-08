@@ -278,7 +278,7 @@ public class DeviceStateActivity extends BaseActivity {
         if (manager.isConnected()){
           return true;
         }else {
-            showToast("请检查设备连接");
+            updateDeviceStatus("请检查设备连接");
         }
         return false;
     }

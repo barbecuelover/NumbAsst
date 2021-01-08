@@ -40,7 +40,7 @@
 
 
     <TextView
-        android:id="@+id/tv_sensor_adjust_car_pipe2_press"
+        android:id="@+id/tv_sensor_adjust_car_pipe1_press"
         android:textSize="18sp"
         android:text="596kPa"
         android:textColor="@color/green"
@@ -68,7 +68,7 @@
         android:layout_height="30dp"/>
 
     <TextView
-        android:id="@+id/tv_sensor_adjust_car_pipe1_press"
+        android:id="@+id/tv_sensor_adjust_car_pipe2_press"
         app:layout_constraintStart_toStartOf="@+id/gl_v1"
         android:textSize="18sp"
         android:text="596kPa"
@@ -115,6 +115,18 @@
         android:layout_height="32dp"/>
 
 
+    <Button
+        android:id="@+id/btn_sensor_default"
+        android:text="缺省"
+        android:layout_width="0dp"
+        android:layout_marginTop="6dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toBottomOf="@+id/btn_sensor_zero"
+        app:layout_constraintEnd_toEndOf="@+id/gl_v1"
+        android:layout_marginHorizontal="12dp"
+        android:background="@drawable/selector_btn_deeper"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="32dp"/>
 
     <TextView
         android:id="@+id/tv_sensor_adjust_measure_title"
@@ -125,7 +137,7 @@
         android:text="输入测量值："
         android:textColor="@color/black"
         android:gravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@+id/btn_sensor_zero"
+        app:layout_constraintTop_toBottomOf="@+id/btn_sensor_default"
         android:layout_width="wrap_content"
         android:layout_height="30dp"/>
 
@@ -185,7 +197,6 @@
         android:background="@drawable/selector_btn_deeper"
         android:layout_height="32dp"/>
 
-
     <com.ecs.numbasst.view.CrossLine
         android:id="@+id/_cross_line_sensor_adjust_tips"
         app:layout_constraintTop_toBottomOf="@+id/btn_sensor_save"
@@ -197,7 +208,7 @@
         app:layout_constraintTop_toBottomOf="@+id/_cross_line_sensor_adjust_tips"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="2dp"
         android:gravity="center"
         android:layout_marginHorizontal="12dp"
         android:background="@drawable/shape_edit_text_border"

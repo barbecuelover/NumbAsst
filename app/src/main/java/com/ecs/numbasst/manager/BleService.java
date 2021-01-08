@@ -40,6 +40,7 @@ import com.ecs.numbasst.manager.interfaces.IDownloadData;
 import com.ecs.numbasst.manager.interfaces.IState;
 import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
+import com.ecs.numbasst.ui.sensor.SensorState;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
 import java.io.File;
@@ -327,8 +328,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 break;
             //标定传感器返回信息
             case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
-                int[] result = protocolHelper.formatDemarcateSensor(content);
-                sendHandlerMessage(adjustCallback, type, null, result[0], result[1]);
+                SensorState result = protocolHelper.formatAdjustSensor(content);
+                sendHandlerMessage(adjustCallback, type, result, 0, 0);
                 break;
 
             //主机回复 单元升级请求 的返回状态
@@ -439,7 +440,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     break;
                 case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
                     if (adjustCallback != null) {
-                        adjustCallback.onSensorAdjusted(msg.arg1, msg.arg2);
+                        SensorState state = (SensorState)msg.obj;
+                        adjustCallback.onSensorAdjusted(state);
                     }
                     break;
 

@@ -30,7 +30,8 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     //是否允许旋转屏幕
     private boolean isAllowScreenRoate = true;
     public Context context;
-
+    //封装Toast对象
+    private static Toast toast;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,9 +151,15 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
      */
     public void showToast(String msg) {
         try {
+            if (null == toast) {
+                toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
+            } else {
+                toast.setText(msg);
+            }
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    toast.show();
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT);
                 }
             });

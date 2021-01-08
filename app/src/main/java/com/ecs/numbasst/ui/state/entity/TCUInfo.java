@@ -2,6 +2,9 @@ package com.ecs.numbasst.ui.state.entity;
 
 import androidx.annotation.NonNull;
 
+import com.ecs.numbasst.base.util.ByteUtils;
+import com.ecs.numbasst.base.util.Log;
+
 /**
  * @author zw
  * @time 2020/12/28
@@ -36,39 +39,40 @@ public class TCUInfo extends StateInfo {
 
 
     /**
+     * 0001 | 0010 => TCU1 已注册， TCU2未注册
      * TCU1---Bit0：未注册；bit1：已注册；bit2：已注销
      * TCU2---Bit4：未注册；bit5：已注册；bit6：已注销
+     *
+     * 所以两位分开  1,2,4
      * @return
      */
     public String getCommunicationStatus() {
+        String temp = ByteUtils.numToHex8(communicationStatus);
+        Log.d("TCUInfo","getCommunicationStatus = " + temp);
+        String tcu1 = temp.substring(1);
+        String tcu2 = temp.substring(0,1);
+        String stateTcu1 = getTcuState(tcu1);
+        String stateTcu2 = getTcuState(tcu2);
+        return "TCU1"+ stateTcu1 + ",TCU2"+stateTcu2;
+    }
+
+    private String getTcuState(String tcuType) {
         String state;
-        switch (communicationStatus){
-            case  0:
-                state = "TCU1未注册";
+        switch (tcuType) {
+            case "1":
+                state = "未注册";
                 break;
-            case  1:
-                state = "TCU1已注册";
+            case "2":
+                state = "已注册";
                 break;
-            case  2:
-                state = "TCU1已注销";
-                break;
-            case  4:
-                state = "TCU2未注册";
-                break;
-            case  5:
-                state = "TCU2已注册";
-                break;
-            case  6:
-                state = "TCU2已注销";
+            case "4":
+                state = "已注销";
                 break;
             default:
                 state = "未知";
-                break;
         }
-
         return state;
     }
-
     public byte getTcuWorkStatus_1() {
         return tcuWorkStatus_1;
     }

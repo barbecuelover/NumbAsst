@@ -24,7 +24,7 @@
 
     <TextView
         android:id="@+id/tv_number_current_pre"
-        android:layout_width="40dp"
+        android:layout_width="48dp"
         android:layout_height="0dp"
         android:layout_marginStart="32dp"
         android:selectAllOnFocus="true"
@@ -91,7 +91,7 @@
 
     <TextView
         android:id="@+id/tv_new_numb_pre"
-        android:layout_width="40dp"
+        android:layout_width="48dp"
         android:layout_height="0dp"
         android:layout_marginStart="32dp"
         android:selectAllOnFocus="true"

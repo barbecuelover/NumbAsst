@@ -10,7 +10,7 @@
         android:id="@+id/tv_cross_line_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="6dp"
         android:layout_marginStart="12dp"
         android:textSize="14sp"
         android:textColor="@color/black"

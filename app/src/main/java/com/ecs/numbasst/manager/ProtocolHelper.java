@@ -3,6 +3,7 @@ package com.ecs.numbasst.manager;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
+import com.ecs.numbasst.ui.sensor.SensorState;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.PipePressInfo;
@@ -39,6 +40,8 @@ public class ProtocolHelper {
     public final static byte ADJUST_POINT_HIGH = 0x02;
     public final static byte ADJUST_SAVE = 0x03;
     public final static byte ADJUST_QUIT = 0x04;
+    public final static byte ADJUST_POINT_DEFAULT = 0x05;
+    public final static byte ADJUST_ERROR = 0x06;
 
     public final static byte UNIT_STORE = 0x01;
     public final static byte UNIT_MAIN_CONTROL = 0x02;
@@ -289,11 +292,8 @@ public class ProtocolHelper {
     }
 
 
-    public int[] formatDemarcateSensor(byte[] content) {
-        int[] result = new int[2];
-        result[0] = content[0];
-        result[1] =ByteUtils.byte2Int(content[1],content[2]);
-        return  result;
+    public SensorState formatAdjustSensor(byte[] content) {
+        return  new SensorState(content);
     }
 
 

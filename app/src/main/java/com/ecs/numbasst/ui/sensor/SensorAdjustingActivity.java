@@ -106,7 +106,15 @@ public class SensorAdjustingActivity extends BaseActivity {
                     changeStateInAdjusting();
                     tvCarPipe1Press.setText(sensorState.getPipePress_1());
                     tvCarPipe2Press.setText(sensorState.getPipePress_2());
-                    changeState("校准中...");
+                    String temp = "";
+                    if (type == ProtocolHelper.ADJUST_POINT_HIGH){
+                        temp = "校准高点";
+                    }else if (type == ProtocolHelper.ADJUST_POINT_ZERO){
+                        temp = "校准零点";
+                    }else if(type == ProtocolHelper.ADJUST_POINT_DEFAULT){
+                        temp = "缺省操作";
+                    }
+                    changeState(temp);
                 }else if (type == ProtocolHelper.ADJUST_SAVE){
                     //保存完成。 使能 “零点” 和“高点”按键 ，保存按键失效
                     resetState();

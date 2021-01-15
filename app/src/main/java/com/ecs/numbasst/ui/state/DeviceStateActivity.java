@@ -51,7 +51,7 @@ public class DeviceStateActivity extends BaseActivity {
     private TextView tvStateWorkState2;
     private TextView tvStateSignalStrength1;
     private TextView tvStateSignalStrength2;
-
+    private Button btnErrorDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +92,7 @@ public class DeviceStateActivity extends BaseActivity {
         tvStateWorkState2 =   findViewById(R.id.tv_state_work_state_2);
         tvStateSignalStrength1 =   findViewById(R.id.tv_state_signal_strength_1);
         tvStateSignalStrength2 =   findViewById(R.id.tv_state_signal_strength_2);
+        btnErrorDetails = findViewById(R.id.btn_state_car_error_details);
     }
 
     @Override
@@ -133,6 +134,10 @@ public class DeviceStateActivity extends BaseActivity {
                     tvStateSignalStrength2.setText(String.valueOf(tcuInfo.getTcuSignalStrength_2()));
                 }else if (info instanceof ErrorInfo){
                     tvStateErrorContent.setText(info.toString());
+                    //TODO 有错误显示红色
+                    tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.red));
+                    //无错误显示绿色
+                    tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.green));
                 }
             }
         }
@@ -198,7 +203,7 @@ public class DeviceStateActivity extends BaseActivity {
         ibStateCarError.setOnClickListener(this);
         ibStateBatteryRefresh.setOnClickListener(this);
         ibStateTcuRefresh.setOnClickListener(this);
-
+        btnErrorDetails.setOnClickListener(this);
     }
 
 
@@ -260,8 +265,11 @@ public class DeviceStateActivity extends BaseActivity {
             if (checkConnection()){
                 manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
             }
+        }else if (id == R.id.btn_state_car_error_details){
+            goActivity(ErrorDetailsActivity.class);
         }
     }
+
 
     private void refreshAllstate() {
         if(manager!=null){

@@ -256,14 +256,28 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="XXXXXXXXXXX故障"
-            android:background="@color/gray_cc"
+            android:text="正常"
+            android:background="@color/green"
             android:textSize="14sp"
-            android:gravity="center_vertical"
+            android:textColor="@color/black"
+            android:layout_marginEnd="6dp"
+            android:gravity="center"
             app:layout_constraintStart_toStartOf="@+id/gl_v1"
-            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintEnd_toStartOf="@+id/btn_state_car_error_details"
             app:layout_constraintTop_toTopOf="@+id/tv_state_car_error_title"
             />
+
+        <Button
+            android:id="@+id/btn_state_car_error_details"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:background="@drawable/selector_btn_deeper"
+            android:text="详情"
+            app:layout_constraintStart_toEndOf="@+id/tv_state_error_content"
+            app:layout_constraintEnd_toEndOf="@+id/gl_v2"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_state_error_content"
+            app:layout_constraintTop_toTopOf="@+id/tv_state_error_content" />
+
 
         <ImageButton
             android:id="@+id/ib_state_car_error"

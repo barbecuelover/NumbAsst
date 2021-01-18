@@ -29,6 +29,8 @@ public class ProtocolHelper {
     public final static byte DEVICE_STATUS_DATA_STORE = 0x03; //0X03:数据存储器使用状态，包括已使用空间和剩余空间
     public final static byte DEVICE_STATUS_FAULT_DIAGNOSIS  = 0x04; //0X04:查询故障
     public final static byte DEVICE_STATUS_TCU  = 0x05; //0X05:查询TCU状态
+    public final static byte DEVICE_STATUS_MAIN_CONTROL  = 0x06; //0X06:查询列尾主控状态
+    public final static byte DEVICE_STATUS_SOFTWARE_VERSION  = 0x07; //0X07:查询软件版本
 
     public final static byte TYPE_NUMBER_UNSUBSCRIBE = 0x10;
     public final static byte TYPE_NUMBER_SET = 0x11;

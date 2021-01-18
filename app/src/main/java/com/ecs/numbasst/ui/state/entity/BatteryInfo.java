@@ -5,9 +5,14 @@ import androidx.annotation.NonNull;
 import com.ecs.numbasst.base.util.ByteUtils;
 
 /**
- * @author zw
- * @time 2020/12/28
- * @description
+ 4	状态类型	0X02
+ 5	工作电压低字节（mV）	XX
+ 6	工作电压高字节	XX
+ 7	工作电流低字节（mA）	XX
+ 8	工作电流高字节	XX
+ 9	电池容量	XX
+ 10	电池1电压（V）	XX  需要将接收数据除10，如7.5V会发送75
+ 11	电池2电压	XX
  */
 public class BatteryInfo extends StateInfo{
 

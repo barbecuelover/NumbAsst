@@ -284,7 +284,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             handleReplyMsg(dataType, content);
         } else {
             Log.e(TAG, " handleMsgFromBleDevice  data head type unknown :" + ByteUtils.bytesToString(data));
-            return;
         }
     }
 
@@ -790,7 +789,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     writeData(updateList.get(i));
                     //Test
                     try {
-                        Thread.sleep(20);
+                        Thread.sleep(30);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

@@ -6,9 +6,23 @@ import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.Log;
 
 /**
- * @author zw
- * @time 2020/12/28
- * @description
+ 4	状态类型	0X05
+ 5	TCU通信状态
+     TCU1---Bit0~3：0：未注册；1：已注册；2：已注销
+     TCU2---Bit4~7：0：未注册；1：已注册；2：已注销
+
+ 6	TCU1工作状态（可仅显示数值）
+        00H：脱网
+        01H：上网但是未建立CSD连接
+        02H：CSD连接建立成功，但与AN节点通信中断
+        03H：CSD连接建立成功，与AN节点通信正常
+ 7	TCU1信号强度（可仅显示数值）	XX
+ 8	TCU2工作状态（可仅显示数值）
+         00H：脱网
+         01H：上网但是未建立CSD连接
+         02H：CSD连接建立成功，但与AN节点通信中断
+         03H：CSD连接建立成功，与AN节点通信正常
+ 9	TCU2信号强度（可仅显示数值）	XX
  */
 public class TCUInfo extends StateInfo {
 
@@ -18,30 +32,23 @@ public class TCUInfo extends StateInfo {
     private byte tcuWorkStatus_2;
     private byte tcuSignalStrength_2;
 
-    /**
-     * public TCUInfo(byte communicationStatus, byte tcuWorkStatus_1, byte tcuSignalStrength_1, byte tcuWorkStatus_2,byte tcuSignalStrength_2) {
-     * this.communicationStatus = communicationStatus;
-     * this.tcuWorkStatus_1 = tcuWorkStatus_1;
-     * this.tcuSignalStrength_1 = tcuSignalStrength_1;
-     * this.tcuWorkStatus_2 = tcuWorkStatus_2;
-     * this.tcuSignalStrength_2 =tcuSignalStrength_2;
-     * }
-     */
+
     public TCUInfo(byte[] data) {
         super(data);
-        if (data != null && data.length == 6)
+        if (data != null && data.length == 6){
             this.communicationStatus = data[1];
-        this.tcuWorkStatus_1 = data[2];
-        this.tcuSignalStrength_1 = data[3];
-        this.tcuWorkStatus_2 = data[4];
-        this.tcuSignalStrength_2 = data[5];
+            this.tcuWorkStatus_1 = data[2];
+            this.tcuSignalStrength_1 = data[3];
+            this.tcuWorkStatus_2 = data[4];
+            this.tcuSignalStrength_2 = data[5];
+        }
     }
 
 
     /**
      * 0001 | 0010 => TCU1 已注册， TCU2未注册
-     * TCU1---Bit0：未注册；bit1：已注册；bit2：已注销
-     * TCU2---Bit4：未注册；bit5：已注册；bit6：已注销
+     TCU1---Bit0~3：0：未注册；1：已注册；2：已注销
+     TCU2---Bit4~7：0：未注册；1：已注册；2：已注销
      *
      * 所以两位分开  1,2,4
      * @return
@@ -59,13 +66,13 @@ public class TCUInfo extends StateInfo {
     private String getTcuState(String tcuType) {
         String state;
         switch (tcuType) {
-            case "1":
+            case "0":
                 state = "未注册";
                 break;
-            case "2":
+            case "1":
                 state = "已注册";
                 break;
-            case "4":
+            case "2":
                 state = "已注销";
                 break;
             default:

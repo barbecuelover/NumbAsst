@@ -5,9 +5,11 @@ import androidx.annotation.NonNull;
 import com.ecs.numbasst.base.util.ByteUtils;
 
 /**
- * @author zw
- * @time 2020/12/28
- * @description
+ 4	状态类型	0X01
+ 5	列车管1压力低字节	XX
+ 6	列车管1压力高字节	XX
+ 7	列车管2压力低字节	XX
+ 8	列车管2压力高字节	XX
  */
 public class PipePressInfo extends StateInfo {
 
@@ -20,16 +22,6 @@ public class PipePressInfo extends StateInfo {
     private int pipePress_2;
 
     private final  String unit = "kPa";
-    /**
-     * public PipePressInfo(byte pipeLow_1, byte pipeHigh_1, byte pipeLow_2, byte pipeHigh_2) {
-     * this.pipeLow_1 = pipeLow_1;
-     * this.pipeHigh_1 = pipeHigh_1;
-     * this.pipeLow_2 = pipeLow_2;
-     * this.pipeHigh_2 = pipeHigh_2;
-     * this.pipePress_1 = ByteUtils.byte2Int(pipeLow_1, pipeHigh_1);
-     * this.pipePress_2 = ByteUtils.byte2Int(pipeLow_2, pipeHigh_2);
-     * }
-     */
 
     public PipePressInfo(byte[] data) {
         super(data);

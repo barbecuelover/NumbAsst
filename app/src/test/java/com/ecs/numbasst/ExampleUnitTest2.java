@@ -15,22 +15,25 @@ public class ExampleUnitTest2 {
         assertEquals(4, 2 + 2);
     }
 
-
-    public static String numberByteToStr(byte[] data) {
-        StringBuilder sb = new StringBuilder();
-        for (byte num :data){
-            sb.append(String.valueOf(num));
-        }
-        return sb.reverse().toString();
+    public static String getBit(byte by){
+        StringBuffer sb = new StringBuffer();
+        sb.append((by>>7)&0x1)
+                .append((by>>6)&0x1)
+                .append((by>>5)&0x1)
+                .append((by>>4)&0x1)
+                .append((by>>3)&0x1)
+                .append((by>>2)&0x1)
+                .append((by>>1)&0x1)
+                .append((by>>0)&0x1);
+        return sb.toString();
     }
-
 
     @Test
     public void test (){
 
 
         //55 10 01 00 1D
-        byte[] data = {0x01,0x02,0x03,0x04,0x00};
+        byte[] data = {0x03,0x02,0x03,0x04,0x00};
         //55 11 01 00 5B
         byte[] data0 = {0x55,0x11,0x01,0x00,0X5B};
 
@@ -41,7 +44,7 @@ public class ExampleUnitTest2 {
         byte[] data2 = {0x55,0x01,0x08,0x02,0x22,0x1D,0x48,0x00,0x62,0x4A,0x00,(byte)0x9D};
 
 
-        System.out.println(numberByteToStr(data));
+        System.out.println(getBit((byte)0x01));
 
 
 

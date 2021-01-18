@@ -360,6 +360,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
                 } else if (transferIndex > 0 && transferIndex < 63) {
                     //传输出问题。transferIndex 继续开始传
+
                     send1KBPackageFromIndex(transferIndex+1);
                 } else if (transferIndex == 0x65) {
                     sendWhole1KBPackage();
@@ -779,8 +780,20 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     Log.d(TAG, "包解析错误");
                     return;
                 }
-                for (int i = index; i < updateList.size(); i++) {
+                try {
+                    //为了防止在主机返回 流水号之后有后续的流水报发送到主机，造成主机返回多次 流水号。
+                    //增加500ms延迟，在这个期间如果多次收到 主机返回的流水包，则理论上只会执行最后一任务
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
+                for (int i = index; i < updateList.size(); i++) {
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     int queueSize = executorService.getQueue().size();
                     if (queueSize != 0 && i != index) {
                         return;
@@ -788,11 +801,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     Log.d("zwcc", " index = " + i + " 排队队列=" + queueSize);
                     writeData(updateList.get(i));
                     //Test
-                    try {
-                        Thread.sleep(30);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
                 }
                 Log.d("zwcc", " send1KBPackageFromIndex   curUpdatePackage= " + curUpdatePackage);
 

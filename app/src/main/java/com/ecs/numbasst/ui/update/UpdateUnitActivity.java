@@ -107,6 +107,11 @@ public class UpdateUnitActivity extends BaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         manager.setUpdateCallback(null);
     }
 
@@ -125,6 +130,7 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onUpdateCompleted(int unitType, int status) {
+            Log.d("zwcc", "Activity onUpdateCompleted ");
             if (status == ProtocolHelper.STATE_SUCCEED){
                 updateUnitStatus(spinnerUnit.getItemAtPosition(unitType - 1).toString() + "固件升级完成！");
             }else {
@@ -134,6 +140,7 @@ public class UpdateUnitActivity extends BaseActivity {
 
         @Override
         public void onUpdateProgressChanged(int progress) {
+            Log.d("zwcc","Activity onUpdateProgressChanged progress= " +progress);
             progressBarProcess.setProgress(progress);
             tvProcess.setText(progress + "%");
         }

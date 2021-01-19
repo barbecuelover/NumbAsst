@@ -17,12 +17,13 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ecs.numbasst.base.util.ByteUtils;
+import com.ecs.numbasst.base.util.CrcUtils;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.ConnectionCallback;
 import com.ecs.numbasst.manager.callback.DebugCallback;
@@ -56,6 +57,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class BleService extends Service implements SppInterface, IDebugging, ICarNumber, IDeviceID, IDownloadData, IState, IUpdateUnit, IAdjustSensor {
 
     private final static String TAG = "BLEService";
+    private final static String ZWCC = "zwcc";
 
     private static final int STATE_DISCONNECTED = 0x1000;
     private static final int STATE_CONNECTING = 0x1001;
@@ -104,12 +106,17 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private long totalPackage;
     private int curUpdatePackage = 0;
+    private Handler pkgHandler;
+
+    private volatile boolean inTransferring = false;
+
 
     @Override
     public void onCreate() {
         super.onCreate();
         initialize();
         msgHandler = new MsgHandler();
+        pkgHandler = new Handler();
         protocolHelper = new ProtocolHelper();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     }
@@ -269,7 +276,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             return;
         }
         //进行CRC校验
-
+        if (!CrcUtils.checkDataWithCrc8Table(data)){
+            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
+            return;
+        }
 
         byte[] content = protocolHelper.getContent(data);
         if (content == null) {
@@ -350,9 +360,13 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 if (transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED) {
                     //1kb已经传完开始下一个1kb
                     curUpdatePackage++;
+                    if (updateCallback==null){
+                        Log.d(ZWCC, "handleReplyMsg: 1kb完成 updateCallback ==null");
+                    }
                     sendHandlerMessage(updateCallback, type, null, curUpdatePackage, (int) totalPackage);
                     if (updateFile != null && curUpdatePackage == totalPackage) {
                         //传输完成
+                        resetTask();
                         updateUnitCompletedResult(unitType, ProtocolHelper.STATE_SUCCEED);
                     } else {
                         sendWhole1KBPackage();
@@ -360,8 +374,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
                 } else if (transferIndex > 0 && transferIndex < 63) {
                     //传输出问题。transferIndex 继续开始传
-
-                    send1KBPackageFromIndex(transferIndex+1);
+                    handlePacketLost(transferIndex+1);
+                    //send1KBPackageFromIndex(transferIndex+1);
                 } else if (transferIndex == 0x65) {
                     sendWhole1KBPackage();
                     /**
@@ -378,6 +392,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
             case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
                 curUpdatePackage = 0;
+                Log.d(ZWCC,"收到升级完成指令");
                 sendHandlerMessage(updateCallback, type, null, content[0], content[1]);
                 break;
 
@@ -401,6 +416,34 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 }
                 break;
         }
+    }
+
+
+    private void resetTask(){
+        inTransferring = false;
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(ZWCC,"收到丢包指令 ,加入中断旧任务 ");
+            }
+        });
+
+        pkgHandler.removeCallbacksAndMessages(null);
+    }
+
+    private void handlePacketLost(int index) {
+        Log.d(ZWCC,"收到丢包指令  需要续传位置："+index);
+        resetTask();
+        if (index>=0 && index<64){
+            pkgHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(ZWCC,"收到丢包指令,延迟200ms执行续传(若200ms内再收到丢包指令则继续延迟200ms),续传位置："+index);
+                    send1KBPackageFromIndex(index);
+                }
+            },200);
+        }
+
     }
 
     public static class MsgHandler extends Handler {
@@ -465,17 +508,16 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     break;
                 case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
                     //传输文件 主机回复
+                    Log.d(ZWCC," Handler update progress");
                     if (updateCallback != null) {
+                        Log.d(ZWCC,"Handler update progress ="+msg.arg1 * 100 / msg.arg2);
                         updateCallback.onUpdateProgressChanged(msg.arg1 * 100 / msg.arg2);
-//                        if(msg.arg1 == ProtocolHelper.STATE_SUCCEED){
-//                            updateCallback.onUpdateProgressChanged(msg.arg2);
-//                        }else {
-//                            updateCallback.onUpdateError();
-//                        }
                     }
                     break;
                 case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
+                    Log.d(ZWCC," Handler update completed");
                     if (updateCallback != null) {
+                        Log.d(ZWCC," Handler updateCallback UPDATE_COMPLETED!!");
                         updateCallback.onUpdateCompleted(msg.arg1, msg.arg2);
                     }
                     break;
@@ -683,8 +725,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void updateUnitRequest(int unitType, File file) {
         int more = file.length() % 1024 == 0 ? 0 : 1;
         totalPackage = file.length() / 1024 + more;
-        Log.d(TAG, "totalPackage =" + totalPackage);
-        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024);
+        Log.d(ZWCC, "totalPackage =" + totalPackage);
+        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024,file);
         this.unitType = unitType;
         writeDataWithRetry(order, updateCallback);
     }
@@ -775,35 +817,69 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         executorService.execute(new Runnable() {
             @Override
             public void run() {
-
+                inTransferring = true;
+                Log.d(ZWCC,"新任务开始执行 开始的流水号为："+index);
                 if (updateList == null) {
                     Log.d(TAG, "包解析错误");
                     return;
                 }
-                try {
-                    //为了防止在主机返回 流水号之后有后续的流水报发送到主机，造成主机返回多次 流水号。
-                    //增加500ms延迟，在这个期间如果多次收到 主机返回的流水包，则理论上只会执行最后一任务
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
                 for (int i = index; i < updateList.size(); i++) {
+                    int queueSize = executorService.getQueue().size();
+                    Log.d(ZWCC, " 当前流水号 = " + i + " 排队队列 = " + queueSize);
+                    if (queueSize != 0 || !inTransferring) {
+                        Log.d(ZWCC,"新任务或终止任务进入队列，停止现在执行的任务");
+                        return;
+                    }
+
+                    writeData(updateList.get(i));
+                    Log.d(ZWCC, " 已发送流水号 = " + i );
+                    //Test
+                    try {
+                        Thread.sleep(30);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.d(ZWCC, " send1KBPackage  currentPkg = " + curUpdatePackage);
+                //每个1kb 发送完成后等待200ms如果没收到服务器指令说明出现丢最后一个包的情况。发送63包，再等待如果还没收到服务器指令则升级失败。
+                for (int i=0;i<10;i++){
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    int queueSize = executorService.getQueue().size();
-                    if (queueSize != 0 && i != index) {
+                    int qSize = executorService.getQueue().size();
+                    Log.d(ZWCC, " 1kB发送完成等待200ms防止丢最后一包   目前排队队列 = " + qSize + "等待时间为：" + 20*(i+1) +"ms");
+                    if (qSize != 0 || !inTransferring) {
+                        Log.d(ZWCC,"未出现丢包，收到主机新的指令。退出等待");
                         return;
                     }
-                    Log.d("zwcc", " index = " + i + " 排队队列=" + queueSize);
-                    writeData(updateList.get(i));
-                    //Test
-
                 }
-                Log.d("zwcc", " send1KBPackageFromIndex   curUpdatePackage= " + curUpdatePackage);
+
+                //出现丢最后一包的情况发送 最后一包。再休眠200ms如果还未收到指令，则升级失败
+                writeData(updateList.get(updateList.size()-1));
+                Log.d(ZWCC, " 出现丢最后一包 ,重新发送最后一包");
+
+                for (int i=0;i<10;i++){
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    int qSize = executorService.getQueue().size();
+                    Log.d(ZWCC, " 重新发送最后一包 后等待主机指令   目前排队队列 = " + qSize + "等待时间为：" + 20*(i+1) +"ms");
+                    if (qSize != 0 || !inTransferring) {
+                        Log.d(ZWCC,"重新发送最后一包后，收到主机新的指令。退出等待");
+                        return;
+                    }
+                }
+
+                int qSize = executorService.getQueue().size();
+                if (qSize == 0 || inTransferring) {
+                    Log.d(ZWCC,"重发最后一包指令 未收到主机指令，升级过程出错退出升级，向主机发送 升级失败。");
+                    updateUnitCompletedResult(unitType, ProtocolHelper.STATE_FAILED);
+                    sendHandlerMessage(updateCallback, ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED, null, unitType, ProtocolHelper.STATE_FAILED);
+                }
 
             }
         });

@@ -10,6 +10,7 @@ import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -162,15 +163,14 @@ public class ProtocolHelper {
      *        UNIT_MAIN_CONTROL :主控单元
      *        UNIT_INDICATE :指示单元
      */
-    public byte[] createOrderUpdateUnitRequest(int unitType, long fileSize) {
-
-
+    public byte[] createOrderUpdateUnitRequest(int unitType, long fileSize, File file) {
 
         byte[] size = ByteUtils.longToLow4Byte(fileSize);
         Log.d(TAG, "createOrder##UpdateUnitRequest  file.length =" + fileSize);
         Log.d(TAG, "createOrder##UpdateUnitRequest  size =" +  ByteUtils.bytesToString(size));
-        //String fileCrc = CrcUtils.calcCrc16(ByteUtils.getFile2Bytes(file.getAbsolutePath()));
-        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X07, (byte) unitType, size[0], size[1],size[2],size[3],0x22,0x22};
+        byte[] fileCrc = CrcUtils.crc16Table(ByteUtils.getFile2Bytes(file.getAbsolutePath()));
+        Log.d("zwcc","文件Crc16校验 = " +ByteUtils.bytesToString(fileCrc));
+        byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X07, (byte) unitType, size[0], size[1],size[2],size[3],fileCrc[0],fileCrc[1]};
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##UpdateUnitRequest =  " + ByteUtils.bytesToString(order));
         return order;

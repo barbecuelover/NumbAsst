@@ -5,56 +5,58 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.state.ErrorDetailsActivity">
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/action_bar_error_details"
-            android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:background="@color/teal_700"
-            app:layout_constraintTop_toTopOf="parent">
 
-            <ImageButton
-                android:id="@+id/ib_action_back"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="12dp"
-                android:background="@null"
-                android:src="@drawable/selector_btn_arrow_back"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+    <com.ecs.numbasst.view.TopActionBar
+        android:id="@+id/action_bar_error_details"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        app:refreshEnable="true"
+        android:layout_height="32dp"/>
 
-            <ImageButton
+    <LinearLayout
+        android:layout_marginTop="12dp"
+        android:id="@+id/head_list_view"
+        app:layout_constraintTop_toBottomOf="@+id/action_bar_error_details"
+        android:layout_marginHorizontal="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="36dp"
+        android:background="@color/gray_cc"
+        android:orientation="horizontal">
 
-                android:id="@+id/ib_error_refresh_all"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginEnd="12dp"
-                android:background="@null"
-                android:src="@drawable/selector_btn_refresh"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:background="@color/white"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:text="序号"
+            android:layout_height="match_parent"/>
 
+        <TextView
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:text="故障"
+            android:textStyle="bold"
+            android:background="@color/white"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginBottom="1dp"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_height="match_parent"/>
 
-            <TextView
-                android:id="@+id/action_bar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:gravity="center_vertical"
-                android:text="故障"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toEndOf="@+id/ib_action_back"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_marginHorizontal="12dp"
         android:id="@+id/rv_error_detail"
-        app:layout_constraintTop_toBottomOf="@+id/action_bar_error_details"
+        app:layout_constraintTop_toBottomOf="@+id/head_list_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constrainedWidth="true"

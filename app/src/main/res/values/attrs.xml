@@ -4,4 +4,9 @@
         <attr name="cross_line_title" format="string"/>
     </declare-styleable>
 
+    <declare-styleable name="TopActionBar">
+        <attr name="title" format="string"/>
+        <attr name="refreshEnable" format="boolean"/>
+    </declare-styleable>
+
 </resources>

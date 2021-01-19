@@ -34,7 +34,14 @@ public class VersionInfo extends StateInfo {
         }
     }
 
-    private String getUnitType(){
+
+    public byte getUnitType(){
+        return unitType;
+    }
+
+
+
+    private String getUnitTypeStr(){
         String type;
        switch (unitType){
            default:
@@ -58,6 +65,6 @@ public class VersionInfo extends StateInfo {
     @NonNull
     @Override
     public String toString() {
-        return  "设备：" + getUnitType() + "\n版本号 :" + version;
+        return  "设备：" + getUnitTypeStr() + "\n版本号 :" + version;
     }
 }

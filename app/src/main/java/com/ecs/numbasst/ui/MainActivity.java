@@ -27,6 +27,8 @@ import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.sensor.SensorAdjustingActivity;
 import com.ecs.numbasst.ui.sensor.SensorAuthorityActivity;
 import com.ecs.numbasst.ui.state.DeviceStateActivity;
+import com.ecs.numbasst.ui.state.VersionInfoActivity;
+import com.ecs.numbasst.ui.state.entity.VersionInfo;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,6 +44,7 @@ public class MainActivity extends BaseActivity {
     private Button btnSetDeviceId;
     private Button btnDebugging;
     private Button btnAboutNumbAsst;
+    private Button btnVersion;
     private TextView tvConnected;
 
     @Override
@@ -83,6 +86,7 @@ public class MainActivity extends BaseActivity {
         btnSetDeviceId = findViewById(R.id.view_set_device_id);
         btnDebugging = findViewById(R.id.view_debugging);
         btnAboutNumbAsst = findViewById(R.id.view_about_numb_asst);
+        btnVersion = findViewById(R.id.view_version_info);
     }
 
     @Override
@@ -102,6 +106,7 @@ public class MainActivity extends BaseActivity {
         btnSetDeviceId.setOnClickListener(this);
         btnDebugging.setOnClickListener(this);
         btnAboutNumbAsst.setOnClickListener(this);
+        btnVersion.setOnClickListener(this);
     }
 
 
@@ -128,6 +133,8 @@ public class MainActivity extends BaseActivity {
             goActivity(DebugActivity.class);
         }else if(id == R.id.view_about_numb_asst){
             goActivity(AboutActivity.class);
+        }else if (id == R.id.view_version_info){
+            goActivity(VersionInfoActivity.class);
         }
     }
 

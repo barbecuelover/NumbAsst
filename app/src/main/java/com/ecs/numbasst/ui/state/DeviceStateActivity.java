@@ -133,11 +133,16 @@ public class DeviceStateActivity extends BaseActivity {
                     tvStateSignalStrength1.setText(String.valueOf(tcuInfo.getTcuSignalStrength_1()));
                     tvStateSignalStrength2.setText(String.valueOf(tcuInfo.getTcuSignalStrength_2()));
                 }else if (info instanceof ErrorInfo){
-                    tvStateErrorContent.setText(info.toString());
-                    //TODO 有错误显示红色
-                    tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.red));
-                    //无错误显示绿色
-                    tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.green));
+                    ErrorInfo errorInfo = (ErrorInfo) info;
+                    if (errorInfo.getErrorInfoList().size() == 0){
+                        //无错误显示绿色
+                        tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.green));
+                        tvStateErrorContent.setText("正常");
+                    }else {
+                        //有错误显示红色
+                        tvStateErrorContent.setText("故障");
+                        tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.red));
+                    }
                 }
             }
         }

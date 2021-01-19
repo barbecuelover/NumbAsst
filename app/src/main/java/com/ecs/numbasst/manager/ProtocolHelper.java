@@ -6,9 +6,11 @@ import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.ui.sensor.SensorState;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
+import com.ecs.numbasst.ui.state.entity.MainControlInfo;
 import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
+import com.ecs.numbasst.ui.state.entity.VersionInfo;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -272,6 +274,12 @@ public class ProtocolHelper {
                 break;
             case DEVICE_STATUS_TCU:
                 info = new TCUInfo(content);
+                break;
+            case DEVICE_STATUS_MAIN_CONTROL:
+                info = new MainControlInfo(content);
+                break;
+            case DEVICE_STATUS_SOFTWARE_VERSION:
+                info = new VersionInfo(content);
                 break;
         }
         return info;

@@ -22,13 +22,11 @@ import com.ecs.numbasst.ui.debug.DebugActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
-import com.ecs.numbasst.ui.scan.ConnectionState;
+import com.ecs.numbasst.ui.scan.ConnectionMsg;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
-import com.ecs.numbasst.ui.sensor.SensorAdjustingActivity;
 import com.ecs.numbasst.ui.sensor.SensorAuthorityActivity;
 import com.ecs.numbasst.ui.state.DeviceStateActivity;
 import com.ecs.numbasst.ui.state.VersionInfoActivity;
-import com.ecs.numbasst.ui.state.entity.VersionInfo;
 import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 
 import org.greenrobot.eventbus.EventBus;
@@ -65,8 +63,8 @@ public class MainActivity extends BaseActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onConnectionChanged(ConnectionState state) {
-        if (state!=null && state.getType() == ConnectionState.CONNECTED ){
+    public void onConnectionChanged(ConnectionMsg state) {
+        if (state!=null && state.getType() == ConnectionMsg.CONNECTED ){
             tvConnected.setText(state.getName());
         }else {
             tvConnected.setText("");

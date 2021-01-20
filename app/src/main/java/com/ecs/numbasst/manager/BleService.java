@@ -22,12 +22,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ecs.numbasst.base.util.ByteUtils;
-import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.callback.Callback;
-import com.ecs.numbasst.manager.callback.ConnectionCallback;
-import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.AdjustCallback;
+import com.ecs.numbasst.manager.callback.Callback;
+import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
@@ -41,7 +39,7 @@ import com.ecs.numbasst.manager.interfaces.IDownloadData;
 import com.ecs.numbasst.manager.interfaces.IState;
 import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
-import com.ecs.numbasst.ui.scan.ConnectionState;
+import com.ecs.numbasst.ui.scan.ConnectionMsg;
 import com.ecs.numbasst.ui.sensor.SensorState;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
@@ -83,7 +81,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private final IBinder mBinder = new LocalBinder();
 
-    private static ConnectionCallback connectionCallBack;
+    //private static ConnectionCallback connectionCallBack;
     private static NumberCallback numberCallback;
     private static DeviceIDCallback deviceIDCallback;
     private static AdjustCallback adjustCallback;
@@ -155,14 +153,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 connectedDeviceAddress = mBluetoothDeviceAddress;
                 mConnectionState = STATE_CONNECTED;
 
-                if (connectionCallBack != null) {
-                    //创建所需的消息对象
-                    Message msg = Message.obtain();
-                    msg.what = MSG_CONNECTED;
-                    msg.obj = connectedDeviceAddress;
-                    msgHandler.sendMessage(msg);
-                }
-                ConnectionState state = new ConnectionState(ConnectionState.CONNECTED,gatt.getDevice().getAddress(),gatt.getDevice().getName());
+                ConnectionMsg state = new ConnectionMsg(ConnectionMsg.CONNECTED,gatt.getDevice().getAddress(),gatt.getDevice().getName());
                 EventBus.getDefault().post(state);
                 //Attempts to discover services after successful connection,start service discovery
                 Log.i(TAG, "Connected to GATT server.Attempting to start service discovery:" +
@@ -173,20 +164,13 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 if (gatt.getDevice().getAddress().equals(connectedDeviceAddress)) {
                     mConnectionState = STATE_DISCONNECTED;
                     connectedDeviceAddress = null;
-                    if (connectionCallBack != null) {
-                        //创建所需的消息对象
-                        Message msg = Message.obtain();
-                        msg.what = MSG_DISCONNECTED;
-                        msg.obj = connectedDeviceAddress;
-                        msgHandler.sendMessage(msg);
-                    }
-                    ConnectionState state = new ConnectionState();
-                    state.setType(ConnectionState.DISCONNECTED);
+
+                    ConnectionMsg state = new ConnectionMsg();
+                    state.setType(ConnectionMsg.DISCONNECTED);
                     EventBus.getDefault().post(state);
                     Log.i(TAG, "Disconnected from GATT server. status=" + status);
                 }
-//                intentAction = BleConstants.ACTION_GATT_DISCONNECTED;
-//                broadcastUpdate(intentAction);
+
             }
         }
 
@@ -276,10 +260,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             return;
         }
         //进行CRC校验
-        if (!CrcUtils.checkDataWithCrc8Table(data)){
-            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
-            return;
-        }
+//        if (!CrcUtils.checkDataWithCrc8Table(data)){
+//            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
+//            return;
+//        }
 
         byte[] content = protocolHelper.getContent(data);
         if (content == null) {
@@ -450,16 +434,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         @Override
         public void handleMessage(@NonNull Message msg) {
             switch (msg.what) {
-                case MSG_CONNECTED:
-                    if (connectionCallBack != null) {
-                        connectionCallBack.onConnected((String) msg.obj);
-                    }
-                    break;
-                case MSG_DISCONNECTED:
-                    if (connectionCallBack != null) {
-                        connectionCallBack.onDisconnected((String) msg.obj);
-                    }
-                    break;
+
                 case ProtocolHelper.TYPE_DEVICE_STATUS:
                     if (queryStateCallback != null) {
                         queryStateCallback.onGetState((StateInfo) msg.obj);
@@ -586,10 +561,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         if (mBluetoothAdapter == null || address == null) {
             if (!initialize()) {
                 Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
-                if (connectionCallBack != null) {
-                    connectionCallBack.onConnectFailed("BluetoothAdapter not initialized or unspecified address.");
-                }
-
+                EventBus.getDefault().post(new ConnectionMsg("蓝牙未初始化！"));
                 return;
             }
         }
@@ -600,9 +572,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             if (mBluetoothGatt.connect()) {
                 mConnectionState = STATE_CONNECTING;
             } else {
-                if (connectionCallBack != null) {
-                    connectionCallBack.onConnectFailed("RemoteException :the connection attempt was initiated failed");
-                }
+                EventBus.getDefault().post(new ConnectionMsg("RemoteException，连接失败！"));
             }
             return;
         }
@@ -610,9 +580,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
             Log.e(TAG, "Device not found.  Unable to connect.");
-            if (connectionCallBack != null) {
-                connectionCallBack.onConnectFailed("没有找到设备,无法连接！");
-            }
+            EventBus.getDefault().post(new ConnectionMsg("没有找到设备,无法连接！"));
             return;
         }
         // We want to directly connect to the device, so we are setting the autoConnect
@@ -782,10 +750,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }
     }
 
-    @Override
-    public void setConnectionCallback(ConnectionCallback callback) {
-        connectionCallBack = callback;
-    }
 
     @Override
     public void sendDebuggingData(String data) {

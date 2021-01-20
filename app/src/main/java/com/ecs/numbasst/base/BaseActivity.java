@@ -1,6 +1,5 @@
 package com.ecs.numbasst.base;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,8 +8,6 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -38,14 +35,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         context = this;
         //activity管理
         ActivityCollector.addActivity(this);
-//        if (!isShowTitle) {
-//            requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        }
-//
-//        if (isShowStatusBar) {
-//            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
-//                    , WindowManager.LayoutParams.FLAG_FULLSCREEN);
-//        }
+
 
         //设置布局
         setContentView(initLayout());

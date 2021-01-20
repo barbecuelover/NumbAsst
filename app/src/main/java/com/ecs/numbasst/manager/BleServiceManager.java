@@ -8,9 +8,8 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.callback.ConnectionCallback;
-import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.AdjustCallback;
+import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
@@ -120,12 +119,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         return null;
     }
 
-    @Override
-    public void setConnectionCallback(ConnectionCallback callback) {
-        if (bleService != null) {
-            bleService.setConnectionCallback(callback);
-        }
-    }
 
  ///2.查询列尾状态
     @Override

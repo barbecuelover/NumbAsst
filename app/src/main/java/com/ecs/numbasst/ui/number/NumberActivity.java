@@ -9,25 +9,27 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ecs.numbasst.R;
+import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.callback.NumberCallback;
+import com.ecs.numbasst.manager.msg.CarNumberMsg;
+import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 
-public class NumberActivity extends BaseActivity{
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-    TextView tvTitle;
-    ImageButton btnBack;
+public class NumberActivity extends BaseActionBarActivity {
+
     ImageButton btnRefresh;
     ImageButton btnNumberLogout;
-    ProgressBar progressBar;
+
     Button btnSetCarNumber;
     EditText etNewNumber;
     TextView tvCarName;
     TextView tvNumberStatus;
-
-    private BleServiceManager manager;
-    private NumberCallback numberCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +43,9 @@ public class NumberActivity extends BaseActivity{
 
     @Override
     protected void initView() {
-        tvTitle = findViewById(R.id.action_bar_title);
-        btnBack =findViewById(R.id.ib_action_back);
+
         btnRefresh = findViewById(R.id.ib_get_car_number_refresh);
         btnNumberLogout = findViewById(R.id.ib_number_logo_out);
-        progressBar = findViewById(R.id.progress_bar_set_car_number);
         btnSetCarNumber = findViewById(R.id.btn_set_car_number);
         etNewNumber = findViewById(R.id.et_new_numb);
         tvCarName = findViewById(R.id.car_number_current);
@@ -55,57 +55,36 @@ public class NumberActivity extends BaseActivity{
 
     @Override
     protected void initData() {
-        tvTitle.setText(getTitle());
-        manager = BleServiceManager.getInstance();
-        numberCallback = new NumberCallback() {
-            @Override
-            public void onNumberGot(String number) {
-                tvCarName.setText(number);
-                updateStatus("获取车号为："+number);
-            }
+    }
 
-            @Override
-            public void onNumberSet(int state) {
-                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
-                String msg = "设置车号" + status;
-                updateStatus(msg);
-            }
-
-            @Override
-            public void onUnsubscribed(int state) {
-                String status = state == ProtocolHelper.STATE_SUCCEED ? "成功！" : "失败！";
-                updateStatus("注销车号" +status);
-            }
-
-            @Override
-            public void onRetryFailed() {
-                updateStatus("多次连接主机失败");
-            }
-        };
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCarNumber(CarNumberMsg msg) {
+        long state = msg.getState();
+        if (state == CarNumberMsg.UNSUBSCRIBE_NUMBER_SUCCEED){
+            updateStatus("注销车号成功！");
+        }else if (state == CarNumberMsg.UNSUBSCRIBE_NUMBER_FAILED){
+            updateStatus("注销车号失败！");
+        }else if (state ==CarNumberMsg.SET_NUMBER_SUCCEED){
+            updateStatus("设置车号成功");
+        }else if(state ==CarNumberMsg.SET_NUMBER_FAILED){
+            updateStatus("设置车号失败");
+        }else if (state == CarNumberMsg.GET_NUMBER){
+            String number = msg.getCarNumber();
+            tvCarName.setText(number);
+            updateStatus("获取车号为："+number);
+        }
     }
 
     @Override
     protected void initEvent() {
-        btnBack.setOnClickListener(this);
         btnRefresh.setOnClickListener(this);
         btnSetCarNumber.setOnClickListener(this);
         btnNumberLogout.setOnClickListener(this);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        manager.setNumberCallback(numberCallback);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        manager.setNumberCallback(null);
-    }
-
-    @Override
     public void onClick(View v) {
+        super.onClick(v);
         int id = v.getId();
         if (id == R.id.ib_action_back){
             finish();
@@ -114,13 +93,13 @@ public class NumberActivity extends BaseActivity{
                 tvNumberStatus.setText(getString(R.string.check_device_connection));
                 return;
             }
-            if (progressBar.getVisibility() == View.VISIBLE) {
+            if (inProgressing()) {
                 tvNumberStatus.setText("获取或设置车号中，请稍后再试");
 
             } else {
                 manager.getCarNumber();
                 tvNumberStatus.setText("获取车号中...");
-                progressBar.setVisibility(View.VISIBLE);
+                showProgressBar();
             }
         } else if (id == R.id.btn_set_car_number) {
             if (etNewNumber.getText().toString().trim().equals("")) {
@@ -131,7 +110,7 @@ public class NumberActivity extends BaseActivity{
                     return;
                 }
                 manager.setCarNumber(etNewNumber.getText().toString().trim());
-                progressBar.setVisibility(View.VISIBLE);
+                showProgressBar();
             }
         }else if (id == R.id.ib_number_logo_out){
             if (!manager.isConnected()) {
@@ -144,13 +123,13 @@ public class NumberActivity extends BaseActivity{
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void onRefreshAll() {
+
     }
 
     private void updateStatus(String msg) {
         tvNumberStatus.setText(msg);
-        progressBar.setVisibility(View.GONE);
+        hideProgressBar();
     }
 
 }

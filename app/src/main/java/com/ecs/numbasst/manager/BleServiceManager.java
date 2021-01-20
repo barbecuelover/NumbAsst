@@ -10,11 +10,7 @@ import android.os.IBinder;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.DebugCallback;
-import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
-import com.ecs.numbasst.manager.callback.NumberCallback;
-import com.ecs.numbasst.manager.callback.QueryStateCallback;
-import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
 import com.ecs.numbasst.manager.interfaces.ICarNumber;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
@@ -128,12 +124,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
-    @Override
-    public void setQueryStateCallback(QueryStateCallback callback) {
-        if (bleService != null) {
-            bleService.setQueryStateCallback(callback);
-        }
-    }
 
     ///3.设置车号
     @Override
@@ -154,13 +144,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
     public void logoutCarNumber() {
         if (bleService != null) {
             bleService.logoutCarNumber();
-        }
-    }
-
-    @Override
-    public void setNumberCallback(NumberCallback callback) {
-        if (bleService != null) {
-            bleService.setNumberCallback(callback);
         }
     }
 
@@ -189,12 +172,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
     public void updateUnitCompletedResult(int unitType, int state) {
         if (bleService != null) {
             bleService.updateUnitCompletedResult(unitType, state);
-        }
-    }
-    @Override
-    public void setUpdateCallback(UpdateCallback callback) {
-        if (bleService != null) {
-            bleService.setUpdateCallback(callback);
         }
     }
 
@@ -253,14 +230,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
             bleService.getDeviceID();
         }
     }
-
-    @Override
-    public void setDeviceIDCallback(DeviceIDCallback callBack) {
-        if (bleService != null) {
-            bleService.setDeviceIDCallback(callBack);
-        }
-    }
-
 
     ///8.调试
     @Override

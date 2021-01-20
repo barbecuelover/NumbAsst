@@ -1,4 +1,4 @@
-package com.ecs.numbasst.ui.scan;
+package com.ecs.numbasst.manager.msg;
 
 /**
  * @author zw
@@ -10,7 +10,7 @@ public class ConnectionMsg {
     public  final static  int DISCONNECTED = 0x101;
     public  final static  int CONNECT_FAILED = 0x2001;
 
-    private int type;
+    private int state;
     private String mac ="";
     private String name ="";
 
@@ -19,7 +19,7 @@ public class ConnectionMsg {
     private String reason ="";
 
     public ConnectionMsg(int type, String mac, String name) {
-        this.type = type;
+        this.state = type;
         this.mac = mac;
         this.name = name;
     }
@@ -32,12 +32,12 @@ public class ConnectionMsg {
      * @param reason
      */
     public ConnectionMsg(String reason) {
-        this.type = CONNECT_FAILED;
+        this.state = CONNECT_FAILED;
         this.reason = reason;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setState(int state) {
+        this.state = state;
     }
 
     public void setMac(String mac) {
@@ -48,8 +48,8 @@ public class ConnectionMsg {
         this.name = name;
     }
 
-    public int getType() {
-        return type;
+    public int getState() {
+        return state;
     }
 
     public String getMac() {

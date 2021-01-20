@@ -6,9 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".ui.number.NumberActivity">
 
-    <include
-        android:id="@+id/action_bar_number"
-        layout="@layout/action_bar" />
+    <com.ecs.numbasst.view.TopActionBar
+        android:id="@+id/top_action_bar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        app:refreshEnable="false"
+        android:layout_height="32dp"/>
 
     <TextView
         android:id="@+id/select_download_start_time"
@@ -19,7 +22,7 @@
         android:text="当前车号："
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/action_bar_number" />
+        app:layout_constraintTop_toBottomOf="@+id/top_action_bar" />
 
 
     <TextView
@@ -149,7 +152,7 @@
 
 
     <ProgressBar
-        android:id="@+id/progress_bar_set_car_number"
+        android:id="@+id/progress_bar_status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

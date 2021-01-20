@@ -30,6 +30,7 @@ import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.util.SharePreUtil;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.msg.ConnectionMsg;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -193,7 +194,7 @@ public class DevicesScanActivity extends BaseActionBarActivity {
         if (state == null) {
             return;
         }
-        int status = state.getType();
+        int status = state.getState();
         if (status == ConnectionMsg.CONNECTED) {
             handleConnectionSucceed(state.getMac());
         } else if (status == ConnectionMsg.DISCONNECTED) {

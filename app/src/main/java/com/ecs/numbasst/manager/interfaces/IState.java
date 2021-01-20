@@ -1,9 +1,6 @@
 package com.ecs.numbasst.manager.interfaces;
 
-import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
-
-import java.util.Date;
 
 /**
  * @author zw
@@ -12,5 +9,4 @@ import java.util.Date;
  */
 public interface IState {
     void getDeviceState(int type);
-    void setQueryStateCallback(QueryStateCallback callBack);
 }

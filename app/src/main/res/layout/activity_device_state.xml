@@ -12,52 +12,24 @@
         android:minHeight="400dp"
         tools:context=".ui.state.DeviceStateActivity">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/action_bar_device_status"
+
+        <com.ecs.numbasst.view.TopActionBar
+            android:id="@+id/top_action_bar"
+            app:layout_constraintTop_toTopOf="parent"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:background="@color/teal_700"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageButton
-                android:id="@+id/ib_action_back"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="12dp"
-                android:background="@null"
-                android:src="@drawable/selector_btn_arrow_back"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageButton
-
-                android:id="@+id/ib_state_refresh_all"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginEnd="12dp"
-                android:background="@null"
-                android:src="@drawable/selector_btn_refresh"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+            app:refreshEnable="true"
+            android:layout_height="32dp"/>
 
 
-            <TextView
-                android:id="@+id/action_bar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:gravity="center_vertical"
-                android:text="列尾状态"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toEndOf="@+id/ib_action_back"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
+        <ProgressBar
+            android:id="@+id/progress_bar_status"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/gl_v1"
@@ -86,7 +58,7 @@
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/gl_v1"
-            app:layout_constraintTop_toBottomOf="@+id/action_bar_device_status"
+            app:layout_constraintTop_toBottomOf="@+id/top_action_bar"
             />
 
         <TextView

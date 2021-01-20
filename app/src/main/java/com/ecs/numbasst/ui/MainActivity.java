@@ -22,7 +22,7 @@ import com.ecs.numbasst.ui.debug.DebugActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
-import com.ecs.numbasst.ui.scan.ConnectionMsg;
+import com.ecs.numbasst.manager.msg.ConnectionMsg;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.sensor.SensorAuthorityActivity;
 import com.ecs.numbasst.ui.state.DeviceStateActivity;
@@ -64,7 +64,7 @@ public class MainActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onConnectionChanged(ConnectionMsg state) {
-        if (state!=null && state.getType() == ConnectionMsg.CONNECTED ){
+        if (state!=null && state.getState() == ConnectionMsg.CONNECTED ){
             tvConnected.setText(state.getName());
         }else {
             tvConnected.setText("");

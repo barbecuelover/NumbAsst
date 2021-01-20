@@ -39,7 +39,12 @@ import com.ecs.numbasst.manager.interfaces.IDownloadData;
 import com.ecs.numbasst.manager.interfaces.IState;
 import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
-import com.ecs.numbasst.ui.scan.ConnectionMsg;
+import com.ecs.numbasst.manager.msg.CarNumberMsg;
+import com.ecs.numbasst.manager.msg.ConnectionMsg;
+import com.ecs.numbasst.manager.msg.DeviceIDMsg;
+import com.ecs.numbasst.manager.msg.RetryMsg;
+import com.ecs.numbasst.manager.msg.StateMsg;
+import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 import com.ecs.numbasst.ui.sensor.SensorState;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
@@ -81,13 +86,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private final IBinder mBinder = new LocalBinder();
 
-    //private static ConnectionCallback connectionCallBack;
-    private static NumberCallback numberCallback;
-    private static DeviceIDCallback deviceIDCallback;
     private static AdjustCallback adjustCallback;
-    private static UpdateCallback updateCallback;
     private static DownloadCallback downloadCallBack;
-    private static QueryStateCallback queryStateCallback;
     private static DebugCallback debugCallback;
     private boolean inDebugging;
 
@@ -105,6 +105,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private long totalPackage;
     private int curUpdatePackage = 0;
     private Handler pkgHandler;
+    UnitUpdateMsg pkgMsg ;
 
     private volatile boolean inTransferring = false;
 
@@ -117,6 +118,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         pkgHandler = new Handler();
         protocolHelper = new ProtocolHelper();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+        pkgMsg = new UnitUpdateMsg(UnitUpdateMsg.TRANSFER_PROGRESS_CHANGED);
     }
 
     @Override
@@ -158,15 +160,14 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 //Attempts to discover services after successful connection,start service discovery
                 Log.i(TAG, "Connected to GATT server.Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
-//                intentAction = BleConstants.ACTION_GATT_CONNECTED;
-//                broadcastUpdate(intentAction);
+
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 if (gatt.getDevice().getAddress().equals(connectedDeviceAddress)) {
                     mConnectionState = STATE_DISCONNECTED;
                     connectedDeviceAddress = null;
 
                     ConnectionMsg state = new ConnectionMsg();
-                    state.setType(ConnectionMsg.DISCONNECTED);
+                    state.setState(ConnectionMsg.DISCONNECTED);
                     EventBus.getDefault().post(state);
                     Log.i(TAG, "Disconnected from GATT server. status=" + status);
                 }
@@ -200,12 +201,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     }
                 }
 
-//                if (service == null) {
-//                    Log.v("log", "service is null");
-//                    broadcastUpdate(ACTION_GATT_SERVICES_NO_DISCOVERED);
-//                    // mBluetoothGatt.discoverServices();
-//                }
-
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
@@ -232,6 +227,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 sendHandlerMessage(debugCallback, ProtocolHelper.TYPE_DEBUGGING, data, 0, 0);
             }
             Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
+            Log.d(ZWCC, "收到主机指令 = " + ByteUtils.bytesToString(data));
             handleMsgFromBleDevice(data);
         }
 
@@ -240,9 +236,9 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 //broadcastUpdate(BleConstants.ACTION_WRITE_SUCCESSFUL);
-                Log.v("log", "Write OK");
+                Log.d(ZWCC, "Write OK");
             } else {
-                Log.e("log", "Write Failed");
+                Log.e(ZWCC, "Write Failed");
             }
         }
     };
@@ -306,27 +302,52 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         switch (type) {
             case ProtocolHelper.TYPE_DEVICE_STATUS:
                 StateInfo info = protocolHelper.formatGetDeviceStatus(content);
-                sendHandlerMessage(queryStateCallback, type, info, 0, 0);
+                StateMsg stateMsg = new StateMsg(info);
+                EventBus.getDefault().post(stateMsg);
                 break;
             //注销车号
             case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
                 //设置车号 的返回状态
+                CarNumberMsg unsubNumberMsg = new CarNumberMsg();
+                if( content[0] == ProtocolHelper.STATE_SUCCEED){
+                    unsubNumberMsg.setState(CarNumberMsg.UNSUBSCRIBE_NUMBER_SUCCEED);
+                }else {
+                    unsubNumberMsg.setState(CarNumberMsg.UNSUBSCRIBE_NUMBER_FAILED);
+                }
+                EventBus.getDefault().post(unsubNumberMsg);
+                break;
             case ProtocolHelper.TYPE_NUMBER_SET:
-                sendHandlerMessage(numberCallback, type, null, content[0], 0);
+                CarNumberMsg setNumberMsg = new CarNumberMsg();
+                if( content[0] == ProtocolHelper.STATE_SUCCEED){
+                    setNumberMsg.setState(CarNumberMsg.SET_NUMBER_SUCCEED);
+                }else {
+                    setNumberMsg.setState(CarNumberMsg.SET_NUMBER_FAILED);
+                }
+                EventBus.getDefault().post(setNumberMsg);
                 break;
             //获取车号 的信息
             case ProtocolHelper.TYPE_NUMBER_GET:
                 String number = protocolHelper.formatGetCarNumber(content);
-                sendHandlerMessage(numberCallback, type, number, 0, 0);
+                CarNumberMsg getNumberMsg = new CarNumberMsg(CarNumberMsg.GET_NUMBER);
+                getNumberMsg.setCarNumber(number);
+                EventBus.getDefault().post(getNumberMsg);
                 break;
             //设置DEVICE ID 的信息
             case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
-                sendHandlerMessage(deviceIDCallback, type, null, content[0], 0);
+                DeviceIDMsg setDeviceIdMsg = new DeviceIDMsg();
+                if( content[0] == ProtocolHelper.STATE_SUCCEED){
+                    setDeviceIdMsg.setState(DeviceIDMsg.SET_DEVICE_ID_SUCCEED);
+                }else {
+                    setDeviceIdMsg.setState(DeviceIDMsg.SET_DEVICE_ID_FAILED);
+                }
+                EventBus.getDefault().post(setDeviceIdMsg);
                 break;
             //获取车号DEVICE ID 的信息
             case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
                 String id = protocolHelper.formatGetDeviceID(content);
-                sendHandlerMessage(deviceIDCallback, type, id, 0, 0);
+                DeviceIDMsg getIDMsg = new DeviceIDMsg(DeviceIDMsg.GET_DEVICE_ID);
+                getIDMsg.setDeviceID(id);
+                EventBus.getDefault().post(getIDMsg);
                 break;
             //标定传感器返回信息
             case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
@@ -336,7 +357,14 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
             //主机回复 单元升级请求 的返回状态
             case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                sendHandlerMessage(updateCallback, type, null, content[0], content[1]);
+                UnitUpdateMsg updateMsg = new UnitUpdateMsg();
+                updateMsg.setUnitType(content[0]);
+                if (content[1] == ProtocolHelper.STATE_SUCCEED) {
+                    updateMsg.setState(UnitUpdateMsg.REQUEST_SUCCEED);
+                } else {
+                    updateMsg.setState(UnitUpdateMsg.REQUEST_FAILED);
+                }
+                EventBus.getDefault().post(updateMsg);
                 break;
             //升级Unit传输1kb包过程中返回信息
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
@@ -344,10 +372,11 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 if (transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED) {
                     //1kb已经传完开始下一个1kb
                     curUpdatePackage++;
-                    if (updateCallback==null){
-                        Log.d(ZWCC, "handleReplyMsg: 1kb完成 updateCallback ==null");
-                    }
-                    sendHandlerMessage(updateCallback, type, null, curUpdatePackage, (int) totalPackage);
+                    int progress = (int)(curUpdatePackage *100 / totalPackage);
+
+                    pkgMsg.setProgress(progress);
+                    EventBus.getDefault().post(pkgMsg);
+
                     if (updateFile != null && curUpdatePackage == totalPackage) {
                         //传输完成
                         resetTask();
@@ -377,7 +406,14 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
                 curUpdatePackage = 0;
                 Log.d(ZWCC,"收到升级完成指令");
-                sendHandlerMessage(updateCallback, type, null, content[0], content[1]);
+                UnitUpdateMsg updateCompleteMsg =  new UnitUpdateMsg();
+                updateCompleteMsg.setUnitType(content[0]);
+                if ( content[1] == ProtocolHelper.STATE_SUCCEED){
+                    updateCompleteMsg.setState(UnitUpdateMsg.UPDATE_COMPLETED);
+                }else {
+                    updateCompleteMsg.setState(UnitUpdateMsg.UPDATE_FAILED);
+                }
+                EventBus.getDefault().post(updateCompleteMsg);
                 break;
 
 
@@ -435,65 +471,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         public void handleMessage(@NonNull Message msg) {
             switch (msg.what) {
 
-                case ProtocolHelper.TYPE_DEVICE_STATUS:
-                    if (queryStateCallback != null) {
-                        queryStateCallback.onGetState((StateInfo) msg.obj);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_UNSUBSCRIBE:
-                    if (numberCallback != null) {
-                        numberCallback.onUnsubscribed(msg.arg1);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_SET:
-                    if (numberCallback != null) {
-                        numberCallback.onNumberSet(msg.arg1);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_GET:
-                    if (numberCallback != null) {
-                        numberCallback.onNumberGot((String) msg.obj);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_SET:
-                    if (deviceIDCallback != null) {
-                        deviceIDCallback.onDeviceIDSet(msg.arg1);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_NUMBER_DEVICE_ID_GET:
-                    if (deviceIDCallback != null) {
-                        deviceIDCallback.onDeviceIDGot((String) msg.obj);
-                    }
-                    break;
                 case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
                     if (adjustCallback != null) {
                         SensorState state = (SensorState)msg.obj;
                         adjustCallback.onSensorAdjusted(state);
-                    }
-                    break;
-
-                case ProtocolHelper.TYPE_UNIT_UPDATE_REQUEST:
-                    if (updateCallback != null) {
-                        if (msg.arg2 == ProtocolHelper.STATE_SUCCEED) {
-                            updateCallback.onRequestSucceed();
-                        } else {
-                            updateCallback.onFailed("更新单元请求失败！");
-                        }
-                    }
-                    break;
-                case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
-                    //传输文件 主机回复
-                    Log.d(ZWCC," Handler update progress");
-                    if (updateCallback != null) {
-                        Log.d(ZWCC,"Handler update progress ="+msg.arg1 * 100 / msg.arg2);
-                        updateCallback.onUpdateProgressChanged(msg.arg1 * 100 / msg.arg2);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED:
-                    Log.d(ZWCC," Handler update completed");
-                    if (updateCallback != null) {
-                        Log.d(ZWCC," Handler updateCallback UPDATE_COMPLETED!!");
-                        updateCallback.onUpdateCompleted(msg.arg1, msg.arg2);
                     }
                     break;
                 case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
@@ -628,54 +609,38 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     @Override
     public void getDeviceState(int type) {
-        // queryStateCallback = callback;
         byte[] order = protocolHelper.createOrderGetDeviceStatus(type);
-        writeDataWithRetry(order, queryStateCallback);
-    }
-
-    @Override
-    public void setQueryStateCallback(QueryStateCallback callBack) {
-        queryStateCallback = callBack;
+        writeDataWithRetry(order, null);
     }
 
     @Override
     public void setCarNumber(String number) {
         byte[] order = protocolHelper.createOrderSetCarNumber(number);
-        writeDataWithRetry(order, numberCallback);
+        writeDataWithRetry(order, null);
     }
 
     @Override
     public void getCarNumber() {
         byte[] order = protocolHelper.createOrderGetCarNumber();
-        writeDataWithRetry(order, numberCallback);
+        writeDataWithRetry(order, null);
     }
 
     @Override
     public void logoutCarNumber() {
         byte[] order = protocolHelper.createOrderUnsubscribeNumber();
-        writeDataWithRetry(order, numberCallback);
-    }
-
-    @Override
-    public void setNumberCallback(NumberCallback callBack) {
-        numberCallback = callBack;
+        writeDataWithRetry(order, null);
     }
 
     @Override
     public void setDeviceID(String id) {
         byte[] order = protocolHelper.createOrderSetDeviceID(id);
-        writeDataWithRetry(order, deviceIDCallback);
+        writeDataWithRetry(order, null);
     }
 
     @Override
     public void getDeviceID() {
         byte[] order = protocolHelper.createOrderGetDeviceID();
-        writeDataWithRetry(order, deviceIDCallback);
-    }
-
-    @Override
-    public void setDeviceIDCallback(DeviceIDCallback callBack) {
-        deviceIDCallback = callBack;
+        writeDataWithRetry(order, null);
     }
 
     @Override
@@ -696,7 +661,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         Log.d(ZWCC, "totalPackage =" + totalPackage);
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024,file);
         this.unitType = unitType;
-        writeDataWithRetry(order, updateCallback);
+        writeDataWithRetry(order,null );
     }
 
     /**
@@ -716,11 +681,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void updateUnitCompletedResult(int unitType, int state) {
         byte[] order = protocolHelper.createOrderUpdateCompleted(unitType, state);
         writeData(order);
-    }
-
-    @Override
-    public void setUpdateCallback(UpdateCallback callBack) {
-        updateCallback = callBack;
     }
 
     @Override
@@ -841,8 +801,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 int qSize = executorService.getQueue().size();
                 if (qSize == 0 || inTransferring) {
                     Log.d(ZWCC,"重发最后一包指令 未收到主机指令，升级过程出错退出升级，向主机发送 升级失败。");
-                    updateUnitCompletedResult(unitType, ProtocolHelper.STATE_FAILED);
-                    sendHandlerMessage(updateCallback, ProtocolHelper.TYPE_UNIT_UPDATE_COMPLETED, null, unitType, ProtocolHelper.STATE_FAILED);
+                    //updateUnitCompletedResult(unitType, ProtocolHelper.STATE_FAILED);
+                    EventBus.getDefault().post(new UnitUpdateMsg(UnitUpdateMsg.UPDATE_FAILED));
                 }
 
             }
@@ -941,6 +901,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             @Override
             public void onFinish() {
                 //3次重试失败
+                EventBus.getDefault().post(new RetryMsg());
                 if (callback != null) {
                     callback.onRetryFailed();
                 }
@@ -950,7 +911,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
 
     private boolean writeData(byte[] data) {
-        Log.d(TAG, "writeData ");
         if (mWriteCharacteristic != null &&
                 data != null) {
             Log.d(TAG, "writeData :" + ByteUtils.bytesToString(data));

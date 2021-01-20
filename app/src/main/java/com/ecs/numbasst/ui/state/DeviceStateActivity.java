@@ -7,6 +7,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.ecs.numbasst.R;
+import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
@@ -14,6 +15,9 @@ import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.callback.QueryStateCallback;
+import com.ecs.numbasst.manager.msg.CarNumberMsg;
+import com.ecs.numbasst.manager.msg.DeviceIDMsg;
+import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
@@ -22,12 +26,11 @@ import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
 
-public class DeviceStateActivity extends BaseActivity {
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-    
-    BleServiceManager manager;
-    private ImageButton ibActionBack;
-    private ImageButton ibStateRefreshAll;
+public class DeviceStateActivity extends BaseActionBarActivity {
+
     private TextView tvStateCarNumber;
     private Button btnStateChangeCarNumber;
     private ImageButton ibStateRefreshCarNumber;
@@ -56,7 +59,6 @@ public class DeviceStateActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initView();
     }
 
     @Override
@@ -66,9 +68,6 @@ public class DeviceStateActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        
-        ibActionBack =   findViewById(R.id.ib_action_back);
-        ibStateRefreshAll =   findViewById(R.id.ib_state_refresh_all);
         tvStateCarNumber =   findViewById(R.id.tv_state_car_number);
         btnStateChangeCarNumber =   findViewById(R.id.btn_state_change_car_number);
         ibStateRefreshCarNumber =   findViewById(R.id.ib_state_refresh_car_number);
@@ -97,109 +96,73 @@ public class DeviceStateActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-        manager = BleServiceManager.getInstance();
     }
 
-    private final QueryStateCallback queryStateCallback = new QueryStateCallback() {
-
-        @Override
-        public void onRetryFailed() {
-            updateDeviceStatus("多次尝试与主机通讯失败！");
-        }
-
-        @Override
-        public void onGetState(StateInfo info) {
-            if (info == null) {
-                updateDeviceStatus("获取状态为空!");
-            } else {
-                updateDeviceStatus("状态类型：" + info.stateType + "\n状态参数 ：" + info.toString());
-                if (info instanceof PipePressInfo){
-                    PipePressInfo pressInfo = (PipePressInfo)info;
-                    tvStateCarPipePress1.setText(pressInfo.getPipePress_1());
-                    tvStateCarPipePress2.setText(pressInfo.getPipePress_2());
-                }else if (info instanceof BatteryInfo){
-                    BatteryInfo batteryInfo = (BatteryInfo)info;
-                    Log.d(TAG," onGetState = BatteryInfo");
-                    tvStateBatteryCapacityContent.setText(batteryInfo.getBatteryCapacityStr());
-                    tvStateBatteryV1.setText(batteryInfo.getBatteryV_1Str());
-                    tvStateBatteryV2.setText(batteryInfo.getBatteryV_2Str());
-                    tvStateWorkAContent.setText(batteryInfo.getWorkAStr());
-                    tvStateWorkVContent.setText(batteryInfo.getWorkVStr());
-                }else if (info instanceof TCUInfo){
-                    TCUInfo  tcuInfo= (TCUInfo)info;
-                    tvStateTcuCommunicateContent.setText(tcuInfo.getCommunicationStatus());
-                    tvStateWorkState1.setText(String.valueOf(tcuInfo.getTcuWorkStatus_1()));
-                    tvStateWorkState2.setText(String.valueOf(tcuInfo.getTcuWorkStatus_2()));
-                    tvStateSignalStrength1.setText(String.valueOf(tcuInfo.getTcuSignalStrength_1()));
-                    tvStateSignalStrength2.setText(String.valueOf(tcuInfo.getTcuSignalStrength_2()));
-                }else if (info instanceof ErrorInfo){
-                    ErrorInfo errorInfo = (ErrorInfo) info;
-                    if (errorInfo.getErrorInfoList().size() == 0){
-                        //无错误显示绿色
-                        tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.green));
-                        tvStateErrorContent.setText("正常");
-                    }else {
-                        //有错误显示红色
-                        tvStateErrorContent.setText("故障");
-                        tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.red));
-                    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetState(StateMsg msg) {
+        StateInfo info = msg.getStateInfo();
+        if (info == null) {
+            updateDeviceStatus("获取状态为空!");
+        } else {
+            updateDeviceStatus("状态类型：" + info.stateType + "\n状态参数 ：" + info.toString());
+            if (info instanceof PipePressInfo){
+                PipePressInfo pressInfo = (PipePressInfo)info;
+                tvStateCarPipePress1.setText(pressInfo.getPipePress_1());
+                tvStateCarPipePress2.setText(pressInfo.getPipePress_2());
+            }else if (info instanceof BatteryInfo){
+                BatteryInfo batteryInfo = (BatteryInfo)info;
+                Log.d(TAG," onGetState = BatteryInfo");
+                tvStateBatteryCapacityContent.setText(batteryInfo.getBatteryCapacityStr());
+                tvStateBatteryV1.setText(batteryInfo.getBatteryV_1Str());
+                tvStateBatteryV2.setText(batteryInfo.getBatteryV_2Str());
+                tvStateWorkAContent.setText(batteryInfo.getWorkAStr());
+                tvStateWorkVContent.setText(batteryInfo.getWorkVStr());
+            }else if (info instanceof TCUInfo){
+                TCUInfo  tcuInfo= (TCUInfo)info;
+                tvStateTcuCommunicateContent.setText(tcuInfo.getCommunicationStatus());
+                tvStateWorkState1.setText(String.valueOf(tcuInfo.getTcuWorkStatus_1()));
+                tvStateWorkState2.setText(String.valueOf(tcuInfo.getTcuWorkStatus_2()));
+                tvStateSignalStrength1.setText(String.valueOf(tcuInfo.getTcuSignalStrength_1()));
+                tvStateSignalStrength2.setText(String.valueOf(tcuInfo.getTcuSignalStrength_2()));
+            }else if (info instanceof ErrorInfo){
+                ErrorInfo errorInfo = (ErrorInfo) info;
+                if (errorInfo.getErrorInfoList().size() == 0){
+                    //无错误显示绿色
+                    tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.green));
+                    tvStateErrorContent.setText("正常");
+                }else {
+                    //有错误显示红色
+                    tvStateErrorContent.setText("故障");
+                    tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.red));
                 }
             }
         }
-
-        @Override
-        public void onFailed(String reason) {
-            updateDeviceStatus("列尾状态查询请求失败！,请检查连接");
-        }
-    };
+    }
 
 
-    private final NumberCallback numberCallback = new NumberCallback() {
-        @Override
-        public void onNumberGot(String number) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCarNumber(CarNumberMsg msg) {
+        long state = msg.getState();
+        if (state == CarNumberMsg.GET_NUMBER){
+            String number = msg.getCarNumber();
             tvStateCarNumber.setText(number);
-            showToast("获取车号为："+number);
+            updateDeviceStatus("获取车号为："+number);
         }
+    }
 
-        @Override
-        public void onNumberSet(int state) {
-
-        }
-
-        @Override
-        public void onUnsubscribed(int state) {
-
-        }
-
-        @Override
-        public void onRetryFailed() {
-            showToast("获取车号失败");
-        }
-    };
-
-    private final DeviceIDCallback deviceIDCallback =new DeviceIDCallback() {
-        @Override
-        public void onDeviceIDGot(String number) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDeviceID(DeviceIDMsg msg) {
+        long state = msg.getState();
+        hideProgressBar();
+        if (state ==DeviceIDMsg.GET_DEVICE_ID){
+            String  number = msg.getDeviceID();
             tvStateDeviceId.setText(number);
-            showToast("获取设备ID为："+number);
+            updateDeviceStatus("获取设备ID为："+number);
         }
-
-        @Override
-        public void onDeviceIDSet(int state) {
-
-        }
-
-        @Override
-        public void onRetryFailed() {
-            showToast("获取设备ID失败");
-        }
-    };
-
+    }
 
     @Override
     protected void initEvent() {
-        ibActionBack.setOnClickListener(this);
-        ibStateRefreshAll.setOnClickListener(this);
         ibStateRefreshCarNumber.setOnClickListener(this);
         btnStateChangeDeviceId.setOnClickListener(this);
         btnStateChangeCarNumber.setOnClickListener(this);
@@ -212,66 +175,55 @@ public class DeviceStateActivity extends BaseActivity {
     }
 
 
-    /**
-     * 跳转 车号和设备ID 界面返回时要重新设置 NumberCallback 和DeviceIDCallback
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        manager.setNumberCallback(numberCallback);
-        manager.setDeviceIDCallback(deviceIDCallback);
-        manager.setQueryStateCallback(queryStateCallback);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        manager.setQueryStateCallback(null);
-        manager.setDeviceIDCallback(null);
-        manager.setNumberCallback(null);
-    }
-
     @Override
     public void onClick(View v) {
+        super.onClick(v);
         int id = v.getId();
-        if (id == R.id.ib_action_back) {
-            finish();
-        }else if (id == R.id.ib_state_refresh_all){
-            if (checkConnection()){
-                refreshAllstate();
-            }
-        }else if (id == R.id.btn_state_change_car_number){
+        if (id == R.id.btn_state_change_car_number){
             goActivity(NumberActivity.class);
         }else if (id == R.id.ib_state_refresh_car_number){
             if (checkConnection()){
                 manager.getCarNumber();
+                showProgressBar();
             }
         }else if (id == R.id.btn_state_change_device_id){
             goActivity(DeviceIDActivity.class);
         }else if (id == R.id.ib_state_refresh_device_id){
             if (checkConnection()){
                 manager.getDeviceID();
+                showProgressBar();
             }
         }else if (id == R.id.ib_state_refresh_car_pipe_press){
             if (checkConnection()){
                 manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
+                showProgressBar();
             }
         }else if (id == R.id.ib_state_car_error){
             if (checkConnection()){
                 manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+                showProgressBar();
             }
 
         }else if (id == R.id.ib_state_battery_refresh){
             if (checkConnection()){
                 manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
+                showProgressBar();
             }
 
         }else if (id == R.id.ib_state_tcu_refresh){
             if (checkConnection()){
                 manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
+                showProgressBar();
             }
         }else if (id == R.id.btn_state_car_error_details){
             goActivity(ErrorDetailsActivity.class);
+        }
+    }
+
+    @Override
+    public void onRefreshAll() {
+        if (checkConnection()){
+            refreshAllstate();
         }
     }
 
@@ -284,6 +236,7 @@ public class DeviceStateActivity extends BaseActivity {
             manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
             manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
             manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
+            showProgressBar();
         }
     }
 
@@ -298,6 +251,7 @@ public class DeviceStateActivity extends BaseActivity {
 
     private void updateDeviceStatus(String msg) {
         showToast(msg);
+        hideProgressBar();
     }
 
 }

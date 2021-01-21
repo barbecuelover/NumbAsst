@@ -1,11 +1,15 @@
 package com.ecs.numbasst.base;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.msg.CrcErrorMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.view.TopActionBar;
 import org.greenrobot.eventbus.EventBus;
@@ -42,6 +46,17 @@ public abstract class BaseActionBarActivity extends BaseActivity {
         showToast("多次尝试与主机通信失败！");
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCrcFailed(CrcErrorMsg msg) {
+        hideProgressBar();
+        showToast("收到CRC校验失败的指令！");
+    }
+
+
+
+    public void showToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     protected void onDestroy() {

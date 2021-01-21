@@ -150,7 +150,6 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
                 @Override
                 public void run() {
                     toast.show();
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT);
                 }
             });
         } catch (Exception e) {

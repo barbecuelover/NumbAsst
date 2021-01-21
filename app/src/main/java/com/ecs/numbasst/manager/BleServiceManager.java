@@ -125,9 +125,9 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
 
     ///3.设置车号
     @Override
-    public void setCarNumber(String number) {
+    public void setCarNumber(String number, Date date) {
         if (bleService != null) {
-            bleService.setCarNumber(number);
+            bleService.setCarNumber(number,date);
         }
     }
 

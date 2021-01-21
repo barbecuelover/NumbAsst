@@ -37,6 +37,7 @@ import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
 import com.ecs.numbasst.manager.msg.ConnectionMsg;
+import com.ecs.numbasst.manager.msg.CrcErrorMsg;
 import com.ecs.numbasst.manager.msg.DeviceIDMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;
@@ -246,6 +247,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         //进行CRC校验
         if (!CrcUtils.checkDataWithCrc8Table(data)){
             Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
+            EventBus.getDefault().post(new CrcErrorMsg());
             return;
         }
 
@@ -593,8 +595,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     }
 
     @Override
-    public void setCarNumber(String number) {
-        byte[] order = protocolHelper.createOrderSetCarNumber(number);
+    public void setCarNumber(String number ,Date date) {
+        byte[] order = protocolHelper.createOrderSetCarNumber(number,date);
         writeDataWithRetry(order, null);
     }
 

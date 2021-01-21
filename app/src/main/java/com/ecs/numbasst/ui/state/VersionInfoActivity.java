@@ -1,5 +1,6 @@
 package com.ecs.numbasst.ui.state;
 
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -82,10 +83,17 @@ public class VersionInfoActivity extends BaseActionBarActivity {
 
     @Override
     public void onRefreshAll() {
+        if (!manager.isConnected()) {
+            showToast(getString(R.string.check_device_connection));
+            return;
+        }
         manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_SOFTWARE_VERSION);
         showToast("查询版本号中");
         showProgressBar();
     }
+
+
+
 
     private void setVersion(VersionInfo versionInfo ){
         switch (versionInfo.getUnitType()){

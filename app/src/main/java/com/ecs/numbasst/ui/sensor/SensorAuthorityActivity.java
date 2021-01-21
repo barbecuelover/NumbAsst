@@ -63,7 +63,7 @@ public class SensorAuthorityActivity extends BaseActivity {
                 finish();
             }else{
                 tvSensorAuthState.setText("密码错误请重试...");
-
+                showToast("密码错误请重试...");
             }
         }
     }

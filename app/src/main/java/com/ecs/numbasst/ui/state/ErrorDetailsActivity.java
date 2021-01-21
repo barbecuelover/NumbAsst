@@ -74,6 +74,10 @@ public class ErrorDetailsActivity extends BaseActionBarActivity {
 
     @Override
     public void onRefreshAll() {
+        if (!manager.isConnected()) {
+            showToast(getString(R.string.check_device_connection));
+            return;
+        }
         manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
         showProgressBar();
         showToast("查询故障中..");

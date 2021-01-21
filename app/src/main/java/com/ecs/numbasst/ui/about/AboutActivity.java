@@ -4,9 +4,10 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.ecs.numbasst.R;
+import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.BaseActivity;
 
-public class AboutActivity extends BaseActivity {
+public class AboutActivity extends BaseActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,11 @@ public class AboutActivity extends BaseActivity {
 
     @Override
     public void onClick(View v) {
+        super.onClick(v);
+    }
+
+    @Override
+    public void onRefreshAll() {
 
     }
 }

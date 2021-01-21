@@ -14,6 +14,7 @@ import com.ecs.numbasst.ui.state.entity.VersionInfo;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -102,14 +103,32 @@ public class ProtocolHelper {
      * 获取 设置车号为&number的指令
      * @param number 车号 如：12345
      */
-    public byte[] createOrderSetCarNumber(String number) {
+    public byte[] createOrderSetCarNumber(String number,Date date) {
         // AA , msg类型, msg长度
-        byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, 0x05};
+        byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, 0x011};
         //先将 车号转换成16进制字符串
         //消息内容
-        byte[] msg = ByteUtils.number5ToNumberByte(number);
+        byte[] carNumber = ByteUtils.number5ToNumberByte(number);
+        //授时信息
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        int year4b = calendar.get(Calendar.YEAR);
+        int year2b = year4b % 100;
+
+        byte year = ByteUtils.convertBCD(year2b);
+        byte month =  ByteUtils.convertBCD(calendar.get(Calendar.MONTH)+1);//获取月份（因为在格里高利历和罗马儒略历一年中第一个月为JANUARY，它为0，这个值初始为0，所以需要加1）
+        byte day =  ByteUtils.convertBCD(calendar.get(Calendar.DATE));
+
+        byte hour =  ByteUtils.convertBCD(calendar.get(Calendar.HOUR_OF_DAY));//时 calendar.HOUR 12小时制，calendar.HOUR_OF_DAY 24小时）
+        byte minute =ByteUtils.convertBCD(calendar.get(Calendar.MINUTE));//分
+        byte second = ByteUtils.convertBCD(calendar.get(Calendar.SECOND));//秒
+
+        byte[] time = {year,month,day,hour,minute,second};
+
         //不包含crc验证的全部字段
-        byte[] content = ByteUtils.joinArray(head, msg);
+        byte[] contentTemp = ByteUtils.joinArray(head, carNumber);
+        byte[] content = ByteUtils.joinArray(contentTemp, time);
         //最终发送的字段
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##SetCarNumber =  " + ByteUtils.bytesToString(order));

@@ -79,8 +79,20 @@ public class ByteUtils {
         return sb.reverse().toString();
     }
 
-
-
+    /**
+     * 59分 ，表示为 0101 1001
+     * 将数字转为 BCD 格式
+     * @param b
+     * @return
+     */
+    public static byte convertBCD(int b)
+    {
+        //高四位
+        byte b1 = (byte)(b / 10);
+        //低四位
+        byte b2 = (byte)(b % 10);
+        return (byte)((b1 << 4) | b2);
+    }
 
 
     //使用1字节就可以表示b

@@ -27,7 +27,8 @@
         android:theme="@style/Theme.NumbAsst">
         <activity android:name=".ui.state.VersionInfoActivity"
             android:label="版本信息"/>
-        <activity android:name=".ui.state.ErrorDetailsActivity" />
+        <activity android:name=".ui.state.ErrorDetailsActivity"
+            android:label="故障详情"/>
         <activity
             android:name=".ui.about.AboutActivity"
             android:label="关于" />
@@ -37,7 +38,7 @@
         <activity
             android:name=".ui.sensor.SensorAuthorityActivity"
             android:label="权限认证" />
-        <activity android:name=".ui.debug.DebugActivity" />
+        <activity android:name=".ui.debug.DebugActivity" android:label="调试" />
         <activity
             android:name=".ui.state.DeviceStateActivity"
             android:label="@string/function_get_device_state" />

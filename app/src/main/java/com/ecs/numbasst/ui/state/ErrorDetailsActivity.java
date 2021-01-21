@@ -6,13 +6,11 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ecs.numbasst.R;
-import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
-import com.ecs.numbasst.view.TopActionBar;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -20,10 +18,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ErrorDetailsActivity extends BaseActivity {
+public class ErrorDetailsActivity extends BaseActionBarActivity {
 
-    BleServiceManager manager;
-    TopActionBar actionBar;
     RecyclerView listViewError;
     ErrorListAdapter adapter;
     List<String> errorList;
@@ -40,7 +36,6 @@ public class ErrorDetailsActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        actionBar = findViewById(R.id.action_bar_error_details);
         listViewError = findViewById(R.id.rv_error_detail);
     }
 
@@ -48,6 +43,7 @@ public class ErrorDetailsActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetState(StateMsg msg) {
+        hideProgressBar();
         StateInfo info = msg.getStateInfo();
         if (info == null) {
             showToast("获取状态为空!");
@@ -62,30 +58,25 @@ public class ErrorDetailsActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-        manager = BleServiceManager.getInstance();
-        actionBar.setTitle(getTitle());
         errorList = new ArrayList<>();
         adapter = new ErrorListAdapter(errorList);
     }
 
     @Override
     protected void initEvent() {
-        actionBar.setOnClickBackListener(this);
-        actionBar.setOnClickRefreshListener(this);
+
     }
 
     @Override
     public void onClick(View v) {
-        int id = v.getId();
-        if (id ==actionBar.getViewBackID()){
-            finish();
-        }else if (id == actionBar.getViewRefreshID()){
-            refreshAll();
-        }
+        super.onClick(v);
     }
 
-    private void refreshAll() {
+    @Override
+    public void onRefreshAll() {
         manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+        showProgressBar();
         showToast("查询故障中..");
     }
+
 }

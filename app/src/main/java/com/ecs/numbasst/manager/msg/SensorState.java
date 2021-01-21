@@ -1,4 +1,4 @@
-package com.ecs.numbasst.ui.sensor;
+package com.ecs.numbasst.manager.msg;
 
 import androidx.annotation.NonNull;
 

@@ -3,7 +3,7 @@ package com.ecs.numbasst.manager;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.ui.sensor.SensorState;
+import com.ecs.numbasst.manager.msg.SensorState;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.MainControlInfo;

@@ -8,13 +8,8 @@ import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
-import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.ProtocolHelper;
-import com.ecs.numbasst.manager.callback.DeviceIDCallback;
-import com.ecs.numbasst.manager.callback.NumberCallback;
-import com.ecs.numbasst.manager.callback.QueryStateCallback;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
 import com.ecs.numbasst.manager.msg.DeviceIDMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;

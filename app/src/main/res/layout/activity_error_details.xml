@@ -7,16 +7,27 @@
     tools:context=".ui.state.ErrorDetailsActivity">
 
     <com.ecs.numbasst.view.TopActionBar
-        android:id="@+id/action_bar_error_details"
+        android:id="@+id/top_action_bar"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         app:refreshEnable="true"
         android:layout_height="32dp"/>
 
+
+    <ProgressBar
+        android:id="@+id/progress_bar_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
     <LinearLayout
         android:layout_marginTop="12dp"
         android:id="@+id/head_list_view"
-        app:layout_constraintTop_toBottomOf="@+id/action_bar_error_details"
+        app:layout_constraintTop_toBottomOf="@+id/top_action_bar"
         android:layout_marginHorizontal="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

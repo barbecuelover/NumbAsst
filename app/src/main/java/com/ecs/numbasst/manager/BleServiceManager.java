@@ -8,7 +8,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.DebugCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
@@ -30,7 +29,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
 
     private static volatile BleServiceManager instance;
     private BleService bleService;
-
 
     private BleServiceManager() {
     }
@@ -204,13 +202,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
     public void adjustSensor(int type, int pressure) {
         if (bleService != null) {
             bleService.adjustSensor(type, pressure);
-        }
-    }
-
-    @Override
-    public void setAdjustCallback(AdjustCallback callBack) {
-        if (bleService != null) {
-            bleService.setAdjustCallback(callBack);
         }
     }
 

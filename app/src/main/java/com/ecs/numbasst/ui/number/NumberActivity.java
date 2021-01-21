@@ -5,18 +5,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
-import com.ecs.numbasst.base.BaseActivity;
-import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.BleServiceManager;
-import com.ecs.numbasst.manager.ProtocolHelper;
-import com.ecs.numbasst.manager.callback.NumberCallback;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
-import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

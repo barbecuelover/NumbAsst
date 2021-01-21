@@ -22,15 +22,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ecs.numbasst.base.util.ByteUtils;
+import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.callback.AdjustCallback;
 import com.ecs.numbasst.manager.callback.Callback;
 import com.ecs.numbasst.manager.callback.DebugCallback;
-import com.ecs.numbasst.manager.callback.DeviceIDCallback;
 import com.ecs.numbasst.manager.callback.DownloadCallback;
-import com.ecs.numbasst.manager.callback.NumberCallback;
-import com.ecs.numbasst.manager.callback.QueryStateCallback;
-import com.ecs.numbasst.manager.callback.UpdateCallback;
 import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
 import com.ecs.numbasst.manager.interfaces.ICarNumber;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
@@ -45,7 +41,7 @@ import com.ecs.numbasst.manager.msg.DeviceIDMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
-import com.ecs.numbasst.ui.sensor.SensorState;
+import com.ecs.numbasst.manager.msg.SensorState;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
 import org.greenrobot.eventbus.EventBus;
@@ -66,9 +62,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private static final int STATE_CONNECTING = 0x1001;
     private static final int STATE_CONNECTED = 0x1002;
 
-    private static final int MSG_CONNECTED = 0x1011;
-    private static final int MSG_DISCONNECTED = 0x1012;
-
     private static final int RETRY_TIMEOUT = 20 * 1000;
     private static final int RETRY_TIMES = 3;
 
@@ -86,7 +79,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private final IBinder mBinder = new LocalBinder();
 
-    private static AdjustCallback adjustCallback;
     private static DownloadCallback downloadCallBack;
     private static DebugCallback debugCallback;
     private boolean inDebugging;
@@ -108,7 +100,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     UnitUpdateMsg pkgMsg ;
 
     private volatile boolean inTransferring = false;
-
 
     @Override
     public void onCreate() {
@@ -210,9 +201,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-
-            }
         }
 
         @Override
@@ -256,17 +244,16 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             return;
         }
         //进行CRC校验
-//        if (!CrcUtils.checkDataWithCrc8Table(data)){
-//            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
-//            return;
-//        }
+        if (!CrcUtils.checkDataWithCrc8Table(data)){
+            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
+            return;
+        }
 
         byte[] content = protocolHelper.getContent(data);
         if (content == null) {
             Log.e(TAG, " handleMsgFromBleDevice  data content format Error");
             return;
         }
-
 
         if (headType == ProtocolHelper.HEAD_SEND) {
             handleInitiativeMsgFromServer(dataType, content);
@@ -352,7 +339,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             //标定传感器返回信息
             case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
                 SensorState result = protocolHelper.formatAdjustSensor(content);
-                sendHandlerMessage(adjustCallback, type, result, 0, 0);
+                EventBus.getDefault().post(result);
                 break;
 
             //主机回复 单元升级请求 的返回状态
@@ -385,7 +372,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                         sendWhole1KBPackage();
                     }
 
-                } else if (transferIndex > 0 && transferIndex < 63) {
+                } else if (transferIndex >= 0 && transferIndex < 63) {
                     //传输出问题。transferIndex 继续开始传
                     handlePacketLost(transferIndex+1);
                     //send1KBPackageFromIndex(transferIndex+1);
@@ -415,7 +402,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 }
                 EventBus.getDefault().post(updateCompleteMsg);
                 break;
-
 
             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
                 if (downloadCallBack != null) {
@@ -470,13 +456,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         @Override
         public void handleMessage(@NonNull Message msg) {
             switch (msg.what) {
-
-                case ProtocolHelper.TYPE_NUMBER_SENSOR_ADJUST:
-                    if (adjustCallback != null) {
-                        SensorState state = (SensorState)msg.obj;
-                        adjustCallback.onSensorAdjusted(state);
-                    }
-                    break;
                 case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
                     if (downloadCallBack != null) {
                         long size = (long) msg.obj;
@@ -646,12 +625,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     @Override
     public void adjustSensor(int type, int pressure) {
         byte[] order = protocolHelper.createOrderDemarcate(type, pressure);
-        writeDataWithRetry(order, adjustCallback);
-    }
-
-    @Override
-    public void setAdjustCallback(AdjustCallback callBack) {
-        adjustCallback = callBack;
+        writeDataWithRetry(order, null);
     }
 
     @Override

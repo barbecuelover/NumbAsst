@@ -1,7 +1,5 @@
 package com.ecs.numbasst.ui.about;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.view.View;
 

@@ -18,7 +18,7 @@ import org.greenrobot.eventbus.ThreadMode;
  */
 public abstract class BaseActionBarActivity extends BaseActivity {
 
-    TopActionBar actionBar;
+    public TopActionBar actionBar;
     ProgressBar progressBar;
     public BleServiceManager manager;
 

@@ -6,14 +6,26 @@
     android:layout_height="match_parent"
     tools:context=".ui.sensor.SensorAdjustingActivity">
 
-    <include
-        android:id="@+id/action_bar_sensor_adjust"
-        layout="@layout/action_bar"
-        app:layout_constraintTop_toTopOf="parent"/>
+    <com.ecs.numbasst.view.TopActionBar
+        android:id="@+id/top_action_bar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        app:refreshEnable="false"
+        android:layout_height="32dp"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
     <com.ecs.numbasst.view.CrossLine
         android:id="@+id/_cross_line_sensor_adjust_sensor"
-        app:layout_constraintTop_toBottomOf="@+id/action_bar_sensor_adjust"
+        app:layout_constraintTop_toBottomOf="@+id/top_action_bar"
         android:layout_width="match_parent"
         app:cross_line_title="压力值"
         android:layout_height="32dp"/>

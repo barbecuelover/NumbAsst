@@ -377,7 +377,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     handlePacketLost(transferIndex+1);
                     //send1KBPackageFromIndex(transferIndex+1);
                 } else if (transferIndex == 0x65) {
-                    sendWhole1KBPackage();
+                    handlePacketLost(0);;
                     /**
                      #define ERR_NOT_0x21    100  //C 第1个数据包不是0x21（更新软件准备).
                      #define ERR_NOT_SEQ_0    101  //C 等待流水号为0的数据包，收到的数据包流水号不为0。
@@ -386,7 +386,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                      #define ERR_NOT_DATA    104  //C 等待数据包时，接收到非数据包。
                      */
                 } else if (transferIndex == 0x68) {
-                    send1KBPackageFromIndex(63);
+                    handlePacketLost(63);
                 }
                 break;
 

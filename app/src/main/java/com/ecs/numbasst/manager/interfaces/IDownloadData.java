@@ -1,7 +1,5 @@
 package com.ecs.numbasst.manager.interfaces;
 
-import com.ecs.numbasst.manager.callback.DownloadCallback;
-
 import java.util.Date;
 
 /**
@@ -12,5 +10,4 @@ import java.util.Date;
 public interface IDownloadData {
     void downloadDataRequest(Date startTime, Date endTime);
     void replyDownloadConfirm(boolean download);
-    void setDownloadCallback(DownloadCallback callBack);
 }

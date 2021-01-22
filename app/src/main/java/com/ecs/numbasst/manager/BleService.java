@@ -16,17 +16,12 @@ import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.callback.Callback;
-import com.ecs.numbasst.manager.callback.DebugCallback;
-import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
 import com.ecs.numbasst.manager.interfaces.ICarNumber;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
@@ -38,6 +33,7 @@ import com.ecs.numbasst.manager.interfaces.SppInterface;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
 import com.ecs.numbasst.manager.msg.ConnectionMsg;
 import com.ecs.numbasst.manager.msg.CrcErrorMsg;
+import com.ecs.numbasst.manager.msg.DebuggingMsg;
 import com.ecs.numbasst.manager.msg.DeviceIDMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;
@@ -79,19 +75,16 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public String connectedDeviceAddress;
 
     private final IBinder mBinder = new LocalBinder();
-
-    private static DownloadCallback downloadCallBack;
-    private static DebugCallback debugCallback;
+    
     private boolean inDebugging;
 
-    private Handler msgHandler;
     private CountDownTimer retryTimer;
     private List<byte[]> updateList;
 
     private ProtocolHelper protocolHelper;
 
     private File updateFile;
-
+    //单核线程池， 不使用newSingleThreadExecutor 是为了校验线程池中 排队的task的数量。以便于停止任务。
     ThreadPoolExecutor executorService;
     private int unitType;
 
@@ -106,7 +99,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void onCreate() {
         super.onCreate();
         initialize();
-        msgHandler = new MsgHandler();
         pkgHandler = new Handler();
         protocolHelper = new ProtocolHelper();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
@@ -135,7 +127,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     @Override
     public boolean onUnbind(Intent intent) {
         close();
-        msgHandler.removeCallbacksAndMessages(null);
+        pkgHandler.removeCallbacksAndMessages(null);
         return super.onUnbind(intent);
     }
 
@@ -212,11 +204,11 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             if (retryTimer != null) {
                 retryTimer.cancel();
             }
-            if (inDebugging && debugCallback != null) {
-                sendHandlerMessage(debugCallback, ProtocolHelper.TYPE_DEBUGGING, data, 0, 0);
+            if (inDebugging) {
+                DebuggingMsg debuggingMsg = new DebuggingMsg(data);
+                EventBus.getDefault().post(debuggingMsg);
             }
-            Log.d(TAG, "onCharacteristicChanged = " + ByteUtils.bytesToString(data));
-            Log.d(ZWCC, "收到主机指令 = " + ByteUtils.bytesToString(data));
+            Log.d(ZWCC, "onCharacteristicChanged 收到主机指令 = " + ByteUtils.bytesToString(data));
             handleMsgFromBleDevice(data);
         }
 
@@ -266,20 +258,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }
     }
 
-
-    private void sendHandlerMessage(Callback callback, int what, Object obj, int arg1, int arg2) {
-        if (callback != null && msgHandler != null) {
-            Message msg = Message.obtain();
-            msg.what = what;
-            msg.obj = obj;
-            msg.arg1 = arg1;
-            msg.arg2 = arg2;
-            msgHandler.sendMessage(msg);
-        }
-    }
-
+    
     private void handleInitiativeMsgFromServer(byte type, byte[] content) {
-
         switch (type) {
             //主机主动下发的升级完成指令
 
@@ -289,8 +269,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private void handleReplyMsg(byte type, byte[] content) {
         switch (type) {
-            case ProtocolHelper.TYPE_DEVICE_STATUS:
-                StateInfo info = protocolHelper.formatGetDeviceStatus(content);
+            case ProtocolHelper.TYPE_DEVICE_MAIN_CONTROL_STATUS:
+            case ProtocolHelper.TYPE_DEVICE_STORE_STATUS:
+            case ProtocolHelper.TYPE_DEVICE_DISPLAY_STATUS:
+                StateInfo info = protocolHelper.formatGetDeviceStatus(type,content);
                 StateMsg stateMsg = new StateMsg(info);
                 EventBus.getDefault().post(stateMsg);
                 break;
@@ -406,22 +388,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 break;
 
             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
-                if (downloadCallBack != null) {
-                    long dataSize = protocolHelper.formatDownloadSize(content);
-                    Message msg = Message.obtain();
-                    msg.what = ProtocolHelper.TYPE_DOWNLOAD_HEAD;
-                    msg.obj = dataSize;
-                    msgHandler.sendMessage(msg);
-                }
+                long dataSize = protocolHelper.formatDownloadSize(content);
                 break;
             case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
-                if (downloadCallBack != null) {
-                    byte[] dataDownload = protocolHelper.formatDownloadData(content);
-                    Message msg = Message.obtain();
-                    msg.what = ProtocolHelper.TYPE_DOWNLOAD_TRANSFER;
-                    msg.obj = dataDownload;
-                    msgHandler.sendMessage(msg);
-                }
+                byte[] dataDownload = protocolHelper.formatDownloadData(content);
                 break;
         }
     }
@@ -453,34 +423,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }
 
     }
-
-    public static class MsgHandler extends Handler {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            switch (msg.what) {
-                case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
-                    if (downloadCallBack != null) {
-                        long size = (long) msg.obj;
-                        downloadCallBack.onConfirmed(size);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
-                    if (downloadCallBack != null) {
-                        byte[] data = (byte[]) msg.obj;
-                        downloadCallBack.onTransferred(data);
-                    }
-                    break;
-                case ProtocolHelper.TYPE_DEBUGGING:
-                    if (debugCallback != null) {
-                        byte[] data = (byte[]) msg.obj;
-                        debugCallback.onReceiveData(data);
-                    }
-                    break;
-            }
-        }
-    }
-
-
+    
     /**
      * Initializes a reference to the local Bluetooth adapter.
      *
@@ -589,45 +532,51 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
 
     @Override
-    public void getDeviceState(int type) {
-        byte[] order = protocolHelper.createOrderGetDeviceStatus(type);
-        writeDataWithRetry(order, null);
+    public void getDeviceState(int unit,int type) {
+        byte[] order = protocolHelper.createOrderGetDeviceStatus(unit,type);
+        writeDataWithRetry(order);
     }
 
     @Override
-    public void setCarNumber(String number ,Date date) {
-        byte[] order = protocolHelper.createOrderSetCarNumber(number,date);
-        writeDataWithRetry(order, null);
+    public void getDeviceVersion(int unitType) {
+        byte[] order = protocolHelper.createOrderVersionInfo(unitType);
+        writeDataWithRetry(order);
+    }
+
+    @Override
+    public void setCarNumber(String number) {
+        byte[] order = protocolHelper.createOrderSetCarNumber(number);
+        writeDataWithRetry(order);
     }
 
     @Override
     public void getCarNumber() {
         byte[] order = protocolHelper.createOrderGetCarNumber();
-        writeDataWithRetry(order, null);
+        writeDataWithRetry(order);
     }
 
     @Override
     public void logoutCarNumber() {
         byte[] order = protocolHelper.createOrderUnsubscribeNumber();
-        writeDataWithRetry(order, null);
+        writeDataWithRetry(order);
     }
 
     @Override
     public void setDeviceID(String id) {
         byte[] order = protocolHelper.createOrderSetDeviceID(id);
-        writeDataWithRetry(order, null);
+        writeDataWithRetry(order);
     }
 
     @Override
     public void getDeviceID() {
         byte[] order = protocolHelper.createOrderGetDeviceID();
-        writeDataWithRetry(order, null);
+        writeDataWithRetry(order);
     }
 
     @Override
     public void adjustSensor(int type, int pressure) {
         byte[] order = protocolHelper.createOrderDemarcate(type, pressure);
-        writeDataWithRetry(order, null);
+        writeDataWithRetry(order);
     }
 
     @Override
@@ -637,7 +586,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         Log.d(ZWCC, "totalPackage =" + totalPackage);
         byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024,file);
         this.unitType = unitType;
-        writeDataWithRetry(order,null );
+        writeDataWithRetry(order);
     }
 
     /**
@@ -662,47 +611,35 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     @Override
     public void downloadDataRequest(Date startTime, Date endTime) {
         byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
-        writeDataWithRetry(order, downloadCallBack);
+        writeDataWithRetry(order);
     }
 
     @Override
     public void replyDownloadConfirm(boolean download) {
         byte[] order = protocolHelper.createOrderReplyDownloadConfirm(download);
-        writeDataWithRetry(order, downloadCallBack);
+        writeDataWithRetry(order);
     }
 
-    @Override
-    public void setDownloadCallback(DownloadCallback callBack) {
-        downloadCallBack = callBack;
-    }
 
     @Override
     public void cancelAction() {
         if (retryTimer != null) {
             retryTimer.cancel();
         }
-        if (msgHandler != null) {
-            msgHandler.removeCallbacksAndMessages(null);
+        if (pkgHandler != null) {
+            pkgHandler.removeCallbacksAndMessages(null);
         }
     }
 
 
     @Override
     public void sendDebuggingData(String data) {
-        boolean state = writeData(ByteUtils.string16ToBytes(data));
-        if (debugCallback != null) {
-            debugCallback.onSendState(state);
-        }
+        writeData(ByteUtils.string16ToBytes(data));
     }
 
     @Override
     public void enableDebugging(boolean enable) {
         inDebugging = enable;
-    }
-
-    @Override
-    public void setDebugCallBack(DebugCallback callBack) {
-        debugCallback = callBack;
     }
 
 
@@ -809,14 +746,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                         }
                         writeData(currentData);
 
-                        //Test
-                        if (msgHandler != null) {
-                            Message msg = Message.obtain();
-                            msg.what = ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER;
-                            msg.arg1 = (index * 100) / data.length;
-                            msgHandler.sendMessage(msg);
-                        }
-
                         try {
                             Thread.sleep(30);
 
@@ -863,7 +792,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     }
 
 
-    private void writeDataWithRetry(byte[] data, Callback callback) {
+    private void writeDataWithRetry(byte[] data) {
         if (retryTimer != null) {
             retryTimer.cancel();
         }
@@ -878,24 +807,19 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             public void onFinish() {
                 //3次重试失败
                 EventBus.getDefault().post(new RetryMsg());
-                if (callback != null) {
-                    callback.onRetryFailed();
-                }
             }
         }.start();
     }
 
 
-    private boolean writeData(byte[] data) {
+    private void writeData(byte[] data) {
         if (mWriteCharacteristic != null &&
                 data != null) {
             Log.d(TAG, "writeData :" + ByteUtils.bytesToString(data));
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);
-            return true;
         }
-        return false;
     }
 
     /**

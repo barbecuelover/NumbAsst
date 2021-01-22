@@ -1,4 +1,4 @@
-package com.ecs.numbasst.ui.download;
+package com.ecs.numbasst.view;
 
 import android.app.AlertDialog;
 import android.content.Context;

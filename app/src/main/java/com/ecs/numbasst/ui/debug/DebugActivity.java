@@ -4,28 +4,26 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.ecs.numbasst.R;
-import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.util.ByteUtils;
-import com.ecs.numbasst.manager.BleServiceManager;
-import com.ecs.numbasst.manager.callback.DebugCallback;
+import com.ecs.numbasst.base.util.Log;
+import com.ecs.numbasst.manager.msg.DebuggingMsg;
+import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 
-public class DebugActivity extends BaseActivity {
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-    private ImageButton ibActionBack;
-    private TextView actionBarTitle;
+public class DebugActivity extends BaseActionBarActivity {
+
     private TextView tvDebugLog;
     private Button btnDebugEnable;
     private Button btnDebugStop;
     private Button btnDebugLogClear;
     private EditText etDebugSendContent;
     private Button btnDebugSend;
-
-    private BleServiceManager manager;
-    DebugCallback debugCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +37,6 @@ public class DebugActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-
-        ibActionBack = findViewById(R.id.ib_action_back);
-        actionBarTitle = findViewById(R.id.action_bar_title);
         tvDebugLog = findViewById(R.id.tv_debug_log);
         btnDebugEnable = findViewById(R.id.btn_debug_enable);
         btnDebugStop = findViewById(R.id.btn_debug_stop);
@@ -52,30 +47,15 @@ public class DebugActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-        actionBarTitle.setText(getTitle());
-        manager = BleServiceManager.getInstance();
-        debugCallback = new DebugCallback() {
-            @Override
-            public void onRetryFailed() {
-                showToast("多次连接主机失败");
-            }
-
-            @Override
-            public void onSendState(boolean succeed) {
-                if (succeed){
-                    showToast("指令发送成功");
-                }else {
-                    showToast("指令发送失败,请检查连接");
-                }
-            }
-
-            @Override
-            public void onReceiveData(byte[] data) {
-                tvDebugLog.append("\n " + ByteUtils.bytesToString(data));
-            }
-        };
-
     }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDebugging(DebuggingMsg msg) {
+        byte[] data= msg.getData();
+        tvDebugLog.append("\n " + ByteUtils.bytesToString(data));
+    }
+
 
     @Override
     protected void initEvent() {
@@ -83,27 +63,25 @@ public class DebugActivity extends BaseActivity {
         btnDebugStop.setOnClickListener(this);
         btnDebugLogClear.setOnClickListener(this);
         btnDebugSend.setOnClickListener(this);
-        ibActionBack.setOnClickListener(this);
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        manager.setDebugCallBack(debugCallback);
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        manager.setDebugCallBack(null);
     }
 
     @Override
     public void onClick(View v) {
+        super.onClick(v);
         int id = v.getId();
-        if (id == R.id.ib_action_back){
-            finish();
-        }else if(id ==R.id.btn_debug_log_clear){
+        if(id ==R.id.btn_debug_log_clear){
             tvDebugLog.setText("");
         }else if(id ==R.id.btn_debug_enable){
             manager.enableDebugging(true);
@@ -112,15 +90,25 @@ public class DebugActivity extends BaseActivity {
             manager.enableDebugging(false);
             showToast("停止debug调试");
         }else if(id ==R.id.btn_debug_send){
+            if (!manager.isConnected()) {
+                showToast("请先连接设备");
+                return;
+            }
             tvDebugLog.setText("");
             String temp = etDebugSendContent.getText().toString().trim();
             String order = temp.replace(" ","");
             if (order.length()==0 || order.length()%2 !=0){
                 showToast("请输入正确格式的命令");
             }else {
+
                 manager.sendDebuggingData(order);
             }
         }
+    }
+
+    @Override
+    public void onRefreshAll() {
+
     }
 
     @Override

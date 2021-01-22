@@ -78,7 +78,7 @@ public class ErrorDetailsActivity extends BaseActionBarActivity {
             showToast(getString(R.string.check_device_connection));
             return;
         }
-        manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+        manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
         showProgressBar();
         showToast("查询故障中..");
     }

@@ -8,7 +8,7 @@ import java.util.Date;
  * @description
  */
 public interface ICarNumber {
-    void setCarNumber(String number, Date date);
+    void setCarNumber(String number);
     void getCarNumber();
     void logoutCarNumber();
 }

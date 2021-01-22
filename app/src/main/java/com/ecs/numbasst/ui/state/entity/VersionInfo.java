@@ -16,7 +16,7 @@ import com.ecs.numbasst.manager.ProtocolHelper;
  */
 public class VersionInfo extends StateInfo {
 
-    private byte unitType;
+    private byte deviceUnitType;
     private byte vAA;
     private byte vBB;
     private byte vCC;
@@ -26,7 +26,7 @@ public class VersionInfo extends StateInfo {
     public VersionInfo(byte[] data) {
         super(data);
         if (data != null && data.length == 5){
-            this.unitType = data[1];
+            this.deviceUnitType = data[1];
             this.vAA = data[2];
             this.vBB = data[3];
             this.vCC = data[4];
@@ -35,15 +35,15 @@ public class VersionInfo extends StateInfo {
     }
 
 
-    public byte getUnitType(){
-        return unitType;
+    public byte getDeviceUnitType(){
+        return deviceUnitType;
     }
 
 
 
     private String getUnitTypeStr(){
         String type;
-       switch (unitType){
+       switch (deviceUnitType){
            default:
            case 1:
                type = "主控单元";

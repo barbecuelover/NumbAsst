@@ -190,24 +190,24 @@ public class DeviceStateActivity extends BaseActionBarActivity {
             }
         }else if (id == R.id.ib_state_refresh_car_pipe_press){
             if (checkConnection()){
-                manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
+                manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
                 showProgressBar();
             }
         }else if (id == R.id.ib_state_car_error){
             if (checkConnection()){
-                manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+                manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
                 showProgressBar();
             }
 
         }else if (id == R.id.ib_state_battery_refresh){
             if (checkConnection()){
-                manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
+                manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
                 showProgressBar();
             }
 
         }else if (id == R.id.ib_state_tcu_refresh){
             if (checkConnection()){
-                manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
+                manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_TCU);
                 showProgressBar();
             }
         }else if (id == R.id.btn_state_car_error_details){
@@ -227,10 +227,10 @@ public class DeviceStateActivity extends BaseActionBarActivity {
         if(manager!=null){
             manager.getCarNumber();
             manager.getDeviceID();
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
-            manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_TCU);
+            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
+            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
+            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_TCU);
             showProgressBar();
         }
     }

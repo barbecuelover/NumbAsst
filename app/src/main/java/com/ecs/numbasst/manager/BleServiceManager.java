@@ -6,10 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.widget.ProgressBar;
 
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.callback.DebugCallback;
-import com.ecs.numbasst.manager.callback.DownloadCallback;
 import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
 import com.ecs.numbasst.manager.interfaces.ICarNumber;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
@@ -115,19 +114,36 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
 
 
  ///2.查询列尾状态
-    @Override
-    public void getDeviceState(int type) {
+    /**
+     * 默认获取为主控单元的信息
+     * @param type
+     */
+    public void getMainControlState(int type) {
         if (bleService != null) {
-            bleService.getDeviceState(type);
+            bleService.getDeviceState(ProtocolHelper.TYPE_DEVICE_MAIN_CONTROL_STATUS,type);
+        }
+    }
+
+    @Override
+    public void getDeviceState(int unit,int type) {
+        if (bleService != null) {
+            bleService.getDeviceState(unit,type);
+        }
+    }
+
+    @Override
+    public void getDeviceVersion(int unitType) {
+        if (bleService != null) {
+            bleService.getDeviceVersion(unitType);
         }
     }
 
 
     ///3.设置车号
     @Override
-    public void setCarNumber(String number, Date date) {
+    public void setCarNumber(String number) {
         if (bleService != null) {
-            bleService.setCarNumber(number,date);
+            bleService.setCarNumber(number);
         }
     }
 
@@ -188,13 +204,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
-    @Override
-    public void setDownloadCallback(DownloadCallback callBack) {
-        if (bleService != null) {
-            bleService.setDownloadCallback(callBack);
-        }
-    }
-
 
     ///6.传感器校准
 
@@ -237,10 +246,4 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
-    @Override
-    public void setDebugCallBack(DebugCallback callBack) {
-        if (bleService != null) {
-            bleService.setDebugCallBack(callBack);
-        }
-    }
 }

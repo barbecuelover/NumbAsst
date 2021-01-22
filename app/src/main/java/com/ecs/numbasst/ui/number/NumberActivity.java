@@ -13,7 +13,7 @@ import android.widget.TimePicker;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
-import com.ecs.numbasst.ui.download.DialogDatePicker;
+import com.ecs.numbasst.view.DialogDatePicker;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -97,6 +97,18 @@ public class NumberActivity extends BaseActionBarActivity {
 
         btnTimeDay.setText(formatterDay.format(calendar.getTime()));
         btnTimeHour.setText(formatterHour.format(calendar.getTime()));
+
+
+        String y = btnTimeDay.getText().toString().trim();
+        String h = btnTimeHour.getText().toString().trim();
+        Date date = new Date();
+        try {
+            date = formatter.parse(y+" "+h);
+        } catch (ParseException e) {
+            showToast("日期格式不正确");
+            e.printStackTrace();
+        }
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -154,17 +166,8 @@ public class NumberActivity extends BaseActionBarActivity {
                     updateStatus(getString(R.string.check_device_connection));
                     return;
                 }
-                String y = btnTimeDay.getText().toString().trim();
-                String h = btnTimeHour.getText().toString().trim();
                 String carNumber = etNewNumber.getText().toString().trim();
-                Date date = new Date();
-                try {
-                     date = formatter.parse(y+" "+h);
-                } catch (ParseException e) {
-                    showToast("日期格式不正确");
-                    e.printStackTrace();
-                }
-                manager.setCarNumber(carNumber,date);
+                manager.setCarNumber(carNumber);
                 showProgressBar();
             }
         } else if (id == R.id.ib_number_logo_out) {
@@ -183,7 +186,6 @@ public class NumberActivity extends BaseActionBarActivity {
 
     @Override
     public void onRefreshAll() {
-
     }
 
     private void updateStatus(String msg) {

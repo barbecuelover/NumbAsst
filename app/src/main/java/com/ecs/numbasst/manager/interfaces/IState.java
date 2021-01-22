@@ -6,5 +6,11 @@ package com.ecs.numbasst.manager.interfaces;
  * @description
  */
 public interface IState {
-    void getDeviceState(int type);
+    void getDeviceState(int unit,int type);
+
+    /**
+     * 获取对应 unit 的版本信息
+     * @param unitType
+     */
+    void getDeviceVersion(int unitType);
 }

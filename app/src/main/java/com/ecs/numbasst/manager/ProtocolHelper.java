@@ -9,6 +9,7 @@ import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.MainControlInfo;
 import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
+import com.ecs.numbasst.ui.state.entity.StoreInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
 import com.ecs.numbasst.ui.state.entity.VersionInfo;
 
@@ -27,7 +28,10 @@ public class ProtocolHelper {
 
     public final static byte TYPE_UNKNOWN = -1;
 
-    public final static byte TYPE_DEVICE_STATUS = 0x01;
+    public final static byte TYPE_DEVICE_MAIN_CONTROL_STATUS = 0x01;
+    public final static byte TYPE_DEVICE_STORE_STATUS = 0x02;
+    public final static byte TYPE_DEVICE_DISPLAY_STATUS = 0x03;
+
     public final static byte DEVICE_STATUS_PIPE_PRESS = 0x01;//0X01:列车管压力
     public final static byte DEVICE_STATUS_BATTERY_LEVEL  = 0x02; //0X02:查询电池电量
     public final static byte DEVICE_STATUS_DATA_STORE = 0x03; //0X03:数据存储器使用状态，包括已使用空间和剩余空间
@@ -42,6 +46,10 @@ public class ProtocolHelper {
     public final static byte TYPE_NUMBER_DEVICE_ID_SET = 0x13;
     public final static byte TYPE_NUMBER_DEVICE_ID_GET = 0x14;
     public final static byte TYPE_NUMBER_SENSOR_ADJUST = 0x15;
+
+    public final static byte TYPE_SET_TIME = 0x18;
+    public final static byte TYPE_GET_TIME = 0x19;
+
     public final static byte ADJUST_POINT_ZERO = 0x01;
     public final static byte ADJUST_POINT_HIGH = 0x02;
     public final static byte ADJUST_SAVE = 0x03;
@@ -52,6 +60,7 @@ public class ProtocolHelper {
     public final static byte UNIT_STORE = 0x01;
     public final static byte UNIT_MAIN_CONTROL = 0x02;
     public final static byte UNIT_INDICATE = 0x03;
+
     public final static byte TYPE_UNIT_UPDATE_REQUEST = 0x21;
     public final static byte TYPE_UNIT_UPDATE_FILE_TRANSFER = 0x22;
 
@@ -79,15 +88,23 @@ public class ProtocolHelper {
      * DEVICE_STATUS_FAULT_TCU :查询TCU状态
      *
      * 对应主机返回的数据解析请查看
-     * {@link ProtocolHelper#formatGetDeviceStatus(byte[])}
+     * {@link ProtocolHelper#formatGetDeviceStatus(byte,byte[])}
      */
-    public byte[] createOrderGetDeviceStatus(int statusType) {
-        byte[] content = {HEAD_SEND, TYPE_DEVICE_STATUS, 0x01,(byte)statusType};
+    public byte[] createOrderGetDeviceStatus(int unit,int statusType) {
+        byte[] content = {HEAD_SEND, (byte)unit, 0x01,(byte)statusType};
         //最终发送的字段
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##GetDeviceStatus =  " + ByteUtils.bytesToString(order));
         return order;
     }
+
+    public byte[] createOrderVersionInfo(int type) {
+        byte[] content = {HEAD_SEND, (byte)type, 0x01,DEVICE_STATUS_SOFTWARE_VERSION};
+        byte[] order = CrcUtils.addCrc8Table(content);
+        Log.d(TAG, "createOrder##VersionInfo =  " + ByteUtils.bytesToString(order));
+        return order;
+    }
+
 
     /**
      *获取注销车号的指令
@@ -103,32 +120,14 @@ public class ProtocolHelper {
      * 获取 设置车号为&number的指令
      * @param number 车号 如：12345
      */
-    public byte[] createOrderSetCarNumber(String number,Date date) {
+    public byte[] createOrderSetCarNumber(String number) {
         // AA , msg类型, msg长度
         byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, 0x011};
         //先将 车号转换成16进制字符串
         //消息内容
         byte[] carNumber = ByteUtils.number5ToNumberByte(number);
-        //授时信息
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-
-        int year4b = calendar.get(Calendar.YEAR);
-        int year2b = year4b % 100;
-
-        byte year = ByteUtils.convertBCD(year2b);
-        byte month =  ByteUtils.convertBCD(calendar.get(Calendar.MONTH)+1);//获取月份（因为在格里高利历和罗马儒略历一年中第一个月为JANUARY，它为0，这个值初始为0，所以需要加1）
-        byte day =  ByteUtils.convertBCD(calendar.get(Calendar.DATE));
-
-        byte hour =  ByteUtils.convertBCD(calendar.get(Calendar.HOUR_OF_DAY));//时 calendar.HOUR 12小时制，calendar.HOUR_OF_DAY 24小时）
-        byte minute =ByteUtils.convertBCD(calendar.get(Calendar.MINUTE));//分
-        byte second = ByteUtils.convertBCD(calendar.get(Calendar.SECOND));//秒
-
-        byte[] time = {year,month,day,hour,minute,second};
-
         //不包含crc验证的全部字段
-        byte[] contentTemp = ByteUtils.joinArray(head, carNumber);
-        byte[] content = ByteUtils.joinArray(contentTemp, time);
+        byte[] content = ByteUtils.joinArray(head, carNumber);
         //最终发送的字段
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##SetCarNumber =  " + ByteUtils.bytesToString(order));
@@ -144,6 +143,40 @@ public class ProtocolHelper {
         Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
         return order;
     }
+
+    public byte[] createOrderSetTime(Date date){
+        //授时信息
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTime(date);
+//
+//        int year4b = calendar.get(Calendar.YEAR);
+//        int year2b = year4b % 100;
+//
+//        byte year = ByteUtils.convertBCD(year2b);
+//        byte month =  ByteUtils.convertBCD(calendar.get(Calendar.MONTH)+1);//获取月份（因为在格里高利历和罗马儒略历一年中第一个月为JANUARY，它为0，这个值初始为0，所以需要加1）
+//        byte day =  ByteUtils.convertBCD(calendar.get(Calendar.DATE));
+//
+//        byte hour =  ByteUtils.convertBCD(calendar.get(Calendar.HOUR_OF_DAY));//时 calendar.HOUR 12小时制，calendar.HOUR_OF_DAY 24小时）
+//        byte minute =ByteUtils.convertBCD(calendar.get(Calendar.MINUTE));//分
+//        byte second = ByteUtils.convertBCD(calendar.get(Calendar.SECOND));//秒
+//
+//        byte[] time = {year,month,day,hour,minute,second};
+
+        byte[] head = {HEAD_SEND, TYPE_SET_TIME, 0x04};
+        byte[] time = ByteUtils.longToLow4Byte(date.getTime());
+        byte[] content = ByteUtils.joinArray(head, time);
+        byte[] order = CrcUtils.addCrc8Table(content);
+        Log.d(TAG, "createOrder##SetTime  = " + ByteUtils.bytesToString(order));
+        return order;
+    }
+
+    public byte[] createOrderGetTime(){
+        byte[] content = {HEAD_SEND, TYPE_GET_TIME, 0x00};
+        byte[] order = CrcUtils.addCrc8Table(content);
+        Log.d(TAG, "createOrder##GetTime  = " + ByteUtils.bytesToString(order));
+        return order;
+    }
+
 
     /**
      * 获取 查询设备ID 的指令 ID为6位
@@ -275,31 +308,53 @@ public class ProtocolHelper {
      * 获取主机返回的 查看设备信息指令中的 设备的状态
      * @return 两位大小的字节数组。 byte[0]: 状态类型  , byte[1]状态参数
      */
-    public StateInfo formatGetDeviceStatus(byte[] content) {
+    public StateInfo formatGetDeviceStatus(byte unitType,byte[] content) {
         StateInfo info = null;
-        Log.d(TAG," formatGetDeviceStatus content[0]= "+ content[0]);
         Log.d(TAG," formatGetDeviceStatus = " + ByteUtils.bytesToString(content));
-        switch (content[0]){
-            case DEVICE_STATUS_PIPE_PRESS:
-                info = new PipePressInfo(content);
-                break;
-            case DEVICE_STATUS_DATA_STORE:
-                break;
-            case DEVICE_STATUS_BATTERY_LEVEL:
-                info = new BatteryInfo(content);
-                break;
-            case DEVICE_STATUS_FAULT_DIAGNOSIS:
-                info = new ErrorInfo(content);
-                break;
-            case DEVICE_STATUS_TCU:
-                info = new TCUInfo(content);
-                break;
-            case DEVICE_STATUS_MAIN_CONTROL:
-                info = new MainControlInfo(content);
-                break;
-            case DEVICE_STATUS_SOFTWARE_VERSION:
+        if (unitType == TYPE_DEVICE_MAIN_CONTROL_STATUS){
+            switch (content[0]){
+                case DEVICE_STATUS_PIPE_PRESS:
+                    info = new PipePressInfo(content);
+                    break;
+                case DEVICE_STATUS_DATA_STORE:
+                    //预留
+                    break;
+                case DEVICE_STATUS_BATTERY_LEVEL:
+                    info = new BatteryInfo(content);
+                    break;
+                case DEVICE_STATUS_FAULT_DIAGNOSIS:
+                    info = new ErrorInfo(content);
+                    break;
+                case DEVICE_STATUS_TCU:
+                    info = new TCUInfo(content);
+                    break;
+                case DEVICE_STATUS_MAIN_CONTROL:
+                    info = new MainControlInfo(content);
+                    break;
+                case DEVICE_STATUS_SOFTWARE_VERSION:
+                    info = new VersionInfo(content);
+                    break;
+            }
+
+        }else if (unitType == TYPE_DEVICE_STORE_STATUS){
+
+            switch (content[0]){
+                case DEVICE_STATUS_DATA_STORE:
+                    info = new StoreInfo(content);
+                    break;
+                case DEVICE_STATUS_SOFTWARE_VERSION:
+                    info = new VersionInfo(content);
+                    break;
+            }
+
+        }else if (unitType == TYPE_DEVICE_DISPLAY_STATUS){
+            if (content[0] == DEVICE_STATUS_SOFTWARE_VERSION) {
                 info = new VersionInfo(content);
-                break;
+            }
+        }
+
+        if (info!=null){
+            info.setUnitType(unitType);
         }
         return info;
     }

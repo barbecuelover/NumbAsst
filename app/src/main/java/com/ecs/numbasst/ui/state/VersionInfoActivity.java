@@ -1,6 +1,5 @@
 package com.ecs.numbasst.ui.state;
 
-import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -87,16 +86,16 @@ public class VersionInfoActivity extends BaseActionBarActivity {
             showToast(getString(R.string.check_device_connection));
             return;
         }
-        manager.getDeviceState(ProtocolHelper.DEVICE_STATUS_SOFTWARE_VERSION);
+        manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_MAIN_CONTROL_STATUS);
+        manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_STORE_STATUS);
+        manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_DISPLAY_STATUS);
         showToast("查询版本号中");
         showProgressBar();
     }
 
 
-
-
     private void setVersion(VersionInfo versionInfo ){
-        switch (versionInfo.getUnitType()){
+        switch (versionInfo.getDeviceUnitType()){
             default:
             case 1:
                 tvMainControl.setText(versionInfo.getVersion());

@@ -69,7 +69,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         String date =dateFormat.format(new Date());
         tvStartTime.setText(date);
         tvEndTime.setText(date);
-        Log.d("zwcc"," Unix :" + new Date().getTime());
+       // Log.d("zwcc"," Unix :" + new Date().getTime());
 
     }
 
@@ -108,7 +108,10 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         }else if( id == R.id.ib_action_back){
             finish();
         }else if( id == R.id.btn_download_data){
-            prepareDownloadData();
+            //prepareDownloadData();
+
+            testUdp();
+
         }
 
     }
@@ -117,6 +120,15 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     public void onRefreshAll() {
 
     }
+
+
+    private void  testUdp(){
+        Date date = new Date();
+        manager.downloadDataRequest(date,date);
+        manager.downloadOneDayData(0,date);
+    }
+
+
 
     private void prepareDownloadData() {
 

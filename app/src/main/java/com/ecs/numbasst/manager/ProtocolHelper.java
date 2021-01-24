@@ -15,7 +15,6 @@ import com.ecs.numbasst.ui.state.entity.VersionInfo;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -77,6 +76,16 @@ public class ProtocolHelper {
 
     public final static byte STATE_FAILED = 0x01;
     public final static byte  STATE_SUCCEED = 0x00;
+
+    //UDP，wifi 协议 ,无crc校验 ，大端
+    //向主机索要某一天的数据，
+    public final static byte TYPE_WIFI_REQUEST_ONE_DAY_DATA = (byte)0xD1;
+    public final static byte TYPE_WIFI_TRANSFER_1000PKG = (byte)0xD2;
+    public final static byte TYPE_WIFI_TRANSFER_FILE_COMPLETED = (byte)0xD3;
+
+    public final static byte TYPE_WIFI_REPLY_DATA_INFO = (byte)0xA2;
+    public final static byte TYPE_WIFI_REPLY_DATA_INFO_NULL = (byte)0xA4;
+    public final static byte TYPE_WIFI_REPLY_DATA_1KB = (byte)0xA3;
 
     /**
      * 获取 查询列尾状态信息 的指令
@@ -163,7 +172,7 @@ public class ProtocolHelper {
 //        byte[] time = {year,month,day,hour,minute,second};
 
         byte[] head = {HEAD_SEND, TYPE_SET_TIME, 0x04};
-        byte[] time = ByteUtils.longToLow4Byte(date.getTime());
+        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000);
         byte[] content = ByteUtils.joinArray(head, time);
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##SetTime  = " + ByteUtils.bytesToString(order));
@@ -301,6 +310,41 @@ public class ProtocolHelper {
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
         return order;
     }
+
+
+    /**
+     * wifi 协议 ,无crc校验 ，大端
+     *
+     * D1  报文流水号  ,00 08 ,UTC时间 4Byte
+     */
+    public byte[] createOrderDownloadOneDayData(int index,Date date) {
+
+        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000);
+        byte[] content = {TYPE_WIFI_REQUEST_ONE_DAY_DATA, (byte)index, 0X00, 0x08,time[3],time[2],time[1],time[0]};
+        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + date.getTime()/1000);
+        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(time));
+
+        byte[] order = ByteUtils.joinArray(content,time);
+        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
+        return order;
+    }
+
+    /**
+     * wifi 协议 ,无crc校验 ，大端
+     *
+     * D1  报文流水号  ,00 08 ,UTC时间 4Byte
+     */
+    public byte[] createOrderDownload1000Done(int index,int length,Date date) {
+        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000);
+        byte[] size = ByteUtils.longToLow4Byte(length);
+        byte[] order = {TYPE_WIFI_TRANSFER_1000PKG, (byte)index, 0X00, 0x08,time[3],time[2],time[1],time[0],size[3],size[2],size[1],size[0]};
+        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
+        return order;
+    }
+
+
+
+
 
 //###  使用所有 format 主机返回的指令前，需进行crc校验 和 data[] 数组的大小验证（简单验证） ######//
 // 理论上获取主机返回的信息后进行解析的地方，需要使用try catch以保证APP稳定性//
@@ -473,5 +517,26 @@ public class ProtocolHelper {
     }
 
 
+    public Date formatDownloadDayInfoDate(byte[] data) {
+        if (data == null || data.length < 7){
+            return  new Date();
+        }
+        byte [] time = {data[4],data[5],data[6],data[7]};
+        long timeT = ByteUtils.bytesToLong(time);
+        Date date = new Date(timeT);
+        return  date;
+    }
 
+    public byte[] formatDownload1KBPackage(byte[] data){
+
+        return null;
+    }
+
+    //A2 ,返回某一天信息。
+    public long formatDownloadDayInfoSize(byte[] data) {
+        byte [] size = {data[8],data[9],data[10],data[11]};
+        long  totalSize = ByteUtils.bytesToLong(size);
+        Log.d(TAG,"formatDownloadDayInfoSize = "+ totalSize);
+        return  totalSize;
+    }
 }

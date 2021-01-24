@@ -141,7 +141,7 @@ public class MainActivity extends BaseActivity {
             int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
                 //判断是否需要 向用户解释，为什么要申请该权限
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_ENABLE_WRITE_FILE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.INTERNET}, REQUEST_ENABLE_WRITE_FILE);
             }else {
                 DataKeeper.init();
             }

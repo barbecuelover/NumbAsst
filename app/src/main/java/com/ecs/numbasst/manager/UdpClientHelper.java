@@ -1,5 +1,6 @@
 package com.ecs.numbasst.manager;
 
+import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.Log;
 
@@ -18,13 +19,17 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class UdpClientHelper {
 
-    private static final String TAG = "UdpHelper";
+    private static final String TAG = "zwcc";
 
-    private static final String  SERVER_IP="192.168.90.33";//目标ip
-    private static final int  SERVER_RECEIVER_PORT=9002;//目标接收端端口号
+   // private static final String  SERVER_IP="192.168.90.33";//目标ip
+    private static final String  SERVER_IP="192.168.0.100";//目标ip
+   // private static final int  SERVER_RECEIVER_PORT=9002;//目标接收端端口号
+    private static final int  SERVER_RECEIVER_PORT=4001;//目标接收端端口号
 
     private static final int  CLIENT_SEND_PORT= 8888;//本地发送端端口号
     private static final int  CLIENT_RECEIVER_PORT=7777;//本地接收端端口号
+
+    private static volatile UdpClientHelper instance;
 
     private String localIp= "";
     private DatagramSocket dataSocketSend;//发送的数据通道
@@ -37,12 +42,26 @@ public class UdpClientHelper {
     DatagramPacket receivedPacket;
 
 
-    ExecutorService executorSend; //用于发送数据的 单核线程池
+   // private ExecutorService executorSend; //用于发送数据的 单核线程池
+    private ThreadPoolExecutor executorSend; //用于发送数据的 单核线程池
 
-    ExecutorService executorReceiver;
+   // private ExecutorService executorReceiver;
+    private ThreadPoolExecutor executorReceiver;
 
     private UdpClientHelper() {
         init();
+    }
+
+
+    public static UdpClientHelper getInstance() {
+        if (instance == null) {
+            synchronized (UdpClientHelper.class) {
+                if (instance == null) {
+                    instance = new UdpClientHelper();
+                }
+            }
+        }
+        return instance;
     }
 
 
@@ -56,8 +75,11 @@ public class UdpClientHelper {
 
             destNetAddress = InetAddress.getByName(SERVER_IP);
 
-            executorSend = Executors.newSingleThreadExecutor();
-            executorReceiver = Executors.newSingleThreadExecutor();
+            //executorSend = Executors.newSingleThreadExecutor();
+            executorSend = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);;
+            //executorReceiver = Executors.newSingleThreadExecutor();
+            executorReceiver = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);;
+            Log.d(TAG,"UDP服务初始化成功");
 
         } catch (Exception e) {
             Log.d(TAG,"UDP服务初始化失败");
@@ -77,13 +99,14 @@ public class UdpClientHelper {
 
 
     public void sendMsg(byte[] buffer){
+        Log.d(TAG, "sendMsg："+ ByteUtils.bytesToString(buffer));
         executorSend.execute(new Runnable() {
             @Override
             public void run() {
                 try {
                     DatagramPacket datagramPacket=new DatagramPacket(buffer,buffer.length,destNetAddress,SERVER_RECEIVER_PORT);//创建数据报
                     dataSocketSend.send(datagramPacket); //发送数据报
-                    Log.d(TAG, "成功发送的消息："+ ByteUtils.bytesToString(buffer));
+                    Log.d("zwcc","dataSocketSend 消息发送完成");
                 } catch (Exception e) {
                     Log.v(TAG, "sendMsg error");
                     e.printStackTrace();
@@ -92,16 +115,22 @@ public class UdpClientHelper {
         });
     }
 
+    public void stopReceiverMsgListener(){
+        receiveFlag = false;
+    }
 
-    public void receivedMsg(CallBack callBack){
-        executorSend.execute(new Runnable() {
+
+    public void startReceivedMsgListener(CallBack callBack){
+        executorReceiver.execute(new Runnable() {
             @Override
             public void run() {
                 while (receiveFlag) {
+                    Log.d("zwcc","startReceivedMsgListener");
                     byte[] bytes = new byte[1024];
                     receivedPacket= new DatagramPacket(bytes, 0, bytes.length);
                     try {
                         dataSocketReceiver.receive(receivedPacket);
+
                         if (callBack!=null){
                             callBack.onReceived(receivedPacket.getData());
                         }

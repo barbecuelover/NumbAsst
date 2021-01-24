@@ -204,6 +204,14 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
+    @Override
+    public void downloadOneDayData(int index,Date date){
+        if (bleService != null) {
+            bleService.downloadOneDayData(index,date);
+        }
+    }
+
+
 
     ///6.传感器校准
 

@@ -35,6 +35,7 @@ import com.ecs.numbasst.manager.msg.ConnectionMsg;
 import com.ecs.numbasst.manager.msg.CrcErrorMsg;
 import com.ecs.numbasst.manager.msg.DebuggingMsg;
 import com.ecs.numbasst.manager.msg.DeviceIDMsg;
+import com.ecs.numbasst.manager.msg.DownloadMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
@@ -95,6 +96,14 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private volatile boolean inTransferring = false;
 
+    //download
+    UdpClientHelper.CallBack callBack;
+
+    private long udpTotalPkg = 0;
+    private int udpPkg = 0;
+
+    private  Date downloadDate;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -103,7 +112,44 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         protocolHelper = new ProtocolHelper();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         pkgMsg = new UnitUpdateMsg(UnitUpdateMsg.TRANSFER_PROGRESS_CHANGED);
+        callBack = new UdpClientHelper.CallBack() {
+            @Override
+            public void onReceived(byte[] data) {
+                formatDownloadReply(data);
+            }
+        };
+        UdpClientHelper.getInstance().startReceivedMsgListener(callBack);
     }
+
+    public void formatDownloadReply(byte[] data){
+        if (data==null || data.length<3){
+            return ;
+        }
+        Log.d(ZWCC,"wifi  received data = " +ByteUtils.bytesToString(data));
+        byte type = data[0];
+        if (type == ProtocolHelper.TYPE_WIFI_REPLY_DATA_INFO){
+            //返回某一天的信息
+            udpTotalPkg = protocolHelper.formatDownloadDayInfoSize(data);
+                                                                                                                                                        
+        }else if (type == ProtocolHelper.TYPE_WIFI_REPLY_DATA_INFO_NULL){
+            //收到查询日期 文件不存在
+            Date date = protocolHelper.formatDownloadDayInfoDate(data);
+            DownloadMsg nullMsg = new DownloadMsg(type,date);
+            EventBus.getDefault().post(nullMsg);
+
+        }else if (type == ProtocolHelper.TYPE_WIFI_REPLY_DATA_1KB){
+            //收到传输1kb
+           // byte[] protocolHelper.formatDownload1KBPackage(data);
+            udpPkg ++;
+            if (udpPkg ==1000){
+                byte[] order= protocolHelper.createOrderDownload1000Done(0,1000,downloadDate);
+                UdpClientHelper.getInstance().sendMsg(order);
+            }
+        }
+
+
+    }
+
 
     @Override
     public void onDestroy() {
@@ -610,14 +656,23 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     @Override
     public void downloadDataRequest(Date startTime, Date endTime) {
-        byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
-        writeDataWithRetry(order);
+//        byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
+//        writeDataWithRetry(order);
+
+
     }
 
     @Override
     public void replyDownloadConfirm(boolean download) {
         byte[] order = protocolHelper.createOrderReplyDownloadConfirm(download);
         writeDataWithRetry(order);
+    }
+
+    @Override
+    public void downloadOneDayData(int index, Date date) {
+        downloadDate = date;
+        byte[] order = protocolHelper.createOrderDownloadOneDayData(index,date);
+        UdpClientHelper.getInstance().sendMsg(order);
     }
 
 

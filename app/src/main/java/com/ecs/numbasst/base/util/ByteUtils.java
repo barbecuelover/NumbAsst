@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -182,9 +183,39 @@ public class ByteUtils {
         return b;
     }
 
+    public static long bytes4LowToLong(byte[] bytes){
+        if (bytes==null || bytes.length!=4){
+            return 0;
+        }else {
+            int v0 = (bytes[3] & 0xff) << 24;//&0xff将byte值无差异转成int,避免Java自动类型提升后,会保留高位的符号位
+            int v1 = (bytes[2] & 0xff) << 16;
+            int v2 = (bytes[1] & 0xff) << 8;
+            int v3 = (bytes[0] & 0xff) ;
+            return v0 + v1 + v2 + v3;
+        }
+    }
+
+    /**
+     * 大端
+     * @param bytes
+     * @return
+     */
+    public static long bytes4ToLong(byte[] bytes){
+        if (bytes==null || bytes.length!=4){
+            return 0;
+        }else {
+            int v0 = (bytes[0] & 0xff) << 24;//&0xff将byte值无差异转成int,避免Java自动类型提升后,会保留高位的符号位
+            int v1 = (bytes[1] & 0xff) << 16;
+            int v2 = (bytes[2] & 0xff) << 8;
+            int v3 = (bytes[3] & 0xff) ;
+            return v0 + v1 + v2 + v3;
+        }
+    }
 
 
-
+    /**
+     *     两位byte
+     */
     public static long bytesToLong(byte[] bytes) {
         buffer.put(bytes, 0, bytes.length);
         buffer.flip();//need flip

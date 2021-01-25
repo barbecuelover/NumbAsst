@@ -38,6 +38,7 @@ import com.ecs.numbasst.manager.msg.DeviceIDMsg;
 import com.ecs.numbasst.manager.msg.DownloadMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;
+import com.ecs.numbasst.manager.msg.TimeMsg;
 import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 import com.ecs.numbasst.manager.msg.SensorState;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
@@ -342,6 +343,21 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 }
                 EventBus.getDefault().post(setNumberMsg);
                 break;
+            case ProtocolHelper.TYPE_SET_TIME:
+                TimeMsg timeMsg = new TimeMsg();
+                if( content[0] == ProtocolHelper.STATE_SUCCEED){
+                    timeMsg.setState(TimeMsg.TIME_SET_SUCCEED);
+                }else {
+                    timeMsg.setState(TimeMsg.TIME_SET_FAILED);
+                }
+                EventBus.getDefault().post(timeMsg);
+                break;
+            case ProtocolHelper.TYPE_GET_TIME:
+                TimeMsg timeGetMsg = new TimeMsg(TimeMsg.TIME_GET);
+                long timeGet = protocolHelper.formatGetTime(content);
+                timeGetMsg.setTimeT(timeGet);
+                EventBus.getDefault().post(timeGetMsg);
+                break;
             //获取车号 的信息
             case ProtocolHelper.TYPE_NUMBER_GET:
                 String number = protocolHelper.formatGetCarNumber(content);
@@ -604,6 +620,18 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     @Override
     public void logoutCarNumber() {
         byte[] order = protocolHelper.createOrderUnsubscribeNumber();
+        writeDataWithRetry(order);
+    }
+
+    @Override
+    public void setTime(Date date) {
+        byte[] order = protocolHelper.createOrderSetTime(date);
+        writeDataWithRetry(order);
+    }
+
+    @Override
+    public void getTime() {
+        byte[] order = protocolHelper.createOrderGetTime();
         writeDataWithRetry(order);
     }
 

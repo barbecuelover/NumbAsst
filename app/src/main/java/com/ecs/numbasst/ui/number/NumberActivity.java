@@ -1,33 +1,21 @@
 package com.ecs.numbasst.ui.number;
 
-import android.app.AlertDialog;
-import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
-import com.ecs.numbasst.view.DialogDatePicker;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
 public class NumberActivity extends BaseActionBarActivity {
 
-    private final int DAY_TIME = 0x11;
     ImageButton btnRefresh;
     ImageButton btnNumberLogout;
 
@@ -37,9 +25,7 @@ public class NumberActivity extends BaseActionBarActivity {
     TextView tvNumberStatus;
     TextView btnTimeDay;
     TextView btnTimeHour;
-    private DialogDatePicker datePickerSelect;
-    private TimePickerDialog timePickerDialog;
-    DateFormat formatter ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,53 +47,14 @@ public class NumberActivity extends BaseActionBarActivity {
         tvCarName = findViewById(R.id.car_number_current);
         tvNumberStatus = findViewById(R.id.tv_car_numb_status);
 
-        btnTimeDay = findViewById(R.id.btn_time_day);
-        btnTimeHour = findViewById(R.id.btn_time_hour);
+//        btnTimeDay = findViewById(R.id.btn_time_date);
+//        btnTimeHour = findViewById(R.id.btn_time_hour);
 
     }
 
     @Override
     protected void initData() {
-        Calendar calendar = Calendar.getInstance();
-        DateFormat formatterDay=new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        DateFormat formatterHour=new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-        formatter =new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-        datePickerSelect = new DialogDatePicker(this, new DialogDatePicker.OnDateSelectCallBack() {
-            @Override
-            public void onDateSelected(int flag, int year, int month, int day, long time, String dateString) {
-                switch (flag) {
-                    case DAY_TIME:
-                        btnTimeDay.setText(dateString);
-                        break;
-                }
-            }
-        });
-
-        timePickerDialog = new TimePickerDialog(NumberActivity.this, AlertDialog.THEME_HOLO_LIGHT,new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                Calendar c = Calendar.getInstance();
-                c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                c.set(Calendar.MINUTE,minute);
-                c.getTime();
-                btnTimeHour.setText(formatterHour.format(c.getTime()));
-            }
-        },calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE),true);
-
-        btnTimeDay.setText(formatterDay.format(calendar.getTime()));
-        btnTimeHour.setText(formatterHour.format(calendar.getTime()));
-
-
-        String y = btnTimeDay.getText().toString().trim();
-        String h = btnTimeHour.getText().toString().trim();
-        Date date = new Date();
-        try {
-            date = formatter.parse(y+" "+h);
-        } catch (ParseException e) {
-            showToast("日期格式不正确");
-            e.printStackTrace();
-        }
 
     }
 
@@ -134,8 +81,8 @@ public class NumberActivity extends BaseActionBarActivity {
         btnRefresh.setOnClickListener(this);
         btnSetCarNumber.setOnClickListener(this);
         btnNumberLogout.setOnClickListener(this);
-        btnTimeDay.setOnClickListener(this);
-        btnTimeHour.setOnClickListener(this);
+//        btnTimeDay.setOnClickListener(this);
+//        btnTimeHour.setOnClickListener(this);
     }
 
     @Override
@@ -177,11 +124,12 @@ public class NumberActivity extends BaseActionBarActivity {
             }
             updateStatus("注销车号中！");
             manager.logoutCarNumber();
-        }else if (id ==R.id.btn_time_hour){
-            timePickerDialog.show();
-        }else if (id == R.id.btn_time_day){
-            datePickerSelect.showDatePickView("授时年月日", DAY_TIME);
         }
+//        }else if (id ==R.id.btn_time_hour){
+//            //timePickerDialog.show();
+//        }else if (id == R.id.btn_time_date){
+//            //datePickerSelect.showDatePickView("授时年月日", DAY_TIME);
+//        }
     }
 
     @Override

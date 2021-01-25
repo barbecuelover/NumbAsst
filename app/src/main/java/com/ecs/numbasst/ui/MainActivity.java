@@ -23,6 +23,7 @@ import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
 import com.ecs.numbasst.manager.msg.ConnectionMsg;
+import com.ecs.numbasst.ui.number.TimeActivity;
 import com.ecs.numbasst.ui.scan.DevicesScanActivity;
 import com.ecs.numbasst.ui.sensor.SensorAuthorityActivity;
 import com.ecs.numbasst.ui.state.DeviceStateActivity;
@@ -43,6 +44,7 @@ public class MainActivity extends BaseActivity {
     private Button btnDebugging;
     private Button btnAboutNumbAsst;
     private Button btnVersion;
+    private Button btnSetTime;
     private TextView tvConnected;
 
     @Override
@@ -85,6 +87,7 @@ public class MainActivity extends BaseActivity {
         btnDebugging = findViewById(R.id.view_debugging);
         btnAboutNumbAsst = findViewById(R.id.view_about_numb_asst);
         btnVersion = findViewById(R.id.view_version_info);
+        btnSetTime = findViewById(R.id.view_set_time);
     }
 
     @Override
@@ -105,6 +108,7 @@ public class MainActivity extends BaseActivity {
         btnDebugging.setOnClickListener(this);
         btnAboutNumbAsst.setOnClickListener(this);
         btnVersion.setOnClickListener(this);
+        btnSetTime.setOnClickListener(this);
     }
 
 
@@ -133,6 +137,8 @@ public class MainActivity extends BaseActivity {
             goActivity(AboutActivity.class);
         }else if (id == R.id.view_version_info){
             goActivity(VersionInfoActivity.class);
+        }else if (id == R.id.view_set_time){
+            goActivity(TimeActivity.class);
         }
     }
 
@@ -145,6 +151,8 @@ public class MainActivity extends BaseActivity {
             }else {
                 DataKeeper.init();
             }
+        }else {
+            DataKeeper.init();
         }
     }
 

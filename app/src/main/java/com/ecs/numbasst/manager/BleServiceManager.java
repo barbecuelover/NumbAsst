@@ -161,8 +161,22 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
+    @Override
+    public void setTime(Date date) {
+        if (bleService != null) {
+            bleService.setTime(date);
+        }
+    }
 
-   ///4.更新单元软件
+    @Override
+    public void getTime() {
+        if (bleService != null) {
+            bleService.getTime();
+        }
+    }
+
+
+    ///4.更新单元软件
     @Override
     public void updateUnitRequest(int unitType, File file) {
         if (bleService != null) {

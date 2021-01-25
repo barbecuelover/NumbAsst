@@ -411,6 +411,11 @@ public class ProtocolHelper {
         return ByteUtils.numberByteToStr(content);
     }
 
+
+    public long formatGetTime(byte[] content) {
+        return ByteUtils.bytes4LowToLong(content) * 1000;
+    }
+
     /**
      *  获取主机返回的 查看DeviceID指令中的 车号信息
      * @return 车号
@@ -522,7 +527,7 @@ public class ProtocolHelper {
             return  new Date();
         }
         byte [] time = {data[4],data[5],data[6],data[7]};
-        long timeT = ByteUtils.bytesToLong(time);
+        long timeT = ByteUtils.bytes4ToLong(time);
         Date date = new Date(timeT);
         return  date;
     }
@@ -535,7 +540,7 @@ public class ProtocolHelper {
     //A2 ,返回某一天信息。
     public long formatDownloadDayInfoSize(byte[] data) {
         byte [] size = {data[8],data[9],data[10],data[11]};
-        long  totalSize = ByteUtils.bytesToLong(size);
+        long  totalSize = ByteUtils.bytes4ToLong(size);
         Log.d(TAG,"formatDownloadDayInfoSize = "+ totalSize);
         return  totalSize;
     }

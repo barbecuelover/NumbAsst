@@ -98,7 +98,7 @@
                 android:gravity="center"
                 android:textSize="16sp"
                 android:textColor="@color/green"
-                android:text="版本"
+                android:text="--"
                 />
         </TableRow>
 
@@ -132,7 +132,7 @@
                 android:gravity="center"
                 android:textSize="16sp"
                 android:textColor="@color/green"
-                android:text="版本"
+                android:text="--"
                 />
         </TableRow>
 
@@ -166,7 +166,7 @@
                 android:background="@color/white"
                 android:gravity="center"
                 android:textSize="16sp"
-                android:text="版本"
+                android:text="--"
                 />
         </TableRow>
 

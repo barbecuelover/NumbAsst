@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
 import com.ecs.numbasst.base.util.DataKeeper;
+import com.ecs.numbasst.base.util.UdpFileUtils;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.about.AboutActivity;
 import com.ecs.numbasst.ui.debug.DebugActivity;
@@ -33,6 +34,8 @@ import com.ecs.numbasst.ui.update.UpdateUnitActivity;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.IOException;
 
 public class MainActivity extends BaseActivity {
 

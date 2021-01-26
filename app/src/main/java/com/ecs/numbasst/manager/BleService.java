@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
+import com.ecs.numbasst.base.util.UdpFileUtils;
 import com.ecs.numbasst.manager.interfaces.IAdjustSensor;
 import com.ecs.numbasst.manager.interfaces.ICarNumber;
 import com.ecs.numbasst.manager.interfaces.IDebugging;
@@ -46,8 +47,12 @@ import com.ecs.numbasst.ui.state.entity.StateInfo;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -101,9 +106,15 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     UdpClientHelper.CallBack callBack;
 
     private long udpTotalPkg = 0;
-    private int udpPkg = 0;
+    private long udpReceivedTotalPkg = 0;
+    private int  pkgNumber = 0;
 
     private  Date downloadDate;
+    DownloadMsg downloadProgressMsg;
+
+    UdpFileUtils udpFileUtils;
+
+    DateFormat formatterDay;
 
     @Override
     public void onCreate() {
@@ -113,41 +124,102 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         protocolHelper = new ProtocolHelper();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         pkgMsg = new UnitUpdateMsg(UnitUpdateMsg.TRANSFER_PROGRESS_CHANGED);
+        downloadProgressMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_PROGRESS);
         callBack = new UdpClientHelper.CallBack() {
             @Override
             public void onReceived(byte[] data) {
+                Log.d(ZWCC,"UDP  onReceived ");
                 formatDownloadReply(data);
             }
         };
         UdpClientHelper.getInstance().startReceivedMsgListener(callBack);
+        formatterDay=new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
     }
 
     public void formatDownloadReply(byte[] data){
         if (data==null || data.length<3){
             return ;
         }
-        Log.d(ZWCC,"wifi  received data = " +ByteUtils.bytesToString(data));
+
         byte type = data[0];
-        if (type == ProtocolHelper.TYPE_WIFI_REPLY_DATA_INFO){
+        if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DOWNLOAD_ALL_FILES){
+            DownloadMsg allFilesMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_ALL_FILES);
+            EventBus.getDefault().post(allFilesMsg);
+            Log.d(ZWCC,"返回查询所有文件");
+        } else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_INFO){//数据量
             //返回某一天的信息
+            Log.d(ZWCC,"返回查询某天的信息");
             udpTotalPkg = protocolHelper.formatDownloadDayInfoSize(data);
-                                                                                                                                                        
-        }else if (type == ProtocolHelper.TYPE_WIFI_REPLY_DATA_INFO_NULL){
+            udpReceivedTotalPkg = 0;
+            pkgNumber = 0;
+            downloadProgressMsg.setTotalSize(udpTotalPkg);
+
+            String name = formatterDay.format(downloadDate) ;
+            udpFileUtils = new UdpFileUtils(name);
+
+        }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_INFO_NULL){//无文件
             //收到查询日期 文件不存在
+            Log.d(ZWCC,"返回查询文件不存在");
             Date date = protocolHelper.formatDownloadDayInfoDate(data);
-            DownloadMsg nullMsg = new DownloadMsg(type,date);
+            DownloadMsg nullMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_FILE_NULL,date);
             EventBus.getDefault().post(nullMsg);
 
-        }else if (type == ProtocolHelper.TYPE_WIFI_REPLY_DATA_1KB){
+        }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_1KB){//传输
             //收到传输1kb
-           // byte[] protocolHelper.formatDownload1KBPackage(data);
-            udpPkg ++;
-            if (udpPkg ==1000){
-                byte[] order= protocolHelper.createOrderDownload1000Done(0,1000,downloadDate);
+            long pkgIndex  = protocolHelper.formatDownloadPackageIndex(data);
+            Log.d(ZWCC,"收到数据包号为：" +pkgIndex);
+            if (pkgIndex == (pkgNumber + 1 )){
+                byte[]  content = protocolHelper.formatDownload1KBPackage(data);
+                pkgNumber ++;
+                udpReceivedTotalPkg++;
+
+                //通知UI 更新进度
+                downloadProgressMsg.setCurrent(udpReceivedTotalPkg);
+                EventBus.getDefault().post(udpReceivedTotalPkg);
+                //将数据写入文件 ：
+                try {
+                    if (udpFileUtils!=null){
+                        udpFileUtils.writeBytesToFile(content);
+                    }
+                } catch (IOException e) {
+                    Log.d(ZWCC,"写入文件异常："+e.getMessage());
+                    e.printStackTrace();
+                }
+
+            }
+
+            //如果收到1000包则 发送应答 D2 ,包号从零开始计数
+            if (pkgNumber == 1000){
+                Log.d(ZWCC," 1000PKG全部完成");
+
+                pkgNumber = 0;
+                byte[] order= protocolHelper.createOrderDownload1000Done(0,downloadDate,udpReceivedTotalPkg);
                 UdpClientHelper.getInstance().sendMsg(order);
             }
-        }
+            //如果传输完成则 应答 D3
+            if (udpReceivedTotalPkg == udpTotalPkg){
+                Log.d(ZWCC,"返回一文件传输完成 ："+ downloadDate.toString() );
+                if (udpFileUtils!=null){
+                    udpFileUtils.close();
+                }
+                //通知主机文件传输完毕。
+                byte[] order= protocolHelper.createOrderDownloadFileCompleted(0,downloadDate,udpReceivedTotalPkg);
+                UdpClientHelper.getInstance().sendMsg(order);
 
+                //通知UI一文件传输完成，刷新界面 并开始下一个文件传输，或者全部传输完成。
+                DownloadMsg completeMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_FILE_COMPLETED);
+                completeMsg.setTotalSize(udpTotalPkg);
+                completeMsg.setCurrent(udpReceivedTotalPkg);
+                completeMsg.setDate(downloadDate);
+                EventBus.getDefault().post(completeMsg);
+            }
+        }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_STOP){
+            DownloadMsg stopMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_STOP);
+            EventBus.getDefault().post(stopMsg);
+            udpTotalPkg = 0;
+            udpReceivedTotalPkg = 0;
+            pkgNumber = 0;
+        }
 
     }
 
@@ -686,8 +758,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void downloadDataRequest(Date startTime, Date endTime) {
 //        byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
 //        writeDataWithRetry(order);
-
-
+        byte[] order = protocolHelper.createOrderDownloadAllFilesRequest();
+        UdpClientHelper.getInstance().sendMsg(order);
     }
 
     @Override
@@ -700,6 +772,12 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void downloadOneDayData(int index, Date date) {
         downloadDate = date;
         byte[] order = protocolHelper.createOrderDownloadOneDayData(index,date);
+        UdpClientHelper.getInstance().sendMsg(order);
+    }
+
+    @Override
+    public void stopDownload() {
+        byte[] order = protocolHelper.createOrderDownloadStop(0);
         UdpClientHelper.getInstance().sendMsg(order);
     }
 

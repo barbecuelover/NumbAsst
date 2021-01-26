@@ -21,15 +21,14 @@ public class UdpClientHelper {
 
     private static final String TAG = "zwcc";
 
-   // private static final String  SERVER_IP="192.168.90.33";//目标ip
+    private static final String  SERVER_IP="192.168.90.33";//目标ip
     //private static final String  SERVER_IP="192.168.0.100";//目标ip
-    private static final String  SERVER_IP="172.28.32.190";//目标ip
-   // private static final int  SERVER_RECEIVER_PORT=9002;//目标接收端端口号
-    private static final int  SERVER_RECEIVER_PORT=4001;//目标接收端端口号
+    //private static final String  SERVER_IP="172.28.32.190";//目标ip
+    private static final int  SERVER_RECEIVER_PORT=9002;//目标接收端端口号
 
     private static final int  CLIENT_SEND_PORT= 8888;//本地发送端端口号 , 本地接收端端口号
 
-    private static final int  CLIENT_RECEIVER_PORT=7777;//本地接收端端口号
+    private static final int  CLIENT_RECEIVER_PORT=9002;//本地接收端端口号
 
     private static volatile UdpClientHelper instance;
 
@@ -72,7 +71,7 @@ public class UdpClientHelper {
     public void init(){
         try {
             dataSocketSend=new DatagramSocket(CLIENT_SEND_PORT);
-            //dataSocketReceiver=new DatagramSocket(CLIENT_RECEIVER_PORT);
+            dataSocketReceiver=new DatagramSocket(CLIENT_RECEIVER_PORT);
             //dataSocketReceiver=new DatagramSocket(CLIENT_SEND_PORT);
 
             destNetAddress = InetAddress.getByName(SERVER_IP);
@@ -131,8 +130,8 @@ public class UdpClientHelper {
                     byte[] bytes = new byte[1024];
                     receivedPacket= new DatagramPacket(bytes, 0, bytes.length);
                     try {
-                        //dataSocketReceiver.receive(receivedPacket);
-                        dataSocketSend.receive(receivedPacket);
+                        dataSocketReceiver.receive(receivedPacket);
+                        //dataSocketSend.receive(receivedPacket);
                         if (callBack!=null){
                             callBack.onReceived(receivedPacket.getData());
                         }

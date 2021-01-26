@@ -11,4 +11,5 @@ public interface IDownloadData {
     void downloadDataRequest(Date startTime, Date endTime);
     void replyDownloadConfirm(boolean download);
     void downloadOneDayData(int index,Date date);
+    void stopDownload();
 }

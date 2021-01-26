@@ -94,12 +94,39 @@
         app:layout_constraintVertical_bias="0.2" />
 
 
+  <ProgressBar
+      android:id="@+id/progress_bar_download_file"
+      style="@android:style/Widget.ProgressBar.Horizontal"
+      android:layout_width="match_parent"
+      android:layout_height="24dp"
+      android:layout_marginStart="24dp"
+      android:layout_marginEnd="70dp"
+      android:layout_marginBottom="18dp"
+      android:max="100"
+      android:progress="0"
+      android:progressDrawable="@drawable/progress_bar_style"
+      app:layout_constraintBottom_toTopOf="@+id/progress_bar_data_download_percent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent" />
+
+
+  <TextView
+      android:id="@+id/tv_progress_file_percent"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginRight="12dp"
+      android:text="0/0"
+      android:textSize="20sp"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toEndOf="@+id/progress_bar_download_file"
+      app:layout_constraintTop_toTopOf="@+id/progress_bar_download_file" />
+
     <ProgressBar
         android:id="@+id/progress_bar_data_download_percent"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
-        android:layout_marginStart="12dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="24dp"
         android:layout_marginEnd="70dp"
         android:layout_marginBottom="18dp"
         android:max="100"

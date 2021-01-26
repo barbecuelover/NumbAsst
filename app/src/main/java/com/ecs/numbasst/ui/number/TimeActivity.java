@@ -89,9 +89,9 @@ public class TimeActivity extends BaseActionBarActivity {
         }).    setType(new boolean[]{true , true, true,false, false, false})//分别对应年月日时分秒，默认全部显示
                 .setCancelText("取消")//取消按钮文字
                 .setSubmitText("确定")//确认按钮文字
-                .setTitleSize(20)//标题文字大小
-                .setTitleText("授时年月日")//标题文字
-                .setOutSideCancelable(false)//点击屏幕，点在控件外部范围时，是否取消显示
+                .setTitleSize(18)//标题文字大小
+                .setTitleText("")//标题文字
+                .setOutSideCancelable(true)//点击屏幕，点在控件外部范围时，是否取消显示
                 .isCyclic(true)//是否循环滚动
                 .setTitleColor(Color.BLACK)//标题文字颜色
                 .setSubmitColor(Color.BLACK)//确定按钮文字颜色
@@ -113,10 +113,11 @@ public class TimeActivity extends BaseActionBarActivity {
         }).    setType(new boolean[]{false, false, false, true, true, true})//分别对应年月日时分秒，默认全部显示
                 .setCancelText("取消")//取消按钮文字
                 .setSubmitText("确定")//确认按钮文字
-                .setTitleSize(20)//标题文字大小
-                .setTitleText("授时时分秒")//标题文字
-                .setOutSideCancelable(false)//点击屏幕，点在控件外部范围时，是否取消显示
+                .setTitleSize(18)//标题文字大小
+                .setTitleText("")//标题文字
+                .setOutSideCancelable(true)//点击屏幕，点在控件外部范围时，是否取消显示
                 .isCyclic(true)//是否循环滚动
+                .setDate(calendar)
                 .setTitleColor(Color.BLACK)//标题文字颜色
                 .setSubmitColor(Color.BLACK)//确定按钮文字颜色
                 .setCancelColor(Color.BLACK)//取消按钮文字颜色

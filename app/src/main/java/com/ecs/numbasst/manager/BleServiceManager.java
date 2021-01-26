@@ -225,6 +225,12 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
+    @Override
+    public void stopDownload() {
+        if (bleService != null) {
+            bleService.stopDownload();
+        }
+    }
 
 
     ///6.传感器校准

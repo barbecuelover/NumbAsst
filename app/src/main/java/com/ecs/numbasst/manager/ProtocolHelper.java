@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ProtocolHelper {
 
-    private static final String TAG = "ProtocolHelper";
+    private static final String TAG = "zwcc";
 
     public final static byte HEAD_SEND = (byte) 0xAA;
     public final static byte HEAD_REPLY = (byte) 0x55;
@@ -79,13 +79,18 @@ public class ProtocolHelper {
 
     //UDP，wifi 协议 ,无crc校验 ，大端
     //向主机索要某一天的数据，
-    public final static byte TYPE_WIFI_REQUEST_ONE_DAY_DATA = (byte)0xD1;
-    public final static byte TYPE_WIFI_TRANSFER_1000PKG = (byte)0xD2;
-    public final static byte TYPE_WIFI_TRANSFER_FILE_COMPLETED = (byte)0xD3;
+    public final static byte TYPE_WIFI_SEND_REQUEST_ALL_DATA = (byte)0xC1;
 
-    public final static byte TYPE_WIFI_REPLY_DATA_INFO = (byte)0xA2;
-    public final static byte TYPE_WIFI_REPLY_DATA_INFO_NULL = (byte)0xA4;
-    public final static byte TYPE_WIFI_REPLY_DATA_1KB = (byte)0xA3;
+    public final static byte TYPE_WIFI_SEND_REQUEST_ONE_DAY_DATA = (byte)0xD1;
+    public final static byte TYPE_WIFI_SEND_TRANSFER_1000PKG_DONE = (byte)0xD2;
+    public final static byte TYPE_WIFI_SEND_TRANSFER_FILE_COMPLETED = (byte)0xD3;
+    public final static byte TYPE_WIFI_SEND_STOP = (byte)0xD4;
+
+    public final static byte TYPE_WIFI_RECEIVED_DOWNLOAD_ALL_FILES =(byte)0xA1;
+    public final static byte TYPE_WIFI_RECEIVED_DATA_INFO = (byte)0xA2;
+    public final static byte TYPE_WIFI_RECEIVED_DATA_INFO_NULL = (byte)0xA4;
+    public final static byte TYPE_WIFI_RECEIVED_DATA_1KB = (byte)0xA3;
+    public final static byte TYPE_WIFI_RECEIVED_STOP = (byte)0xA5;
 
     /**
      * 获取 查询列尾状态信息 的指令
@@ -289,19 +294,15 @@ public class ProtocolHelper {
 
 
 
-
-    public byte[] createOrderDownloadRequest(Date startTime, Date endTime) {
-        byte[] head = {HEAD_SEND, TYPE_DOWNLOAD_REQUIRED, 0X08};
-      //  byte[] time = ByteUtils.joinArray(ByteUtils.string16ToBytes(startTime), ByteUtils.string16ToBytes(endTime));
-        byte[] time = null;
-        byte[] content = ByteUtils.joinArray(head, time);
-        byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString(order));
-        return order;
-    }
-
-
-
+//    public byte[] createOrderDownloadRequest(Date startTime, Date endTime) {
+//        byte[] head = {HEAD_SEND, TYPE_DOWNLOAD_REQUIRED, 0X08};
+//      //  byte[] time = ByteUtils.joinArray(ByteUtils.string16ToBytes(startTime), ByteUtils.string16ToBytes(endTime));
+//        byte[] time = null;
+//        byte[] content = ByteUtils.joinArray(head, time);
+//        byte[] order = CrcUtils.addCrc8Table(content);
+//        Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString(order));
+//        return order;
+//    }
 
     public byte[] createOrderReplyDownloadConfirm(boolean download) {
         byte status = download ? (byte) 0x01 : (byte) 0x00;
@@ -312,6 +313,12 @@ public class ProtocolHelper {
     }
 
 
+    public byte[] createOrderDownloadAllFilesRequest() {
+        byte[] order = {TYPE_WIFI_SEND_REQUEST_ALL_DATA, 0x00, 0x00,0x04,'y','s','s','j'};
+        Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString(order));
+        return order;
+    }
+
     /**
      * wifi 协议 ,无crc校验 ，大端
      *
@@ -319,11 +326,10 @@ public class ProtocolHelper {
      */
     public byte[] createOrderDownloadOneDayData(int index,Date date) {
 
-        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000);
-        byte[] content = {TYPE_WIFI_REQUEST_ONE_DAY_DATA, (byte)index, 0X00, 0x08,time[3],time[2],time[1],time[0]};
+        byte[] time = ByteUtils.longToHigh4Byte(date.getTime()/1000);
+        byte[] content = {TYPE_WIFI_SEND_REQUEST_ONE_DAY_DATA, (byte)index, 0x00, 0x08};
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + date.getTime()/1000);
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(time));
-
         byte[] order = ByteUtils.joinArray(content,time);
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
         return order;
@@ -334,15 +340,31 @@ public class ProtocolHelper {
      *
      * D1  报文流水号  ,00 08 ,UTC时间 4Byte
      */
-    public byte[] createOrderDownload1000Done(int index,int length,Date date) {
-        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000);
-        byte[] size = ByteUtils.longToLow4Byte(length);
-        byte[] order = {TYPE_WIFI_TRANSFER_1000PKG, (byte)index, 0X00, 0x08,time[3],time[2],time[1],time[0],size[3],size[2],size[1],size[0]};
+    public byte[] createOrderDownload1000Done(int index,Date date,long length) {
+        byte[] head = {TYPE_WIFI_SEND_TRANSFER_1000PKG_DONE, (byte)index, 0x00, 0x08};
+        byte[] time = ByteUtils.longToHigh4Byte(date.getTime()/1000);
+        byte[] size = ByteUtils.longToHigh4Byte(length);
+        byte[] orderTemp = ByteUtils.joinArray(head,time);
+        byte[] order = ByteUtils.joinArray(orderTemp,size);
         Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
         return order;
     }
 
+    public byte[] createOrderDownloadFileCompleted(int index, Date downloadDate, long udpReceivedTotalPkg) {
+        byte[] head = {TYPE_WIFI_SEND_TRANSFER_FILE_COMPLETED, (byte)index, 0x00, 0x08};
+        byte[] time = ByteUtils.longToHigh4Byte(downloadDate.getTime()/1000);
+        byte[] size = ByteUtils.longToHigh4Byte(udpReceivedTotalPkg);
+        byte[] orderTemp = ByteUtils.joinArray(head,time);
+        byte[] order = ByteUtils.joinArray(orderTemp,size);
+        Log.d(TAG, "createOrder##DownloadFileCompleted =  " + ByteUtils.bytesToString(order));
+        return order;
+    }
 
+    public byte[] createOrderDownloadStop(int index) {
+        byte[] order = {TYPE_WIFI_SEND_STOP, (byte)index, 0x00, 0x00};
+        Log.d(TAG, "createOrder##DownloadStop =  " + ByteUtils.bytesToString(order));
+        return order;
+    }
 
 
 
@@ -544,4 +566,14 @@ public class ProtocolHelper {
         Log.d(TAG,"formatDownloadDayInfoSize = "+ totalSize);
         return  totalSize;
     }
+
+    public long formatDownloadPackageIndex(byte[] data) {
+        byte [] size = {data[8],data[9],data[10],data[11]};
+        long  index = ByteUtils.bytes4ToLong(size);
+        Log.d(TAG,"formatDownloadPackageIndex = "+ index);
+        return  index;
+
+    }
+
+
 }

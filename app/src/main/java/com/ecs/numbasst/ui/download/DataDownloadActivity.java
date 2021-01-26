@@ -12,11 +12,18 @@ import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.manager.msg.DownloadMsg;
+import com.ecs.numbasst.manager.msg.TimeMsg;
 import com.ecs.numbasst.view.DialogDatePicker;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -41,6 +48,9 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     private boolean isDownloading;
     private SimpleDateFormat dateFormat;
 
+    Date startDate =new Date();
+    Date endDate =new Date();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +74,6 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
-
         dateFormat = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault());
         String date =dateFormat.format(new Date());
         tvStartTime.setText(date);
@@ -74,6 +83,45 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     }
 
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDownload(DownloadMsg msg) {
+        int state = msg.getMsgType();
+        if (state == DownloadMsg.DOWNLOAD_ALL_FILES){
+            manager.downloadOneDayData(0,startDate);
+            updateState("查询文件，日期为："+startDate.toString());
+        }else if (state == DownloadMsg.DOWNLOAD_FILE_NULL){
+            updateState("获取文件为空，日期为："+msg.getDate().toString());
+            hideProgressBar();
+        }else if (state == DownloadMsg.DOWNLOAD_FILE_INFO){
+            dataTotalSize = msg.getTotalSize();
+            updateState("文件存在准备下载");
+        }else if (state == DownloadMsg.DOWNLOAD_FILE_COMPLETED){
+            updateState("文件下载完成");
+            currentSize = 0;
+            dataTotalSize = 0;
+            hideProgressBar();
+
+        }else if (state ==DownloadMsg.DOWNLOAD_PROGRESS){
+            currentSize = msg.getCurrent();
+            int progress = (int) ((currentSize * 100 )/ dataTotalSize);
+            progressBarDownload.setProgress(progress);
+
+        }else if (state == DownloadMsg.DOWNLOAD_STOP){
+            showToast("停止下载");
+            hideProgressBar();
+
+        }
+    }
+
+    private void updateState(String msg){
+        tvStatus.setText(msg);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        manager.stopDownload();
+    }
 
     @Override
     protected void initEvent() {
@@ -87,9 +135,11 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                 switch (flag) {
                     case START_TIME:
                         tvStartTime.setText(dateString);
+                        startDate = new Date(time);
                         break;
                     case END_TIME:
                         tvEndTime.setText(dateString);
+                        endDate = new Date(time);
                         break;
                 }
             }
@@ -109,7 +159,6 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             finish();
         }else if( id == R.id.btn_download_data){
             //prepareDownloadData();
-
             testUdp();
 
         }
@@ -123,9 +172,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
 
     private void  testUdp(){
-        Date date = new Date();
-        manager.downloadDataRequest(date,date);
-        manager.downloadOneDayData(0,date);
+        manager.downloadDataRequest(startDate,endDate);
+        showProgressBar();
     }
 
 

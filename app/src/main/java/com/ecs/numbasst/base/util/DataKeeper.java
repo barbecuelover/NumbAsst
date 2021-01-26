@@ -84,6 +84,11 @@ public class DataKeeper {
 				if(!file.exists()) {
 					file.mkdir();
 				}
+
+				file = new File(downloadPath);
+				if(!file.exists()) {
+					file.mkdir();
+				}
 			}
 		}
 	}

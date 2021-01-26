@@ -22,9 +22,11 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 
 public class DataDownloadActivity extends BaseActionBarActivity {
@@ -50,7 +52,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
     Date startDate =new Date();
     Date endDate =new Date();
-
+    Calendar calendar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +82,24 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         tvEndTime.setText(date);
        // Log.d("zwcc"," Unix :" + new Date().getTime());
 
+        calendar = Calendar.getInstance();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        zeroDate(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH)+1,calendar.get(Calendar.DATE));
+
+
+        startDate = calendar.getTime();
+        endDate =  calendar.getTime();
+        Log.d("Download","startDate = " +startDate.getTime()/1000);
+    }
+
+    private void zeroDate(int y,int month,int day){
+        calendar.set(Calendar.YEAR,y);
+        calendar.set(Calendar.MONTH,month-1);
+        calendar.set(Calendar.DATE,day);
+        calendar.set(Calendar.HOUR_OF_DAY,0);
+        calendar.set(Calendar.MINUTE,0);
+        calendar.set(Calendar.SECOND,0);
     }
 
 
@@ -135,11 +155,15 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                 switch (flag) {
                     case START_TIME:
                         tvStartTime.setText(dateString);
-                        startDate = new Date(time);
+                        zeroDate(year,month,day);
+                        startDate = calendar.getTime();
+                        Log.d("zwcc","开始时间为："+startDate.getTime()/1000);
                         break;
                     case END_TIME:
                         tvEndTime.setText(dateString);
-                        endDate = new Date(time);
+                        zeroDate(year,month,day);
+                        endDate =  calendar.getTime();
+                        Log.d("zwcc","结束时间为："+endDate.getTime()/1000);
                         break;
                 }
             }

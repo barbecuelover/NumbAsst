@@ -167,12 +167,12 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_1KB){//传输
             //收到传输1kb
             long pkgIndex  = protocolHelper.formatDownloadPackageIndex(data);
-            Log.d(ZWCC,"收到数据包号为：" +pkgIndex);
+            Log.d(ZWCC,"目前已记录包号为："+ pkgNumber +"收到数据包号为：" +pkgIndex );
             if (pkgIndex == (pkgNumber + 1 )){
                 byte[]  content = protocolHelper.formatDownload1KBPackage(data);
                 pkgNumber ++;
                 udpReceivedTotalPkg++;
-
+                Log.d(ZWCC,"总包数："+udpTotalPkg+" 已收到总包数：" + udpReceivedTotalPkg + " 当前包号为：" + pkgIndex);
                 //通知UI 更新进度
                 downloadProgressMsg.setCurrent(udpReceivedTotalPkg);
                 EventBus.getDefault().post(udpReceivedTotalPkg);

@@ -97,6 +97,20 @@ public class MainActivity extends BaseActivity {
     protected void initData() {
         checkPermission();
         BleServiceManager.getInstance().initManager(this);
+        
+    }
+
+    private void testFileWrite(){
+        UdpFileUtils udpFileUtils = new UdpFileUtils("bbb");
+        String aa = "aaa";
+        String bbb = "bbbb";
+        try {
+            udpFileUtils.writeBytesToFile(aa.getBytes());
+            udpFileUtils.writeBytesToFile(bbb.getBytes());
+            udpFileUtils.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

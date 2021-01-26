@@ -96,10 +96,10 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             dataTotalSize = msg.getTotalSize();
             updateState("文件存在准备下载");
         }else if (state == DownloadMsg.DOWNLOAD_FILE_COMPLETED){
-            updateState("文件下载完成");
+            updateState("文件下载完成，请求断开连接");
             currentSize = 0;
             dataTotalSize = 0;
-            hideProgressBar();
+            manager.stopDownload();
 
         }else if (state ==DownloadMsg.DOWNLOAD_PROGRESS){
             currentSize = msg.getCurrent();
@@ -107,7 +107,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             progressBarDownload.setProgress(progress);
 
         }else if (state == DownloadMsg.DOWNLOAD_STOP){
-            showToast("停止下载");
+            showToast("传输已完成，断开连接");
             hideProgressBar();
 
         }
@@ -120,7 +120,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        manager.stopDownload();
+
     }
 
     @Override

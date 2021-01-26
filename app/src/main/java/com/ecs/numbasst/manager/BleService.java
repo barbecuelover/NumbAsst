@@ -214,6 +214,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 EventBus.getDefault().post(completeMsg);
             }
         }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_STOP){
+            //文件传输完成，断开?
             DownloadMsg stopMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_STOP);
             EventBus.getDefault().post(stopMsg);
             udpTotalPkg = 0;

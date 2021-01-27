@@ -44,7 +44,6 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
     DialogDatePicker datePickerSelect;
 
-    private long dataTotalSize;
     private long currentSize;
 
     private boolean isDownloading;
@@ -113,18 +112,20 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             updateState("获取文件为空，日期为："+msg.getDate().toString());
             hideProgressBar();
         }else if (state == DownloadMsg.DOWNLOAD_FILE_INFO){
-            dataTotalSize = msg.getTotalSize();
             updateState("文件存在准备下载");
         }else if (state == DownloadMsg.DOWNLOAD_FILE_COMPLETED){
             updateState("文件下载完成，请求断开连接");
             currentSize = 0;
-            dataTotalSize = 0;
             manager.stopDownload();
 
         }else if (state ==DownloadMsg.DOWNLOAD_PROGRESS){
+
             currentSize = msg.getCurrent();
-            int progress = (int) ((currentSize * 100 )/ dataTotalSize);
+            Log.d("zwcc","UI界面收到消息：currentSize =" +currentSize + " totalSize = " + msg.getTotalSize());
+            int progress = (int) ((currentSize * 100 )/ msg.getTotalSize());
+            Log.d("zwcc","UI界面收到消息：progress ="+progress);
             progressBarDownload.setProgress(progress);
+            tvProgressPercent.setText(progress + "%");
 
         }else if (state == DownloadMsg.DOWNLOAD_STOP){
             showToast("传输已完成，断开连接");
@@ -219,7 +220,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         try {
             Date dateStart = dateFormat.parse(tvStartTime.getText().toString());
             Date dateEnd = dateFormat.parse(tvEndTime.getText().toString());
-            dataTotalSize = 0;
+
             BleServiceManager.getInstance().downloadDataRequest(dateStart,dateEnd);
         } catch (ParseException e) {
             e.printStackTrace();

@@ -33,13 +33,14 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <Button
             android:id="@+id/dds_cancel_tv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:text="取消"
+            android:background="@drawable/selector_btn_normal"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
@@ -48,11 +49,12 @@
             android:layout_height="match_parent"
             android:background="@color/black" />
 
-        <TextView
+        <Button
             android:id="@+id/dds_confirm_tv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="@drawable/selector_btn_normal"
             android:gravity="center"
             android:text="确认"
             android:textSize="16sp" />

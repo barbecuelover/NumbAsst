@@ -130,7 +130,6 @@
         android:layout_marginEnd="70dp"
         android:layout_marginBottom="18dp"
         android:max="100"
-        android:progress="0"
         android:progressDrawable="@drawable/progress_bar_style"
         app:layout_constraintBottom_toTopOf="@+id/tv_data_download_status"
         app:layout_constraintEnd_toEndOf="parent"

@@ -127,7 +127,7 @@ public class UdpClientHelper {
             public void run() {
                 while (receiveFlag) {
                     Log.d("zwcc","startReceivedMsgListener");
-                    byte[] bytes = new byte[1024];
+                    byte[] bytes = new byte[2048];
                     receivedPacket= new DatagramPacket(bytes, 0, bytes.length);
                     try {
                         dataSocketReceiver.receive(receivedPacket);

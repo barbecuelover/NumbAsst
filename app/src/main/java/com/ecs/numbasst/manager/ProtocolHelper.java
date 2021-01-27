@@ -177,7 +177,7 @@ public class ProtocolHelper {
 //        byte[] time = {year,month,day,hour,minute,second};
 
         byte[] head = {HEAD_SEND, TYPE_SET_TIME, 0x04};
-        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000);
+        byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000 + 8*60*60);
         byte[] content = ByteUtils.joinArray(head, time);
         byte[] order = CrcUtils.addCrc8Table(content);
         Log.d(TAG, "createOrder##SetTime  = " + ByteUtils.bytesToString(order));
@@ -327,11 +327,11 @@ public class ProtocolHelper {
     public byte[] createOrderDownloadOneDayData(int index,Date date) {
 
         byte[] time = ByteUtils.longToHigh4Byte(date.getTime()/1000);
-        byte[] content = {TYPE_WIFI_SEND_REQUEST_ONE_DAY_DATA, (byte)index, 0x00, 0x08};
-        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + date.getTime()/1000);
-        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(time));
+        byte[] content = {TYPE_WIFI_SEND_REQUEST_ONE_DAY_DATA, (byte)index, 0x00, 0x04};
+        Log.d(TAG, "createOrder##DownloadOneDayData =  " + date.getTime()/1000);
+        Log.d(TAG, "createOrder##DownloadOneDayData =  " + ByteUtils.bytesToString(time));
         byte[] order = ByteUtils.joinArray(content,time);
-        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##DownloadOneDayData =  " + ByteUtils.bytesToString(order));
         return order;
     }
 
@@ -435,7 +435,7 @@ public class ProtocolHelper {
 
 
     public long formatGetTime(byte[] content) {
-        return ByteUtils.bytes4LowToLong(content) * 1000;
+        return ByteUtils.bytes4LowToLong(content) * 1000 -  8* 60*60 *1000;
     }
 
     /**
@@ -555,8 +555,10 @@ public class ProtocolHelper {
     }
 
     public byte[] formatDownload1KBPackage(byte[] data){
-
-        return null;
+        Log.d(TAG,"formatDownload1KBPackage DATA.size = " + data.length);
+        byte[] content = new byte[1024];
+        System.arraycopy(data, 12, content, 0, content.length);
+        return content;
     }
 
     //A2 ,返回某一天信息。

@@ -87,7 +87,7 @@ public class ExampleUnitTest2 {
     public void test (){
 
         //55 10 01 00 1D
-        byte[] data = {0x60,(byte)0x94,0x0e,0x60};
+        byte[] data = {0x50,(byte)0x94,0x0e,0x60};
         //55 11 01 00 5B
         byte[] data0 = {0x55,0x11,0x01,0x00,0X5B};
 
@@ -99,8 +99,7 @@ public class ExampleUnitTest2 {
 
         byte[] crcData2=  crc16Table(data2);
 //
-//        System.out.println(ByteUtils.bytes4LowToLong(data));
-
+        System.out.println(ByteUtils.bytes4LowToLong(data));
 
 
     }

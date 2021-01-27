@@ -228,10 +228,10 @@ public class TimeActivity extends BaseActionBarActivity {
             manager.setTime(date);
             showProgressBar();
         } else if (id == R.id.btn_set_time) {
-//            if (!manager.isConnected()) {
-//                updateStatus(getString(R.string.check_device_connection));
-//                return;
-//            }
+            if (!manager.isConnected()) {
+                updateStatus(getString(R.string.check_device_connection));
+                return;
+            }
 
             String y = tvSetTimeYearSelect.getText().toString().trim();
             String h = tvSetTimeHourSelect.getText().toString().trim();

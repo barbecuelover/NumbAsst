@@ -14,6 +14,8 @@ import com.ecs.numbasst.ui.state.entity.TCUInfo;
 import com.ecs.numbasst.ui.state.entity.VersionInfo;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -549,7 +551,7 @@ public class ProtocolHelper {
             return  new Date();
         }
         byte [] time = {data[4],data[5],data[6],data[7]};
-        long timeT = ByteUtils.bytes4ToLong(time);
+        long timeT = ByteUtils.bytes4HighToLong(time);
         Date date = new Date(timeT);
         return  date;
     }
@@ -564,18 +566,38 @@ public class ProtocolHelper {
     //A2 ,返回某一天信息。
     public long formatDownloadDayInfoSize(byte[] data) {
         byte [] size = {data[8],data[9],data[10],data[11]};
-        long  totalSize = ByteUtils.bytes4ToLong(size);
+        long  totalSize = ByteUtils.bytes4HighToLong(size);
         Log.d(TAG,"formatDownloadDayInfoSize = "+ totalSize);
         return  totalSize;
     }
 
     public long formatDownloadPackageIndex(byte[] data) {
         byte [] size = {data[8],data[9],data[10],data[11]};
-        long  index = ByteUtils.bytes4ToLong(size);
+        long  index = ByteUtils.bytes4HighToLong(size);
         Log.d(TAG,"formatDownloadPackageIndex = "+ index);
         return  index;
 
     }
 
 
+    public List<Long> formatDownloadFiles(byte[] data) {
+        byte [] size = {data[2],data[3]};
+        long temp = ByteUtils.bytesToLong(size);
+        long number = (temp - 8)/4;
+        List<Long> files = new ArrayList<>();
+        if (number ==0){
+            //说明文件列表为空
+            return  files;
+        }else {
+            int j = 16;
+            for(int i = 0 ; i< number; i++){
+                byte[] time = {data[j],data[j+1],data[j+2],data[j+3]};
+                long timeT = ByteUtils.bytes4HighToLong(time) *1000;
+                files.add(timeT);
+                j +=4;
+            }
+        }
+        Log.d(TAG," formatDownloadFiles size: " +files.size());
+        return files;
+    }
 }

@@ -144,7 +144,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         byte type = data[0];
         if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DOWNLOAD_ALL_FILES){
             DownloadMsg allFilesMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_ALL_FILES);
+            List<Long> files = protocolHelper.formatDownloadFiles(data);
+            allFilesMsg.setFiles(files);
             EventBus.getDefault().post(allFilesMsg);
+
             Log.d(ZWCC,"返回查询所有文件");
         } else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_INFO){//数据量
             //返回某一天的信息

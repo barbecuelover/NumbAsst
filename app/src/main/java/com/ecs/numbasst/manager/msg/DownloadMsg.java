@@ -1,6 +1,8 @@
 package com.ecs.numbasst.manager.msg;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author zw
@@ -20,7 +22,7 @@ public class DownloadMsg {
 
 
 
-
+    private List<Long> files = new ArrayList<>();
     private int msgType;
     private Date date;
     private long totalSize;
@@ -65,5 +67,13 @@ public class DownloadMsg {
 
     public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
+    }
+
+    public List<Long> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<Long> files) {
+        this.files = files;
     }
 }

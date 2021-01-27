@@ -209,7 +209,7 @@ public class ByteUtils {
      * @param bytes
      * @return
      */
-    public static long bytes4ToLong(byte[] bytes){
+    public static long bytes4HighToLong(byte[] bytes){
         if (bytes==null || bytes.length!=4){
             return 0;
         }else {

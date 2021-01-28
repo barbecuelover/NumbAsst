@@ -2,6 +2,7 @@ package com.ecs.numbasst.ui.debug;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -163,7 +164,7 @@ public class WifiDebugActivity extends BaseActionBarActivity {
             }
             //连接指定wifi
             Log.d(ZWCC,"WIFI未连接指定网络 ，开始连接WIFI = " +name);
-
+            WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
         }else {
             mWifiManager.setWifiEnabled(true);
             //打开wifi
@@ -182,11 +183,19 @@ public class WifiDebugActivity extends BaseActionBarActivity {
             }
             Log.d(ZWCC,"WIFI开关已打开 ，开始连接WIFI = " +name);
             //连接指定wifi
+            //Android 10 可能会打开失败。跳转到Settings界面。
+            if (!mWifiManager.isWifiEnabled()){
+                startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateState("Wifi开关打开失败，请手动打开后再尝试连接！");
+                    }
+                });
+            }else {
+                WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+            }
         }
-        //Android 10 可能会打开失败。跳转到Settings界面。
-
-        WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
-
         return false;
     }
 

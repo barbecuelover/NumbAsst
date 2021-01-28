@@ -54,7 +54,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
     private List<Long> allFiles = new ArrayList<>();
     private List<Long> downloadFiles = new ArrayList<>();
-    int downloadedSize;
+    int downloadedSize = 0;
     private SimpleDateFormat nameFormat;
     private ProgressBar progressBarFiles;
     private TextView tvFilesPercent;
@@ -108,6 +108,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND,0);
     }
 
 
@@ -123,10 +124,15 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                 long start = startDate.getTime();
                 long end = endDate.getTime();
 
+
+                Log.d("zwcc","开始日期Long ：" +start);
+                Log.d("zwcc","结束日期Long ：" +end);
                 //对比 时间段内 是否存在文件。
                 for (Long l : allFiles) {
+                    Log.d("zwcc","文件日期："+l);
                     if (l >= start && l <= end) {
                         downloadFiles.add(l);
+                        Log.d("zwcc","添加到待下载队列 文件日期："+l);
                     }
                 }
                 if (downloadFiles.size() == 0) {
@@ -149,7 +155,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             for (long file : downloadFiles){
                 if (file == msg.getDate().getTime()){
                     //如果想下载目录中 有这个文件，且服务器返回不存在 则下载 下一个文件。
-                    ifDownloadCompleted();
+                    ifDownloadCompleted( msg.getDate().getTime());
                     break;
                 }
             }
@@ -158,7 +164,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             updateState("准备下载:" + nameFormat.format(msg.getDate()));
             progressBarDownload.setProgress(0);
         } else if (state == DownloadMsg.DOWNLOAD_FILE_COMPLETED) {
-            ifDownloadCompleted();
+            ifDownloadCompleted( msg.getDate().getTime());
         } else if (state == DownloadMsg.DOWNLOAD_PROGRESS) {
 
             currentSize = msg.getCurrent();
@@ -172,18 +178,17 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             showToast("传输已结束，断开连接");
             hideProgressBar();
             resetList();
-
         }
     }
 
 
-    private void ifDownloadCompleted(){
+    private void ifDownloadCompleted(long fileDate){
 
         downloadedSize += 1;
         tvFilesPercent.setText( downloadedSize +"/" + downloadFiles.size());
-        ifDownloadCompleted();
 
-        int fileProgress = downloadedSize /downloadFiles.size();
+        Log.d("zwcc","更新文件进度条：downloadedSize=" +downloadedSize + " 总文件数："+ downloadFiles.size());
+        int fileProgress = downloadedSize *100 /downloadFiles.size();
         progressBarFiles.setProgress(fileProgress);
 
         if (downloadedSize >= downloadFiles.size()) {

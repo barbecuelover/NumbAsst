@@ -1,6 +1,5 @@
 package com.ecs.numbasst.manager;
 
-import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.Log;
 
@@ -10,7 +9,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author zw
@@ -100,7 +98,7 @@ public class UdpClientHelper {
 
 
     public void sendMsg(byte[] buffer){
-        Log.d(TAG, "sendMsg："+ ByteUtils.bytesToString(buffer));
+        Log.d(TAG, "sendMsg："+ ByteUtils.bytesToString16(buffer));
         executorSend.execute(new Runnable() {
             @Override
             public void run() {

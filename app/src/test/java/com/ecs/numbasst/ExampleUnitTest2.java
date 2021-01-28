@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -99,7 +101,18 @@ public class ExampleUnitTest2 {
 
         byte[] crcData2=  crc16Table(data2);
 //
-        System.out.println(ByteUtils.bytes4LowToLong(data));
+//        System.out.println(ByteUtils.bytes4LowToLong(data));
+
+
+        List<Long> longList = new ArrayList<>();
+        longList.add(1111L);
+        longList.add(2222L);
+        longList.add(2225L);
+
+
+        System.out.println(longList.contains(1111L));
+        System.out.println( longList.indexOf(1111L));
+        System.out.println( longList.indexOf(2225L));
 
 
     }

@@ -143,12 +143,12 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
         byte type = data[0];
         if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DOWNLOAD_ALL_FILES){
+            Log.d(ZWCC,"返回查询所有文件");
             DownloadMsg allFilesMsg = new DownloadMsg(DownloadMsg.DOWNLOAD_ALL_FILES);
             List<Long> files = protocolHelper.formatDownloadFiles(data);
             allFilesMsg.setFiles(files);
             EventBus.getDefault().post(allFilesMsg);
 
-            Log.d(ZWCC,"返回查询所有文件");
         } else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_INFO){//数据量
             //返回某一天的信息
             Log.d(ZWCC,"返回查询某天的信息");
@@ -334,7 +334,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 DebuggingMsg debuggingMsg = new DebuggingMsg(data);
                 EventBus.getDefault().post(debuggingMsg);
             }
-            Log.d(ZWCC, "onCharacteristicChanged 收到主机指令 = " + ByteUtils.bytesToString(data));
+            Log.d(ZWCC, "onCharacteristicChanged 收到主机指令 = " + ByteUtils.bytesToString16(data));
             handleMsgFromBleDevice(data);
         }
 
@@ -364,7 +364,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }
         //进行CRC校验
         if (!CrcUtils.checkDataWithCrc8Table(data)){
-            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString(data));
+            Log.d(ZWCC,"Crc校验错误 ："+ ByteUtils.bytesToString16(data));
             EventBus.getDefault().post(new CrcErrorMsg());
             return;
         }
@@ -380,7 +380,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         } else if (headType == ProtocolHelper.HEAD_REPLY) {
             handleReplyMsg(dataType, content);
         } else {
-            Log.e(TAG, " handleMsgFromBleDevice  data head type unknown :" + ByteUtils.bytesToString(data));
+            Log.e(TAG, " handleMsgFromBleDevice  data head type unknown :" + ByteUtils.bytesToString16(data));
         }
     }
 
@@ -529,7 +529,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 break;
 
             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
-                long dataSize = protocolHelper.formatDownloadSize(content);
+
                 break;
             case ProtocolHelper.TYPE_DOWNLOAD_TRANSFER:
                 byte[] dataDownload = protocolHelper.formatDownloadData(content);
@@ -983,7 +983,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private void writeData(byte[] data) {
         if (mWriteCharacteristic != null &&
                 data != null) {
-            Log.d(TAG, "writeData :" + ByteUtils.bytesToString(data));
+            Log.d(TAG, "writeData :" + ByteUtils.bytesToString16(data));
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);

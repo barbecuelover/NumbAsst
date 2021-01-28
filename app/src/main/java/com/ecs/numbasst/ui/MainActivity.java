@@ -48,6 +48,7 @@ public class MainActivity extends BaseActivity {
     private Button btnAboutNumbAsst;
     private Button btnVersion;
     private Button btnSetTime;
+    private Button btnWifi;
     private TextView tvConnected;
 
     @Override
@@ -91,13 +92,14 @@ public class MainActivity extends BaseActivity {
         btnAboutNumbAsst = findViewById(R.id.view_about_numb_asst);
         btnVersion = findViewById(R.id.view_version_info);
         btnSetTime = findViewById(R.id.view_set_time);
+        btnWifi = findViewById(R.id.view_wifi);
     }
 
     @Override
     protected void initData() {
         checkPermission();
         BleServiceManager.getInstance().initManager(this);
-        
+
     }
 
     private void testFileWrite(){
@@ -126,6 +128,7 @@ public class MainActivity extends BaseActivity {
         btnAboutNumbAsst.setOnClickListener(this);
         btnVersion.setOnClickListener(this);
         btnSetTime.setOnClickListener(this);
+        btnWifi.setOnClickListener(this);
     }
 
 

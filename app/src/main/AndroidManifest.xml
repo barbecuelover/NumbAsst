@@ -11,7 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_cars_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NumbAsst">
-        <activity android:name=".ui.number.TimeActivity"></activity>
+        <activity android:name=".ui.debug.WifiDebugActivity"></activity>
+        <activity android:name=".ui.number.TimeActivity" />
         <activity
             android:name=".ui.state.VersionInfoActivity"
             android:label="版本信息" />
@@ -52,20 +53,20 @@
             android:name=".ui.login.LoginActivity"
             android:label="@string/title_activity_login" />
         <activity android:name=".ui.WelcomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-             <intent-filter>
-             <action android:name="android.intent.action.MAIN" />
-
-
-             <category android:name="android.intent.category.LAUNCHER" />
-             </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity android:name=".ui.MainActivity">
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
 
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
 
         <service

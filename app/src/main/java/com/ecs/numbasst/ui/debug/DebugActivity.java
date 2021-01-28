@@ -9,9 +9,7 @@ import android.widget.TextView;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.util.ByteUtils;
-import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.msg.DebuggingMsg;
-import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -53,7 +51,7 @@ public class DebugActivity extends BaseActionBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDebugging(DebuggingMsg msg) {
         byte[] data= msg.getData();
-        tvDebugLog.append("\n " + ByteUtils.bytesToString(data));
+        tvDebugLog.append("\n " + ByteUtils.bytesToString16(data));
     }
 
 

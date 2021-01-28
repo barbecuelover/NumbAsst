@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ByteUtils {
-    private static ByteBuffer buffer = ByteBuffer.allocate(8);
 
     public static byte[] string16ToBytes(String s) {
         byte[] buf = new byte[s.length() / 2];
@@ -121,7 +120,7 @@ public class ByteUtils {
         return String.format("%08x", b);
     }
 
-    public static String bytesToString(byte[] bytes) {
+    public static String bytesToString16(byte[] bytes) {
         final char[] hexArray = "0123456789ABCDEF".toCharArray();
         char[] hexChars = new char[bytes.length * 2];
         StringBuilder sb = new StringBuilder();
@@ -222,14 +221,16 @@ public class ByteUtils {
     }
 
 
-    /**
-     *     两位byte
-     */
-    public static long bytesToLong(byte[] bytes) {
-        buffer.put(bytes, 0, bytes.length);
-        buffer.flip();//need flip
-        return buffer.getLong();
+    public static long bytes2HighToLong(byte[] bytes){
+        if (bytes==null || bytes.length!=2){
+            return 0;
+        }else {
+            int v2 = (bytes[0] & 0xff) << 8;
+            int v3 = (bytes[1] & 0xff) ;
+            return  v2 + v3;
+        }
     }
+
 
     public static byte[] joinArray(byte[] ary1, byte[] ary2) {
         byte[] data = new byte[ary1.length + ary2.length];

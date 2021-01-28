@@ -14,9 +14,8 @@ import com.ecs.numbasst.ui.state.entity.TCUInfo;
 import com.ecs.numbasst.ui.state.entity.VersionInfo;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -73,6 +72,11 @@ public class ProtocolHelper {
     public final static byte TYPE_DOWNLOAD_REQUIRED = 0X31;
     public final static byte TYPE_DOWNLOAD_HEAD = 0X32;
     public final static byte TYPE_DOWNLOAD_TRANSFER = 0X33;
+    public final static byte TYPE_BLE_WIFI = 0X34;
+
+    public final static byte TYPE_BLE_WIFI_NAME = 0x00;
+    public final static byte TYPE_BLE_WIFI_OPEN = 0x01;
+    public final static byte TYPE_BLE_WIFI_CLOSE = 0x02;
 
     public final static byte TYPE_DEBUGGING = 0X59;
 
@@ -110,14 +114,14 @@ public class ProtocolHelper {
         byte[] content = {HEAD_SEND, (byte)unit, 0x01,(byte)statusType};
         //最终发送的字段
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##GetDeviceStatus =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##GetDeviceStatus =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
     public byte[] createOrderVersionInfo(int type) {
         byte[] content = {HEAD_SEND, (byte)type, 0x01,DEVICE_STATUS_SOFTWARE_VERSION};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##VersionInfo =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##VersionInfo =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -128,7 +132,7 @@ public class ProtocolHelper {
     public byte[] createOrderUnsubscribeNumber() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_UNSUBSCRIBE, 0x00};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##UnsubscribeNumber =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##UnsubscribeNumber =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -146,7 +150,7 @@ public class ProtocolHelper {
         byte[] content = ByteUtils.joinArray(head, carNumber);
         //最终发送的字段
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##SetCarNumber =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##SetCarNumber =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -156,7 +160,7 @@ public class ProtocolHelper {
     public byte[] createOrderGetCarNumber() {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_GET, 0x00};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -182,14 +186,14 @@ public class ProtocolHelper {
         byte[] time = ByteUtils.longToLow4Byte(date.getTime()/1000 + 8*60*60);
         byte[] content = ByteUtils.joinArray(head, time);
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##SetTime  = " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##SetTime  = " + ByteUtils.bytesToString16(order));
         return order;
     }
 
     public byte[] createOrderGetTime(){
         byte[] content = {HEAD_SEND, TYPE_GET_TIME, 0x00};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##GetTime  = " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##GetTime  = " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -203,7 +207,7 @@ public class ProtocolHelper {
         byte[] msg = ByteUtils.number5ToNumberByte(id);
         byte[] content = ByteUtils.joinArray(head, msg);
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##GetCarNumber  = " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -211,6 +215,72 @@ public class ProtocolHelper {
         byte[] content = {HEAD_SEND, TYPE_NUMBER_DEVICE_ID_GET, 0x00};
         return  CrcUtils.addCrc8Table(content);
     }
+
+
+
+    public byte[] createOrderGetWifiName(){
+        byte[] content = {HEAD_SEND,TYPE_BLE_WIFI, 0x01, TYPE_BLE_WIFI_NAME};
+        return  CrcUtils.addCrc8Table(content);
+    }
+
+
+    /**
+     * WIFI PASSWORD  =  LIEWEI
+     * @param content
+     * @return
+     */
+    public String formatWifiName(byte[] content){
+        String name = "zemt_liewei";
+        if (content==null || content.length <=1){
+            return name;
+        }
+        if (content[0] ==TYPE_BLE_WIFI_NAME){
+            byte[] order = new byte[content.length - 1];
+            System.arraycopy(content, 1, order, 0, order.length);
+            name = ByteUtils.bytesToString16(order).trim();
+            Log.d(TAG, "formatWifiName  WIFI名称=" + name);
+        }
+        return name;
+    }
+
+    public byte[] createOrderOpenWifi(){
+        byte[] content = {HEAD_SEND,TYPE_BLE_WIFI, 0x01, TYPE_BLE_WIFI_OPEN};
+        return  CrcUtils.addCrc8Table(content);
+    }
+
+    public boolean formatOpenWifiIfSucceed(byte[] content){
+        if (content==null || content.length!=2){
+            return false;
+        }
+        if (content[0] == TYPE_BLE_WIFI_OPEN){
+            byte state = content[1];
+            if (state == STATE_SUCCEED){
+                return  true;
+            }
+        }
+        return  false;
+    }
+
+
+    public byte[] createOrderCloseWifi(){
+        byte[] content = {HEAD_SEND,TYPE_BLE_WIFI, 0x01, TYPE_BLE_WIFI_CLOSE};
+        return  CrcUtils.addCrc8Table(content);
+    }
+
+
+    public boolean formatCloseWifiIfSucceed(byte[] content){
+        if (content==null || content.length!=2){
+            return false;
+        }
+        if (content[0] == TYPE_BLE_WIFI_CLOSE){
+            byte state = content[1];
+            if (state == STATE_SUCCEED){
+                return  true;
+            }
+        }
+        return  false;
+    }
+
 
 
     /**
@@ -222,7 +292,7 @@ public class ProtocolHelper {
         byte[] press = ByteUtils.intToLow2Byte(pressure);
         byte[] content = {HEAD_SEND, TYPE_NUMBER_SENSOR_ADJUST, 0x03,(byte)type,press[0],press[1]};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##Demarcate  = " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##Demarcate  = " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -237,12 +307,12 @@ public class ProtocolHelper {
 
         byte[] size = ByteUtils.longToLow4Byte(fileSize);
         Log.d(TAG, "createOrder##UpdateUnitRequest  file.length =" + fileSize);
-        Log.d(TAG, "createOrder##UpdateUnitRequest  size =" +  ByteUtils.bytesToString(size));
+        Log.d(TAG, "createOrder##UpdateUnitRequest  size =" +  ByteUtils.bytesToString16(size));
         byte[] fileCrc = CrcUtils.crc16Table(ByteUtils.getFile2Bytes(file.getAbsolutePath()));
-        Log.d("zwcc","文件Crc16校验 = " +ByteUtils.bytesToString(fileCrc));
+        Log.d("zwcc","文件Crc16校验 = " +ByteUtils.bytesToString16(fileCrc));
         byte[] content = {HEAD_SEND, TYPE_UNIT_UPDATE_REQUEST, 0X07, (byte) unitType, size[0], size[1],size[2],size[3],fileCrc[0],fileCrc[1]};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##UpdateUnitRequest =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##UpdateUnitRequest =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -310,14 +380,14 @@ public class ProtocolHelper {
         byte status = download ? (byte) 0x01 : (byte) 0x00;
         byte[] content = {HEAD_REPLY, TYPE_DOWNLOAD_HEAD, 0X01, status};
         byte[] order = CrcUtils.addCrc8Table(content);
-        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
 
     public byte[] createOrderDownloadAllFilesRequest() {
         byte[] order = {TYPE_WIFI_SEND_REQUEST_ALL_DATA, 0x00, 0x00,0x04,'y','s','s','j'};
-        Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##DownloadRequest =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -331,9 +401,9 @@ public class ProtocolHelper {
         byte[] time = ByteUtils.longToHigh4Byte(date.getTime()/1000);
         byte[] content = {TYPE_WIFI_SEND_REQUEST_ONE_DAY_DATA, (byte)index, 0x00, 0x04};
         Log.d(TAG, "createOrder##DownloadOneDayData =  " + date.getTime()/1000);
-        Log.d(TAG, "createOrder##DownloadOneDayData =  " + ByteUtils.bytesToString(time));
+        Log.d(TAG, "createOrder##DownloadOneDayData =  " + ByteUtils.bytesToString16(time));
         byte[] order = ByteUtils.joinArray(content,time);
-        Log.d(TAG, "createOrder##DownloadOneDayData =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##DownloadOneDayData =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -348,7 +418,7 @@ public class ProtocolHelper {
         byte[] size = ByteUtils.longToHigh4Byte(length);
         byte[] orderTemp = ByteUtils.joinArray(head,time);
         byte[] order = ByteUtils.joinArray(orderTemp,size);
-        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##ReplyDownloadConfirm =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -358,13 +428,13 @@ public class ProtocolHelper {
         byte[] size = ByteUtils.longToHigh4Byte(udpReceivedTotalPkg);
         byte[] orderTemp = ByteUtils.joinArray(head,time);
         byte[] order = ByteUtils.joinArray(orderTemp,size);
-        Log.d(TAG, "createOrder##DownloadFileCompleted =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##DownloadFileCompleted =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
     public byte[] createOrderDownloadStop(int index) {
         byte[] order = {TYPE_WIFI_SEND_STOP, (byte)index, 0x00, 0x00};
-        Log.d(TAG, "createOrder##DownloadStop =  " + ByteUtils.bytesToString(order));
+        Log.d(TAG, "createOrder##DownloadStop =  " + ByteUtils.bytesToString16(order));
         return order;
     }
 
@@ -378,7 +448,7 @@ public class ProtocolHelper {
      */
     public StateInfo formatGetDeviceStatus(byte unitType,byte[] content) {
         StateInfo info = null;
-        Log.d(TAG," formatGetDeviceStatus = " + ByteUtils.bytesToString(content));
+        Log.d(TAG," formatGetDeviceStatus = " + ByteUtils.bytesToString16(content));
         if (unitType == TYPE_DEVICE_MAIN_CONTROL_STATUS){
             switch (content[0]){
                 case DEVICE_STATUS_PIPE_PRESS:
@@ -531,11 +601,6 @@ public class ProtocolHelper {
     }
 
 
-    public long formatDownloadSize(byte[] data) {
-        byte[] sizeArr = {data[3], data[4]};
-        return ByteUtils.bytesToLong(sizeArr);
-    }
-
     public byte[] formatUpdateCompleteStatus(byte[] data) {
         return new byte[]{data[3], data[4]};
     }
@@ -582,8 +647,9 @@ public class ProtocolHelper {
 
     public List<Long> formatDownloadFiles(byte[] data) {
         byte [] size = {data[2],data[3]};
-        long temp = ByteUtils.bytesToLong(size);
+        long temp = ByteUtils.bytes2HighToLong(size);
         long number = (temp - 8)/4;
+        Log.d(TAG,"formatDownloadFiles" +number);
         List<Long> files = new ArrayList<>();
         if (number ==0){
             //说明文件列表为空
@@ -596,8 +662,10 @@ public class ProtocolHelper {
                 files.add(timeT);
                 j +=4;
             }
+            Collections.sort(files);
         }
-        Log.d(TAG," formatDownloadFiles size: " +files.size());
+
+        Log.d(TAG," formatDownloadFiles  文件总数为： " +files.size());
         return files;
     }
 }

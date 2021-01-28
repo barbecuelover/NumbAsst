@@ -648,14 +648,14 @@ public class ProtocolHelper {
     public List<Long> formatDownloadFiles(byte[] data) {
         byte [] size = {data[2],data[3]};
         long temp = ByteUtils.bytes2HighToLong(size);
-        long number = (temp - 8)/4;
+        long number = (temp - 20)/4;
         Log.d(TAG,"formatDownloadFiles" +number);
         List<Long> files = new ArrayList<>();
-        if (number ==0){
+        if (number <=0){
             //说明文件列表为空
             return  files;
         }else {
-            int j = 16;
+            int j = 28;
             for(int i = 0 ; i< number; i++){
                 byte[] time = {data[j],data[j+1],data[j+2],data[j+3]};
                 long timeT = ByteUtils.bytes4HighToLong(time) *1000;

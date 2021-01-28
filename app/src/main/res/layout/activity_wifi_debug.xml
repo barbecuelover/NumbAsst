@@ -6,4 +6,118 @@
     android:layout_height="match_parent"
     tools:context=".ui.debug.WifiDebugActivity">
 
+    <com.ecs.numbasst.view.TopActionBar
+        android:id="@+id/top_action_bar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        app:refreshEnable="false"
+        android:layout_height="32dp"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tv_wifi_debug_name_title"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:text="WIFI名称："
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top_action_bar" />
+
+    <TextView
+        android:id="@+id/tv_wifi_debug_name"
+        app:layout_constraintStart_toEndOf="@+id/tv_wifi_debug_name_title"
+        app:layout_constraintTop_toTopOf="@+id/tv_wifi_debug_name_title"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_wifi_debug_name_title"
+        app:layout_constraintEnd_toStartOf="@+id/ib_get_wifi_name_refresh"
+        android:layout_width="0dp"
+        android:textSize="16sp"
+        android:background="@drawable/shape_edit_text_border"
+        android:layout_marginHorizontal="12dp"
+        android:text="zemt_liewei"
+        android:gravity="center"
+        android:layout_height="0dp"/>
+
+    <ImageButton
+        android:id="@+id/ib_get_wifi_name_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="24dp"
+        android:background="@null"
+        android:src="@drawable/selector_btn_refresh"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_wifi_debug_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_wifi_debug_name" />
+
+
+    <Button
+        android:id="@+id/btn_open_wifi"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="24dp"
+        android:enabled="true"
+        android:text="启动WIFI"
+        android:background="@drawable/selector_btn_deeper"
+        app:layout_constraintEnd_toStartOf="@+id/btn_connect_wifi"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_wifi_debug_name_title"
+        />
+
+
+    <Button
+        android:id="@+id/btn_connect_wifi"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="12dp"
+        android:enabled="true"
+        android:text="连接WIFI"
+        android:background="@drawable/selector_btn_deeper"
+        app:layout_constraintEnd_toStartOf="@+id/btn_close_wifi"
+        app:layout_constraintStart_toEndOf="@+id/btn_open_wifi"
+        app:layout_constraintTop_toTopOf="@+id/btn_open_wifi"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_open_wifi"
+        />
+
+
+    <Button
+        android:id="@+id/btn_close_wifi"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="12dp"
+        android:enabled="true"
+        android:text="关闭WIFI"
+        android:background="@drawable/selector_btn_deeper"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btn_connect_wifi"
+        app:layout_constraintTop_toTopOf="@+id/btn_connect_wifi"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_connect_wifi"
+        />
+
+    <TextView
+        android:id="@+id/tv_wifi_debug_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:background="@drawable/shape_text_view_status"
+        android:gravity="center"
+        android:minHeight="100dp"
+        android:text="WIFI状态"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

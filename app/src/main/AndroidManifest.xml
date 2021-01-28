@@ -11,7 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_cars_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NumbAsst">
-        <activity android:name=".ui.debug.WifiDebugActivity"></activity>
+        <activity android:name=".ui.debug.WifiDebugActivity" android:label="WIFI操作"/>
         <activity android:name=".ui.number.TimeActivity" />
         <activity
             android:name=".ui.state.VersionInfoActivity"

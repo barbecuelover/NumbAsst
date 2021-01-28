@@ -20,6 +20,7 @@ import com.ecs.numbasst.base.util.UdpFileUtils;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.ui.about.AboutActivity;
 import com.ecs.numbasst.ui.debug.DebugActivity;
+import com.ecs.numbasst.ui.debug.WifiDebugActivity;
 import com.ecs.numbasst.ui.download.DataDownloadActivity;
 import com.ecs.numbasst.ui.number.DeviceIDActivity;
 import com.ecs.numbasst.ui.number.NumberActivity;
@@ -159,6 +160,8 @@ public class MainActivity extends BaseActivity {
             goActivity(VersionInfoActivity.class);
         }else if (id == R.id.view_set_time){
             goActivity(TimeActivity.class);
+        }else if (id ==R.id.view_wifi){
+            goActivity(WifiDebugActivity.class);
         }
     }
 

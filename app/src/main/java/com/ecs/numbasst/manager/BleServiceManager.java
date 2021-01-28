@@ -16,6 +16,7 @@ import com.ecs.numbasst.manager.interfaces.IDeviceID;
 import com.ecs.numbasst.manager.interfaces.IDownloadData;
 import com.ecs.numbasst.manager.interfaces.IState;
 import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
+import com.ecs.numbasst.manager.interfaces.IWifi;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
 
 import java.io.File;
@@ -23,7 +24,7 @@ import java.util.Date;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
-public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdateUnit ,IDownloadData,IAdjustSensor, IDeviceID, IDebugging {
+public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdateUnit ,IDownloadData,IAdjustSensor, IDeviceID, IDebugging, IWifi {
     private static final String TAG = "BLEManager";
 
     private static volatile BleServiceManager instance;
@@ -274,4 +275,31 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
+    @Override
+    public void openWifi() {
+        if (bleService != null) {
+            bleService.openWifi();
+        }
+    }
+
+    @Override
+    public void connectWifi(String name) {
+        if (bleService != null) {
+            bleService.connectWifi(name);
+        }
+    }
+
+    @Override
+    public void closeWifi() {
+        if (bleService != null) {
+            bleService.closeWifi();
+        }
+    }
+
+    @Override
+    public void getWifiName() {
+        if (bleService != null) {
+            bleService.getWifiName();
+        }
+    }
 }

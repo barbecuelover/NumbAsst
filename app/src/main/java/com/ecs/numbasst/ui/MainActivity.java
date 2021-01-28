@@ -41,6 +41,7 @@ import java.io.IOException;
 public class MainActivity extends BaseActivity {
 
     private final int REQUEST_ENABLE_WRITE_FILE = 0X11;
+    private final int REQUEST_ENABLE_WIFI = 0X12;
 
     Button btnDiscovery, btnGetState, btnSetNumb, btnUpdate, btnDownload;
     private Button btnSensorCheck;
@@ -170,7 +171,9 @@ public class MainActivity extends BaseActivity {
             int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
                 //判断是否需要 向用户解释，为什么要申请该权限
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.INTERNET}, REQUEST_ENABLE_WRITE_FILE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.INTERNET
+                ,Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE
+                        ,Manifest.permission.ACCESS_NETWORK_STATE,Manifest.permission.CHANGE_NETWORK_STATE}, REQUEST_ENABLE_WRITE_FILE);
             }else {
                 DataKeeper.init();
             }
@@ -178,6 +181,15 @@ public class MainActivity extends BaseActivity {
             DataKeeper.init();
         }
     }
+
+    private void checkWifiPermission() {
+        int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
+            //判断是否需要 向用户解释，为什么要申请该权限
+            ActivityCompat.requestPermissions(this, new String[]{}, REQUEST_ENABLE_WIFI);
+        }
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -187,6 +199,10 @@ public class MainActivity extends BaseActivity {
         }else if(requestCode == REQUEST_ENABLE_WRITE_FILE && resultCode == Activity.RESULT_OK){
             DataKeeper.init();
         }
+        if (requestCode == REQUEST_ENABLE_WIFI && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+        }
+
         super.onActivityResult(requestCode, resultCode, data);
     }
 

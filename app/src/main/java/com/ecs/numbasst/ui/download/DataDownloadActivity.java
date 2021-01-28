@@ -193,7 +193,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
         if (downloadedSize >= downloadFiles.size()) {
             //全部下载完成
-            updateState("准备断开连接");
+            hideProgressBar();
+            updateState("全部下载完成，准备断开连接");
             currentSize = 0;
             manager.stopDownload();
         }else {

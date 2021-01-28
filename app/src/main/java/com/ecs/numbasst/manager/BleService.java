@@ -12,6 +12,8 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -30,6 +32,7 @@ import com.ecs.numbasst.manager.interfaces.IDeviceID;
 import com.ecs.numbasst.manager.interfaces.IDownloadData;
 import com.ecs.numbasst.manager.interfaces.IState;
 import com.ecs.numbasst.manager.interfaces.IUpdateUnit;
+import com.ecs.numbasst.manager.interfaces.IWifi;
 import com.ecs.numbasst.manager.interfaces.SppInterface;
 import com.ecs.numbasst.manager.msg.CarNumberMsg;
 import com.ecs.numbasst.manager.msg.ConnectionMsg;
@@ -42,6 +45,7 @@ import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.manager.msg.TimeMsg;
 import com.ecs.numbasst.manager.msg.UnitUpdateMsg;
 import com.ecs.numbasst.manager.msg.SensorState;
+import com.ecs.numbasst.manager.msg.WifiMsg;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
 
 import org.greenrobot.eventbus.EventBus;
@@ -57,7 +61,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class BleService extends Service implements SppInterface, IDebugging, ICarNumber, IDeviceID, IDownloadData, IState, IUpdateUnit, IAdjustSensor {
+public class BleService extends Service implements SppInterface, IDebugging, ICarNumber, IDeviceID, IDownloadData, IState, IUpdateUnit, IAdjustSensor, IWifi {
 
     private final static String TAG = "BLEService";
     private final static String ZWCC = "zwcc";
@@ -115,7 +119,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     UdpFileUtils udpFileUtils;
 
     DateFormat formatterDay;
-
+    WifiManager mWifiManager;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -134,6 +138,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         };
         UdpClientHelper.getInstance().startReceivedMsgListener(callBack);
         formatterDay=new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
+
+        mWifiManager = (WifiManager)this.getSystemService(Context.WIFI_SERVICE);
     }
 
     public void formatDownloadReply(byte[] data){
@@ -235,6 +241,34 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void onDestroy() {
         super.onDestroy();
         cancelAction();
+    }
+
+    @Override
+    public void openWifi() {
+        byte[] order = protocolHelper.createOrderOpenWifi();
+        writeDataWithRetry(order);
+    }
+
+    @Override
+    public void connectWifi(String name) {
+
+
+
+    }
+
+
+
+
+    @Override
+    public void closeWifi() {
+        byte[] order = protocolHelper.createOrderCloseWifi();
+        writeDataWithRetry(order);
+    }
+
+    @Override
+    public void getWifiName() {
+        byte[] order = protocolHelper.createOrderGetWifiName();
+        writeDataWithRetry(order);
     }
 
 
@@ -384,15 +418,16 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }
     }
 
-    
+    /**
+     * 处理主机主动发出的命令。
+     */
     private void handleInitiativeMsgFromServer(byte type, byte[] content) {
-        switch (type) {
-            //主机主动下发的升级完成指令
 
-        }
     }
 
-
+    /**
+     * 处理主机回复的命令
+     */
     private void handleReplyMsg(byte type, byte[] content) {
         switch (type) {
             case ProtocolHelper.TYPE_DEVICE_MAIN_CONTROL_STATUS:
@@ -527,7 +562,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 }
                 EventBus.getDefault().post(updateCompleteMsg);
                 break;
-
+            case ProtocolHelper.TYPE_BLE_WIFI:
+                WifiMsg wifiMsg = protocolHelper.formatWifiMsg(content);
+                EventBus.getDefault().post(wifiMsg);
+                break;
             case ProtocolHelper.TYPE_DOWNLOAD_HEAD:
 
                 break;

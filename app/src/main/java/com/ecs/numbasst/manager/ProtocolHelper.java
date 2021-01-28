@@ -4,6 +4,7 @@ import com.ecs.numbasst.base.util.ByteUtils;
 import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.msg.SensorState;
+import com.ecs.numbasst.manager.msg.WifiMsg;
 import com.ecs.numbasst.ui.state.entity.BatteryInfo;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.MainControlInfo;
@@ -224,12 +225,44 @@ public class ProtocolHelper {
     }
 
 
+    public WifiMsg formatWifiMsg(byte[] content){
+
+        byte wifiType = content[0];
+        WifiMsg wifiMsg = new WifiMsg();
+        switch (wifiType){
+            default:
+            case ProtocolHelper.TYPE_BLE_WIFI_NAME:
+                String name = formatWifiName(content);
+                wifiMsg.setState(WifiMsg.WIFI_NAME);
+                wifiMsg.setName(name);
+                break;
+            case ProtocolHelper.TYPE_BLE_WIFI_OPEN:
+                boolean opened = STATE_SUCCEED == content[1];
+                if(opened){
+                    wifiMsg.setState(WifiMsg.WIFI_OPEN_SUCCEED);
+                }else{
+                    wifiMsg.setState(WifiMsg.WIFI_OPEN_FAILED);
+                }
+                break;
+            case  ProtocolHelper.TYPE_BLE_WIFI_CLOSE:
+                boolean closed = STATE_SUCCEED == content[1];
+                if(closed){
+                    wifiMsg.setState(WifiMsg.WIFI_CLOSE_SUCCEED);
+                }else{
+                    wifiMsg.setState(WifiMsg.WIFI_CLOSE_FAILED);
+                }
+                break;
+        }
+        return wifiMsg;
+    }
+
+
     /**
      * WIFI PASSWORD  =  LIEWEI
      * @param content
      * @return
      */
-    public String formatWifiName(byte[] content){
+    private String formatWifiName(byte[] content){
         String name = "zemt_liewei";
         if (content==null || content.length <=1){
             return name;
@@ -248,39 +281,12 @@ public class ProtocolHelper {
         return  CrcUtils.addCrc8Table(content);
     }
 
-    public boolean formatOpenWifiIfSucceed(byte[] content){
-        if (content==null || content.length!=2){
-            return false;
-        }
-        if (content[0] == TYPE_BLE_WIFI_OPEN){
-            byte state = content[1];
-            if (state == STATE_SUCCEED){
-                return  true;
-            }
-        }
-        return  false;
-    }
 
 
     public byte[] createOrderCloseWifi(){
         byte[] content = {HEAD_SEND,TYPE_BLE_WIFI, 0x01, TYPE_BLE_WIFI_CLOSE};
         return  CrcUtils.addCrc8Table(content);
     }
-
-
-    public boolean formatCloseWifiIfSucceed(byte[] content){
-        if (content==null || content.length!=2){
-            return false;
-        }
-        if (content[0] == TYPE_BLE_WIFI_CLOSE){
-            byte state = content[1];
-            if (state == STATE_SUCCEED){
-                return  true;
-            }
-        }
-        return  false;
-    }
-
 
 
     /**

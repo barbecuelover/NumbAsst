@@ -9,5 +9,6 @@ public interface IWifi {
     void openWifi();
     void connectWifi(String name);
     void closeWifi();
+    void getWifiName();
 
 }

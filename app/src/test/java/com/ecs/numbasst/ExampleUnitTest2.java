@@ -91,7 +91,7 @@ public class ExampleUnitTest2 {
         //55 10 01 00 1D
         byte[] data = {0x50,(byte)0x94,0x0e,0x60};
         //55 11 01 00 5B
-        byte[] data0 = {0x55,0x11,0x01,0x00,0X5B};
+        byte[] data0 = {'a','c','1','2',65};
 
         //55 01 05 01 58 02 58 02 93
         byte[] data1 = {0x55,0x01,0x05,0x01,0x58,0x02,0x58,0x02,(byte)0x93};
@@ -103,16 +103,19 @@ public class ExampleUnitTest2 {
 //
 //        System.out.println(ByteUtils.bytes4LowToLong(data));
 
+//
+//        List<Long> longList = new ArrayList<>();
+//        longList.add(1111L);
+//        longList.add(2222L);
+//        longList.add(2225L);
+//
+//
+//        System.out.println(longList.contains(1111L));
+//        System.out.println( longList.indexOf(1111L));
 
-        List<Long> longList = new ArrayList<>();
-        longList.add(1111L);
-        longList.add(2222L);
-        longList.add(2225L);
 
 
-        System.out.println(longList.contains(1111L));
-        System.out.println( longList.indexOf(1111L));
-        System.out.println( longList.indexOf(2225L));
+        System.out.println( new String (data0));
 
 
     }

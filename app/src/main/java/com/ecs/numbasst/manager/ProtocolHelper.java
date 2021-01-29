@@ -270,7 +270,7 @@ public class ProtocolHelper {
         if (content[0] ==TYPE_BLE_WIFI_NAME){
             byte[] order = new byte[content.length - 1];
             System.arraycopy(content, 1, order, 0, order.length);
-            name = ByteUtils.bytesToString16(order).trim();
+            name = new String(order).trim();
             Log.d(TAG, "formatWifiName  WIFI名称=" + name);
         }
         return name;

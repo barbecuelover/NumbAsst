@@ -207,7 +207,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     }
 
 
-    private void showDialog(String title,String msg,String positive,String negative, DialogInterface.OnClickListener onClickListener){
+    public void showDialog(String title,String msg,String positive,String negative, DialogInterface.OnClickListener onClickListener){
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);

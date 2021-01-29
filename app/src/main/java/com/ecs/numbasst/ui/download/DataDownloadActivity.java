@@ -1,7 +1,14 @@
 package com.ecs.numbasst.ui.download;
 
-import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,14 +18,15 @@ import android.widget.TextView;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.util.Log;
-import com.ecs.numbasst.manager.BleServiceManager;
+import com.ecs.numbasst.base.util.WifiUtils;
+import com.ecs.numbasst.manager.UdpClientHelper;
 import com.ecs.numbasst.manager.msg.DownloadMsg;
+import com.ecs.numbasst.manager.msg.WifiMsg;
 import com.ecs.numbasst.view.DialogDatePicker;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -30,6 +38,7 @@ import java.util.TimeZone;
 
 public class DataDownloadActivity extends BaseActionBarActivity {
 
+    private String ZWCC = "zwcc";
     private final static int START_TIME = 1;
     private final static int END_TIME = 2;
 
@@ -45,8 +54,9 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
     private long currentSize;
 
-    private boolean isDownloading;
+    private boolean isDownloadingListenWifi;
     private SimpleDateFormat dateFormat;
+    String wifiName;
 
     Date startDate = new Date();
     Date endDate = new Date();
@@ -58,6 +68,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     private SimpleDateFormat nameFormat;
     private ProgressBar progressBarFiles;
     private TextView tvFilesPercent;
+    WifiManager mWifiManager;
+    private WifiBroadcastReceiver wifiBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +96,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
+        mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifiBroadcastReceiver = new  WifiBroadcastReceiver();
         dateFormat = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault());
         nameFormat = new SimpleDateFormat("yyyMMdd", Locale.getDefault());
         String date = dateFormat.format(new Date());
@@ -109,6 +123,20 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND,0);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        registerWIFIReceiver();
+    }
+
+    private void registerWIFIReceiver(){
+        IntentFilter filter =new IntentFilter();
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(wifiBroadcastReceiver,filter);
     }
 
 
@@ -176,8 +204,15 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
         } else if (state == DownloadMsg.DOWNLOAD_STOP) {
             showToast("传输已结束，断开连接");
+            isDownloadingListenWifi = false;
             hideProgressBar();
             resetList();
+
+            //6.关闭WIFI
+            if (manager.isConnected()) {
+                manager.closeWifi();
+            }
+
         }
     }
 
@@ -196,9 +231,12 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             hideProgressBar();
             updateState("全部下载完成，准备断开连接");
             currentSize = 0;
+            //5.停止下载
             manager.stopDownload();
+
+            isDownloadingListenWifi = false;
         }else {
-            //需要继续下载 下一个文件
+            //4. 顺序下载 ，需要继续下载 下一个文件
             Date nextFile = new Date(downloadFiles.get(downloadedSize));
             manager.downloadOneDayData(downloadedSize, nextFile);
             updateState("开始下载下一个文件："+nameFormat.format(nextFile));
@@ -218,7 +256,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     @Override
     protected void onStop() {
         super.onStop();
-
+        unregisterReceiver(wifiBroadcastReceiver);
     }
 
     @Override
@@ -261,8 +299,13 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             finish();
         } else if (id == R.id.btn_download_data) {
             //prepareDownloadData();
-            testUdp();
-
+            //testUdp();
+            showDialog("数据下载","是否要下载 " + tvStartTime.getText() + "到"+tvEndTime.getText()+"之间的文件？","是","否", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    prepareDownloadData();
+                }
+            });
         }
 
     }
@@ -274,60 +317,191 @@ public class DataDownloadActivity extends BaseActionBarActivity {
 
 
     private void testUdp() {
+        //3.查询文件数量
         manager.downloadDataRequest(startDate, endDate);
+        //开始UDP协议后， 理论上就不用监听 WIFI状态了 说明WIFI已经连接上了
+        isDownloadingListenWifi = false;
         showProgressBar();
     }
 
-
+    /**
+     * 下载前的准备工作
+     * ----Ble协议----
+     * 1.获取设备WIFI name
+     * ---手机APP-----
+     * 2.连接设备Wifi
+     * ----wifi协议-----
+     * 3.查询文件数量
+     * 4.顺序下载文件
+     * 5.停止下载
+     * ---ble协议----
+     * 6.下载完成关闭设备WIFI
+     */
     private void prepareDownloadData() {
 
         if (!manager.isConnected()) {
             showToast(getString(R.string.check_device_connection));
             return;
         }
-        if (inProgressing() || isDownloading) {
+        if (inProgressing() || isDownloadingListenWifi) {
             showToast("下载操作中请勿重复点击下载");
             return;
         }
+        showProgressBar();
+        //1.获取设备wifi名称
+        manager.getWifiName();
+        isDownloadingListenWifi = true;
+    }
 
-//        String startTime = tvStartTime.getText().toString().replace("-","");
-//        String endTime = tvEndTime.getText().toString().replace("-","");
 
-        try {
-            Date dateStart = dateFormat.parse(tvStartTime.getText().toString());
-            Date dateEnd = dateFormat.parse(tvEndTime.getText().toString());
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onWifiDebug(WifiMsg msg) {
+        int state = msg.getState();
+        if (state == WifiMsg.WIFI_NAME) {
+            wifiName = msg.getName();
+            updateState("获取WIFI的名称："+wifiName);
+            //2.准备手机连接WIFI
+            if(checkPhoneWifi(wifiName, UdpClientHelper.PASS_WORD)){
+                //3.开始UDP协议通讯
+                testUdp();
+            }
 
-            BleServiceManager.getInstance().downloadDataRequest(dateStart, dateEnd);
-        } catch (ParseException e) {
-            e.printStackTrace();
+        }else if (state == WifiMsg.WIFI_OPEN_SUCCEED){
+            updateState("WIFI打开成功");
+        }else if (state == WifiMsg.WIFI_OPEN_FAILED){
+            updateState("WIFI打开失败");
+        }else if (state == WifiMsg.WIFI_CLOSE_SUCCEED){
+            updateState("WIFI关闭成功");
+        }else if (state == WifiMsg.WIFI_CLOSE_FAILED){
+            updateState("WIFI关闭失败");
         }
     }
 
 
-    private void showDownloadConfirmDialog(String size) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("数据下载");
-        builder.setMessage("是否要下载数据？数据大小为" + size);
-        builder.setPositiveButton("是", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                showProgressBar();
-                isDownloading = true;
-                BleServiceManager.getInstance().replyDownloadConfirm(true);
-            }
-        });
-        builder.setNegativeButton("否", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                BleServiceManager.getInstance().replyDownloadConfirm(false);
-                hideProgressBar();
-                isDownloading = false;
-                dialog.dismiss();
-            }
-        });
 
-        builder.setCancelable(false);
-        AlertDialog dialog = builder.create();
-        dialog.show();
+    //"LIEWEI"
+    private boolean checkPhoneWifi(String name,String password){
+        //WifiManager mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        String  tarSSID = "\""+name+"\"";
+        if (mWifiManager ==null){
+            return false;
+        }
+        //确保手机WIFI开关已经打开
+        if (mWifiManager.isWifiEnabled()) {
+            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+            if (wifiInfo!=null){
+                String ssid = wifiInfo.getSSID();
+                Log.d(ZWCC,"已连接的SSID = "+ssid);
+                Log.d(ZWCC,"指定网络为   = "+name);
+                if (tarSSID.equals(ssid)){
+                    //证明当前连接的设备就是要连接的设备。即已完成连接。
+                    return true;
+                }
+            }
+            //连接指定wifi
+            Log.d(ZWCC,"WIFI未连接指定网络，开始连接WIFI = " +name);
+            WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+        }else {
+            mWifiManager.setWifiEnabled(true);
+            //打开wifi
+            //循环等待WIFI变成 Enable
+            //当为enable时，连接
+            int times  = 0;
+            while (!mWifiManager.isWifiEnabled() && times < 20){
+                try {
+                    Log.d(ZWCC,"等待WIFI开关打开 sleep 500ms");
+                    Thread.sleep(500);
+                    times ++;
+                    mWifiManager.setWifiEnabled(true);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            Log.d(ZWCC,"WIFI开关已打开 ，开始连接WIFI = " +name);
+            //连接指定wifi
+            //Android 10 可能会打开失败。跳转到Settings界面。
+            if (!mWifiManager.isWifiEnabled()){
+                startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateState("Wifi开关打开失败，请手动打开后再尝试连接！");
+                    }
+                });
+            }else {
+                WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+            }
+        }
+        return false;
     }
+
+
+    //监听wifi状态广播接收器
+    public class WifiBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //wifi开关变化
+            if (!isDownloadingListenWifi){
+                return;
+            }
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
+                switch (state) {
+                    case WifiManager.WIFI_STATE_DISABLED: {
+                        //wifi关闭
+                        updateState("手持设备WIFI已关闭");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_DISABLING: {
+                        //wifi正在关闭
+                        updateState("手持设备WIFI正在关闭");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_ENABLED: {
+                        //wifi已经打开
+                        updateState("手持设备WIFI已经打开");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_ENABLING: {
+                        //wifi正在打开
+                        updateState("手持设备WIFI正在打开");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_UNKNOWN: {
+                        //未知
+                        updateState("手持设备WIFI未知状态");
+                        break;
+                    }
+                }
+            } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+
+
+                //监听wifi连接状态
+                NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                Log.e("=====", "--NetworkInfo--" + info.toString());
+                if (NetworkInfo.State.DISCONNECTED == info.getState()) {//wifi没连接上
+                    updateState("连接状态：wifi没连接上");
+                } else if (NetworkInfo.State.CONNECTED == info.getState()) {//wifi连接上了
+
+                    String  ssid =  mWifiManager.getConnectionInfo().getSSID();
+                    updateState("\n 连接状态：wifi已连接，wifi名称：" + ssid);
+                    String  shouldSSID = "\""+wifiName+"\"";
+                    if (isDownloadingListenWifi && shouldSSID.equals(ssid)){
+                        //3.
+                        updateState("\nWifi已连接，开始查询文件列表" );
+                        testUdp();
+                    }
+
+                } else if (NetworkInfo.State.CONNECTING == info.getState()) {//正在连接
+                    updateState("wifi正在连接");
+                }
+            } else if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction())) {
+                //监听wifi列表变化
+
+            }
+        }
+    }
+
 
 }

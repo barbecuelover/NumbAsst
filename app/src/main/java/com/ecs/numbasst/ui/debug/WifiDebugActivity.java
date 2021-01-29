@@ -1,29 +1,24 @@
 package com.ecs.numbasst.ui.debug;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.base.util.WifiUtils;
+import com.ecs.numbasst.manager.UdpClientHelper;
 import com.ecs.numbasst.manager.msg.WifiMsg;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -31,6 +26,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public class WifiDebugActivity extends BaseActionBarActivity {
 
+    private String ZWCC = "zwcc";
     private TextView tvWifiDebugName;
     private ImageButton ibGetWifiNameRefresh;
     private Button btnOpenWifi;
@@ -63,13 +59,17 @@ public class WifiDebugActivity extends BaseActionBarActivity {
     @Override
     protected void initData() {
         mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        registerWIFIReceiver();
+
+    }
+
+    private void registerWIFIReceiver(){
         wifiBroadcastReceiver = new WifiBroadcastReceiver();
         IntentFilter filter =new IntentFilter();
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(wifiBroadcastReceiver,filter);
-
     }
 
     @Override
@@ -147,7 +147,7 @@ public class WifiDebugActivity extends BaseActionBarActivity {
                 @Override
                 public void run() {
                     //checkPhoneWifi("Ecs-RD","Ecs0987654321");
-                    checkPhoneWifi(wifiName,"12345678");
+                    checkPhoneWifi(wifiName, UdpClientHelper.PASS_WORD);
                 }
             }).start();
 
@@ -159,9 +159,6 @@ public class WifiDebugActivity extends BaseActionBarActivity {
         }
 
     }
-
-
-    private String ZWCC = "zwcc";
 
     //"LIEWEI"
     private boolean checkPhoneWifi(String name,String password){
@@ -261,7 +258,7 @@ public class WifiDebugActivity extends BaseActionBarActivity {
                 if (NetworkInfo.State.DISCONNECTED == info.getState()) {//wifi没连接上
                     updateState("连接状态：wifi没连接上");
                 } else if (NetworkInfo.State.CONNECTED == info.getState()) {//wifi连接上了
-                    updateState("\n 连接状态：wifi以连接，wifi名称：" +  mWifiManager.getConnectionInfo().getSSID());
+                    updateState("\n 连接状态：wifi已连接，wifi名称：" +  mWifiManager.getConnectionInfo().getSSID());
                 } else if (NetworkInfo.State.CONNECTING == info.getState()) {//正在连接
                     updateState("wifi正在连接");
                 }

@@ -85,7 +85,7 @@ public class VersionInfoActivity extends BaseActionBarActivity {
         if (info == null) {
             showToast("获取版本为空!");
         } else {
-            showToast("类型：" + info.stateType + "\n版本 ：" + info.toString());
+            //showToast("类型：" + info.stateType + "\n版本 ：" + info.toString());
             if (info instanceof VersionInfo){
                 VersionInfo versionInfo = (VersionInfo)info;
                 setVersion(versionInfo);

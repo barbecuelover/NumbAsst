@@ -24,6 +24,9 @@ import com.ecs.numbasst.ui.state.entity.TCUInfo;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class DeviceStateActivity extends BaseActionBarActivity {
 
     private TextView tvStateCarNumber;
@@ -50,6 +53,9 @@ public class DeviceStateActivity extends BaseActionBarActivity {
     private TextView tvStateSignalStrength1;
     private TextView tvStateSignalStrength2;
     private Button btnErrorDetails;
+
+    private ExecutorService executor;
+    Runnable getStateTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +97,34 @@ public class DeviceStateActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
+
+
+        executor = Executors.newSingleThreadExecutor();
+        getStateTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(manager!=null){
+                        Thread.sleep(100);
+                        manager.getCarNumber();
+
+                        Thread.sleep(100);
+                        manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
+                        Thread.sleep(100);
+                        manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
+                        Thread.sleep(100);
+                        manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
+                        Thread.sleep(100);
+                        manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_TCU);
+
+                        Thread.sleep(100);
+                        manager.getDeviceID();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -224,15 +258,8 @@ public class DeviceStateActivity extends BaseActionBarActivity {
 
 
     private void refreshAllstate() {
-        if(manager!=null){
-            manager.getCarNumber();
-            manager.getDeviceID();
-            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
-            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_BATTERY_LEVEL);
-            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
-            manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_TCU);
-            showProgressBar();
-        }
+        showProgressBar();
+        executor.execute(getStateTask);
     }
 
     private boolean checkConnection(){

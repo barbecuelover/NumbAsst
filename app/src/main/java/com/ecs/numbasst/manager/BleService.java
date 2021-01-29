@@ -90,6 +90,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private boolean inDebugging;
 
     private CountDownTimer retryTimer;
+    int times = 0;
     private List<byte[]> updateList;
 
     private ProtocolHelper protocolHelper;
@@ -997,16 +998,20 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }
     }
 
-
     private void writeDataWithRetry(byte[] data) {
         if (retryTimer != null) {
             retryTimer.cancel();
         }
+        writeData(data);
+        times = 0;
         retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES + 1000, RETRY_TIMEOUT) {
             @Override
             public void onTick(long millisUntilFinished) {
-                Log.d(TAG, "重新尝试 通讯");
-                writeData(data);
+                if(times!=0){
+                    Log.d(ZWCC, "重新尝试 通讯");
+                    writeData(data);
+                }
+                times ++;
             }
 
             @Override
@@ -1021,7 +1026,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private void writeData(byte[] data) {
         if (mWriteCharacteristic != null &&
                 data != null) {
-            Log.d(TAG, "writeData :" + ByteUtils.bytesToString16(data));
+            Log.d(ZWCC, "writeData :" + ByteUtils.bytesToString16(data));
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC
             mBluetoothGatt.writeCharacteristic(mWriteCharacteristic);

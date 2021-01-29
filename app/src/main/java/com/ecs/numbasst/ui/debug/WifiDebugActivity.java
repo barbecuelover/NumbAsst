@@ -1,9 +1,13 @@
 package com.ecs.numbasst.ui.debug;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -33,7 +37,8 @@ public class WifiDebugActivity extends BaseActionBarActivity {
     private Button btnConnectWifi;
     private Button btnCloseWifi;
     private TextView tvWifiDebugStatus;
-
+    WifiManager mWifiManager ;
+    WifiBroadcastReceiver wifiBroadcastReceiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,15 +62,21 @@ public class WifiDebugActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                checkPhoneWifi("Ecs-RD","Ecs0987654321");
-            }
-        }).start();
+        mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifiBroadcastReceiver = new WifiBroadcastReceiver();
+        IntentFilter filter =new IntentFilter();
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(wifiBroadcastReceiver,filter);
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(wifiBroadcastReceiver);
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onWifiDebug(WifiMsg msg) {
@@ -129,9 +140,18 @@ public class WifiDebugActivity extends BaseActionBarActivity {
         } else if (id == R.id.btn_connect_wifi) {
             //手机 连接 主机上的WIFI
             String wifiName = tvWifiDebugName.getText().toString().trim();
-            manager.connectWifi(wifiName);
-            updateState("连接WIFI中...");
-            showProgressBar();
+            //manager.connectWifi(wifiName);
+            updateState("开始连接WIFI");
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    //checkPhoneWifi("Ecs-RD","Ecs0987654321");
+                    checkPhoneWifi(wifiName,"12345678");
+                }
+            }).start();
+
+           // showProgressBar();
         } else if (id == R.id.btn_close_wifi) {
             if (checkConnection()) {
                 manager.closeWifi();
@@ -145,7 +165,7 @@ public class WifiDebugActivity extends BaseActionBarActivity {
 
     //"LIEWEI"
     private boolean checkPhoneWifi(String name,String password){
-        WifiManager mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        //WifiManager mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         String  tarSSID = "\""+name+"\"";
         if (mWifiManager ==null){
             return false;
@@ -157,13 +177,13 @@ public class WifiDebugActivity extends BaseActionBarActivity {
                 String ssid = wifiInfo.getSSID();
                 Log.d(ZWCC,"已连接的SSID = "+ssid);
                 Log.d(ZWCC,"指定网络为   = "+name);
-                if (tarSSID.equals("\""+ssid+"\"")){
+                if (tarSSID.equals(ssid)){
                     //证明当前连接的设备就是要连接的设备。即已完成连接。
                     return true;
                 }
             }
             //连接指定wifi
-            Log.d(ZWCC,"WIFI未连接指定网络 ，开始连接WIFI = " +name);
+            Log.d(ZWCC,"WIFI未连接指定网络，开始连接WIFI = " +name);
             WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
         }else {
             mWifiManager.setWifiEnabled(true);
@@ -199,6 +219,58 @@ public class WifiDebugActivity extends BaseActionBarActivity {
         return false;
     }
 
+
+    //监听wifi状态广播接收器
+    public class WifiBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+                //wifi开关变化
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
+                switch (state) {
+                    case WifiManager.WIFI_STATE_DISABLED: {
+                        //wifi关闭
+                        updateState("手持设备WIFI已关闭");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_DISABLING: {
+                        //wifi正在关闭
+                        updateState("手持设备WIFI正在关闭");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_ENABLED: {
+                        //wifi已经打开
+                        updateState("手持设备WIFI已经打开");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_ENABLING: {
+                        //wifi正在打开
+                        updateState("手持设备WIFI正在打开");
+                        break;
+                    }
+                    case WifiManager.WIFI_STATE_UNKNOWN: {
+                        //未知
+                        updateState("手持设备WIFI未知状态");
+                        break;
+                    }
+                }
+            } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
+                //监听wifi连接状态
+                NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                Log.e("=====", "--NetworkInfo--" + info.toString());
+                if (NetworkInfo.State.DISCONNECTED == info.getState()) {//wifi没连接上
+                    updateState("连接状态：wifi没连接上");
+                } else if (NetworkInfo.State.CONNECTED == info.getState()) {//wifi连接上了
+                    updateState("\n 连接状态：wifi以连接，wifi名称：" +  mWifiManager.getConnectionInfo().getSSID());
+                } else if (NetworkInfo.State.CONNECTING == info.getState()) {//正在连接
+                    updateState("wifi正在连接");
+                }
+            } else if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction())) {
+                //监听wifi列表变化
+
+            }
+        }
+    }
 
 
 }

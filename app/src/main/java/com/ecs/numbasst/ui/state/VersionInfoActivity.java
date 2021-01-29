@@ -14,11 +14,17 @@ import com.ecs.numbasst.ui.state.entity.VersionInfo;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class VersionInfoActivity extends BaseActionBarActivity {
 
     TextView tvMainControl;
     TextView tvStore;
     TextView tvDisplay;
+
+    Runnable getVersionTask;
+    private ExecutorService executor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +46,23 @@ public class VersionInfoActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
+        executor = Executors.newSingleThreadExecutor();
+        getVersionTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(100);
+                    manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_MAIN_CONTROL_STATUS);
+                    Thread.sleep(100);
+                    manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_STORE_STATUS);
+                    Thread.sleep(100);
+                    manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_DISPLAY_STATUS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
     }
 
     @Override
@@ -86,9 +109,8 @@ public class VersionInfoActivity extends BaseActionBarActivity {
             showToast(getString(R.string.check_device_connection));
             return;
         }
-        manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_MAIN_CONTROL_STATUS);
-        manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_STORE_STATUS);
-        manager.getDeviceVersion(ProtocolHelper.TYPE_DEVICE_DISPLAY_STATUS);
+
+        executor.execute(getVersionTask);
         showToast("查询版本号中");
         showProgressBar();
     }

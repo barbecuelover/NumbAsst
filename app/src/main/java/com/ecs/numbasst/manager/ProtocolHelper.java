@@ -674,4 +674,10 @@ public class ProtocolHelper {
         Log.d(TAG," formatDownloadFiles  文件总数为： " +files.size());
         return files;
     }
+
+    public Date formatDownloadDayDateInfo(byte[] data) {
+        byte[] time = {data[4],data[5],data[6],data[7]};
+        long timeT = ByteUtils.bytes4HighToLong(time) *1000;
+        return  new Date(timeT);
+    }
 }

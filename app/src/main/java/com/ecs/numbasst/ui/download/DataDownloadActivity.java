@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
@@ -167,6 +168,13 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                 }
                 if (downloadFiles.size() == 0) {
                     updateState("选择的日期内不存在文件");
+                    hideProgressBar();
+                    Toast.makeText(this, "选择的日期内不存在文件", Toast.LENGTH_LONG).show();
+                    //3.文件不存在 停止下载
+                    if (manager.isConnected()) {
+                        manager.stopDownload();
+                    }
+
                 } else {
                     //开始下载第一个文件。
                     Date firstFile = new Date(downloadFiles.get(0));
@@ -205,7 +213,6 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             tvProgressPercent.setText(progress + "%");
 
         } else if (state == DownloadMsg.DOWNLOAD_STOP) {
-            showToast("传输已结束，断开连接");
             isDownloadingListenWifi = false;
             hideProgressBar();
             resetList();

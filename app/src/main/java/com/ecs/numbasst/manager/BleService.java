@@ -164,7 +164,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             pkgNumber = 0;
             downloadProgressMsg.setTotalSize(udpTotalPkg);
 
+            downloadDate = protocolHelper.formatDownloadDayDateInfo(data);
+
             String name = formatterDay.format(downloadDate) ;
+            Log.d(ZWCC,"日期文件名称 name = " +name);
             udpFileUtils = new UdpFileUtils(name);
 
         }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_INFO_NULL){//无文件
@@ -816,7 +819,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     @Override
     public void downloadOneDayData(int index, Date date) {
-        downloadDate = date;
+       // downloadDate = date;
         byte[] order = protocolHelper.createOrderDownloadOneDayData(index,date);
         UdpClientHelper.getInstance().sendMsg(order);
     }

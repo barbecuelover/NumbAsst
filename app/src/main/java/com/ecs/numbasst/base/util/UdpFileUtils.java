@@ -23,6 +23,8 @@ public class UdpFileUtils {
 
             String name = fileName.trim();
             String dirs = DataKeeper.downloadPath + "ID_" + name + "/";
+
+            Log.d("zwcc","创建文件夹 dirs = " +dirs);
             file = new File(DataKeeper.downloadPath);
             if (!file.exists()) {
                 file.mkdir();
@@ -34,6 +36,7 @@ public class UdpFileUtils {
 
             String path = dirs + name + ".dat";
             file = new File(path);
+            Log.d("zwcc","创建文件 path = " +path);
             try {
                 if (file.exists()) {
                     file.delete();

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -160,6 +161,22 @@ public class WifiDebugActivity extends BaseActionBarActivity {
 
     }
 
+
+    ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(Network network) {
+            // do success processing here..
+            Log.d("zwcc","onAvailable");
+        }
+
+        @Override
+        public void onUnavailable() {
+            // do failure processing here..
+            Log.d("zwcc","onUnavailable");
+        }
+    };
+
+
     //"LIEWEI"
     private boolean checkPhoneWifi(String name,String password){
         //WifiManager mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -181,8 +198,18 @@ public class WifiDebugActivity extends BaseActionBarActivity {
             }
             //连接指定wifi
             Log.d(ZWCC,"WIFI未连接指定网络，开始连接WIFI = " +name);
-            WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+            WifiUtils.wifiConnect(WifiDebugActivity.this,mWifiManager,networkCallback,name,password);
+
+           // WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
         }else {
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateState("正在尝试打开手持设备Wifi开关...");
+                }
+            });
+
             mWifiManager.setWifiEnabled(true);
             //打开wifi
             //循环等待WIFI变成 Enable
@@ -210,7 +237,8 @@ public class WifiDebugActivity extends BaseActionBarActivity {
                     }
                 });
             }else {
-                WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+                //WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+                WifiUtils.wifiConnect(WifiDebugActivity.this,mWifiManager,networkCallback,name,password);
             }
         }
         return false;

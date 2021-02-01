@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -22,6 +23,7 @@ import com.ecs.numbasst.base.util.WifiUtils;
 import com.ecs.numbasst.manager.UdpClientHelper;
 import com.ecs.numbasst.manager.msg.DownloadMsg;
 import com.ecs.numbasst.manager.msg.WifiMsg;
+import com.ecs.numbasst.ui.debug.WifiDebugActivity;
 import com.ecs.numbasst.view.DialogDatePicker;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -328,6 +330,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
      * 下载前的准备工作
      * ----Ble协议----
      * 1.获取设备WIFI name
+     * 2.打开设备WIFI
+     *
      * ---手机APP-----
      * 2.连接设备Wifi
      * ----wifi协议-----
@@ -360,14 +364,19 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         if (state == WifiMsg.WIFI_NAME) {
             wifiName = msg.getName();
             updateState("获取WIFI的名称："+wifiName);
+            if (manager.isConnected()) {
+                manager.openWifi();
+                updateState("准备打开设备WIFI");
+            }else{
+                showToast(getString(R.string.check_device_connection));
+            }
+        }else if (state == WifiMsg.WIFI_OPEN_SUCCEED){
+            updateState("WIFI打开成功");
             //2.准备手机连接WIFI
             if(checkPhoneWifi(wifiName, UdpClientHelper.PASS_WORD)){
                 //3.开始UDP协议通讯
                 testUdp();
             }
-
-        }else if (state == WifiMsg.WIFI_OPEN_SUCCEED){
-            updateState("WIFI打开成功");
         }else if (state == WifiMsg.WIFI_OPEN_FAILED){
             updateState("WIFI打开失败");
         }else if (state == WifiMsg.WIFI_CLOSE_SUCCEED){
@@ -377,6 +386,20 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         }
     }
 
+
+    ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(Network network) {
+            // do success processing here..
+            Log.d("zwcc","onAvailable");
+        }
+
+        @Override
+        public void onUnavailable() {
+            // do failure processing here..
+            Log.d("zwcc","onUnavailable");
+        }
+    };
 
 
     //"LIEWEI"
@@ -395,13 +418,22 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                 Log.d(ZWCC,"指定网络为   = "+name);
                 if (tarSSID.equals(ssid)){
                     //证明当前连接的设备就是要连接的设备。即已完成连接。
+                    Log.d(ZWCC,"WIFI 早已连接指定网络不需要进行连接 = "+name);
                     return true;
                 }
             }
             //连接指定wifi
             Log.d(ZWCC,"WIFI未连接指定网络，开始连接WIFI = " +name);
-            WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+//            WifiUtils.connectWifi(DataDownloadActivity.this,mWifiManager,name,password ,"WPA");
+            WifiUtils.wifiConnect(DataDownloadActivity.this,mWifiManager,networkCallback,name,password);
         }else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateState("正在尝试打开手持设备Wifi开关...");
+                }
+            });
+
             mWifiManager.setWifiEnabled(true);
             //打开wifi
             //循环等待WIFI变成 Enable
@@ -429,7 +461,9 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                     }
                 });
             }else {
-                WifiUtils.connectWifi(mWifiManager,name,password ,"WPA");
+          //      WifiUtils.connectWifi(DataDownloadActivity.this,mWifiManager,name,password ,"WPA");
+                WifiUtils.wifiConnect(DataDownloadActivity.this,mWifiManager,networkCallback,name,password);
+
             }
         }
         return false;

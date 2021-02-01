@@ -19,7 +19,7 @@ public class UdpClientHelper {
 
     private static final String TAG = "zwcc";
 
-    public static final String PASS_WORD = "12345678";
+    public static final String PASS_WORD = "LIEWEI66";
 
     private static final String  SERVER_IP="192.168.90.33";//目标ip
     //private static final String  SERVER_IP="192.168.0.100";//目标ip

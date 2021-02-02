@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.msg.CrcErrorMsg;
+import com.ecs.numbasst.manager.msg.ErrorMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.view.TopActionBar;
 import org.greenrobot.eventbus.EventBus;
@@ -52,7 +53,10 @@ public abstract class BaseActionBarActivity extends BaseActivity {
         showToast("收到CRC校验失败的指令！");
     }
 
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onError(ErrorMsg msg) {
+        hideProgressBar();
+    }
 
     public void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();

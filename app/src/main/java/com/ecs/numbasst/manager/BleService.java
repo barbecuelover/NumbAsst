@@ -18,6 +18,8 @@ import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -40,6 +42,7 @@ import com.ecs.numbasst.manager.msg.CrcErrorMsg;
 import com.ecs.numbasst.manager.msg.DebuggingMsg;
 import com.ecs.numbasst.manager.msg.DeviceIDMsg;
 import com.ecs.numbasst.manager.msg.DownloadMsg;
+import com.ecs.numbasst.manager.msg.ErrorMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.manager.msg.TimeMsg;
@@ -121,11 +124,15 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     DateFormat formatterDay;
     WifiManager mWifiManager;
+
+    Handler mainHandler;
+
     @Override
     public void onCreate() {
         super.onCreate();
         initialize();
         pkgHandler = new Handler();
+        mainHandler = new Handler(Looper.getMainLooper());
         protocolHelper = new ProtocolHelper();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         pkgMsg = new UnitUpdateMsg(UnitUpdateMsg.TRANSFER_PROGRESS_CHANGED);
@@ -363,17 +370,32 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
-            final byte[] data = characteristic.getValue();
-            //主机返回消息,取消当前 重试计时器
-            if (retryTimer != null) {
-                retryTimer.cancel();
+
+            try {
+                final byte[] data = characteristic.getValue();
+                //主机返回消息,取消当前 重试计时器
+                if (retryTimer != null) {
+                    retryTimer.cancel();
+                }
+                if (inDebugging) {
+                    DebuggingMsg debuggingMsg = new DebuggingMsg(data);
+                    EventBus.getDefault().post(debuggingMsg);
+                }
+                Log.d(ZWCC, "onCharacteristicChanged 收到主机指令 = " + ByteUtils.bytesToString16(data));
+                handleMsgFromBleDevice(data);
+            }catch (Exception e){
+                e.printStackTrace();
+                EventBus.getDefault().post(new ErrorMsg());
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(),"错误："+e.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
+
             }
-            if (inDebugging) {
-                DebuggingMsg debuggingMsg = new DebuggingMsg(data);
-                EventBus.getDefault().post(debuggingMsg);
-            }
-            Log.d(ZWCC, "onCharacteristicChanged 收到主机指令 = " + ByteUtils.bytesToString16(data));
-            handleMsgFromBleDevice(data);
+
+
         }
 
         //Will call this when write successful

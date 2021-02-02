@@ -111,7 +111,6 @@ public class VersionInfoActivity extends BaseActionBarActivity {
         }
 
         executor.execute(getVersionTask);
-        showToast("查询版本号中");
         showProgressBar();
     }
 

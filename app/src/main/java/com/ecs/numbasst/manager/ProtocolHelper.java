@@ -309,10 +309,10 @@ public class ProtocolHelper {
      *        UNIT_MAIN_CONTROL :主控单元
      *        UNIT_INDICATE :指示单元
      */
-    public byte[] createOrderUpdateUnitRequest(int unitType, long fileSize, File file) {
+    public byte[] createOrderUpdateUnitRequest(int unitType, File file) {
 
-        byte[] size = ByteUtils.longToLow4Byte(fileSize);
-        Log.d(TAG, "createOrder##UpdateUnitRequest  file.length =" + fileSize);
+        byte[] size = ByteUtils.longToLow4Byte(file.length());
+        Log.d(TAG, "createOrder##UpdateUnitRequest  file.length =" + file.length());
         Log.d(TAG, "createOrder##UpdateUnitRequest  size =" +  ByteUtils.bytesToString16(size));
         byte[] fileCrc = CrcUtils.crc16Table(ByteUtils.getFile2Bytes(file.getAbsolutePath()));
         Log.d("zwcc","文件Crc16校验 = " +ByteUtils.bytesToString16(fileCrc));

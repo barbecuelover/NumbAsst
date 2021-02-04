@@ -1,6 +1,7 @@
 package com.ecs.numbasst;
 
 import com.ecs.numbasst.base.util.ByteUtils;
+import com.ecs.numbasst.base.util.CrcUtils;
 import com.ecs.numbasst.base.util.UdpFileUtils;
 
 import org.junit.Test;
@@ -97,11 +98,11 @@ public class ExampleUnitTest2 {
         byte[] data1 = {0x55,0x01,0x05,0x01,0x58,0x02,0x58,0x02,(byte)0x93};
 
         //55 01 08 02 22 1D 48 00 62 4A 00 9D
-        byte[] data2 = {0x55,0x01,0x08,0x02,0x22,0x1D,0x48,0x00,0x62,0x4A,0x00,(byte)0x9D};
+        byte[] data2 = {(byte)0x12, (byte) 0xAC, (byte)0x40,(byte) 0x09, (byte)0x44, (byte)0x90, (byte)0x33};
 
-        byte[] crcData2=  crc16Table(data2);
+        byte[] crcData2=  CrcUtils.crc16Table(data2);
 //
-//        System.out.println(ByteUtils.bytes4LowToLong(data));
+       System.out.println(ByteUtils.bytesToString16(crcData2));
 
 //
 //        List<Long> longList = new ArrayList<>();
@@ -115,7 +116,7 @@ public class ExampleUnitTest2 {
 
 
 
-        System.out.println( new String (data0));
+       // System.out.println( new String (data0));
 
 
     }

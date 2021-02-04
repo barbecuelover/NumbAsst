@@ -805,7 +805,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         int more = file.length() % 1024 == 0 ? 0 : 1;
         totalPackage = file.length() / 1024 + more;
         Log.d(ZWCC, "totalPackage =" + totalPackage);
-        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, totalPackage * 1024,file);
+        // totalPackage * 1024 补0大小
+        byte[] order = protocolHelper.createOrderUpdateUnitRequest(unitType, file);
         this.unitType = unitType;
         writeDataWithRetry(order);
     }
@@ -909,7 +910,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     Log.d(ZWCC, " 已发送流水号 = " + i );
                     //Test
                     try {
-                        Thread.sleep(20);
+                        Thread.sleep(30);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

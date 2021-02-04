@@ -1,9 +1,12 @@
 package com.ecs.numbasst.ui.update;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -52,6 +55,7 @@ public class UpdateUnitActivity extends BaseActionBarActivity {
 
     private ArrayAdapter adapter;
     List<String> fileList = new ArrayList();
+    AlertDialog updateDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +88,34 @@ public class UpdateUnitActivity extends BaseActionBarActivity {
         adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, fileList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerFile.setAdapter(adapter);
+
+        AlertDialog.Builder loadingBuilder = new AlertDialog.Builder(this);
+        loadingBuilder.setTitle("");
+        loadingBuilder.setMessage("取消升级中...");
+        loadingBuilder.setCancelable(false);
+        AlertDialog cancelDialog = loadingBuilder.create();
+
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("单元升级");
+        builder.setMessage("升级过程中请耐心等待...");
+        builder.setNegativeButton("取消升级", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                manager.cancelAction();
+                cancelDialog.show();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        cancelDialog.dismiss();
+                        resetUI();
+                    }
+                },6000);
+            }
+        });
+        builder.setCancelable(false);
+        updateDialog = builder.create();
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -159,6 +191,7 @@ public class UpdateUnitActivity extends BaseActionBarActivity {
             finish();
         } else if (id == R.id.btn_update_unit) {
             prepareUnitUpdate();
+            //updateDialog.show();
         } else if (id == R.id.btn_select_file) {
             openFileExplorer();
         }
@@ -170,8 +203,8 @@ public class UpdateUnitActivity extends BaseActionBarActivity {
     }
 
     private void sendFile2Device() {
-        showProgressBar();
         BleServiceManager.getInstance().updateUnitTransfer(path);
+        updateDialog.show();
     }
 
     private void prepareUnitUpdate() {
@@ -207,6 +240,15 @@ public class UpdateUnitActivity extends BaseActionBarActivity {
     private void updateUnitStatus(String msg) {
         hideProgressBar();
         unitStatus.setText(msg);
+        updateDialog.dismiss();
+    }
+
+    private void resetUI(){
+        progressBarProcess.setProgress(0);
+        tvProcess.setText( "0%");
+        updateDialog.dismiss();
+        hideProgressBar();
+        unitStatus.setText("更新状态");
     }
 
 

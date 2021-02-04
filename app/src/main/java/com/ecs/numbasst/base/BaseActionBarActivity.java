@@ -62,9 +62,16 @@ public abstract class BaseActionBarActivity extends BaseActivity {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        manager.cancelAction();
         EventBus.getDefault().unregister(this);
     }
 

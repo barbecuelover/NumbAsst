@@ -261,6 +261,9 @@ public class DevicesScanActivity extends BaseActionBarActivity {
         showDialog("连接设备", "是否要连接设备：" + device.getName(), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                if(manager.isConnected()){
+                    manager.disconnect();
+                }
                 manager.connect(device.getAddress());
                 device.setStatus(DeviceListAdapter.STATUS_CONNECTING);
                 adapter.notifyDataSetChanged();

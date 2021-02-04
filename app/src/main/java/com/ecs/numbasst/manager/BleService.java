@@ -541,6 +541,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 break;
             //升级Unit传输1kb包过程中返回信息
             case ProtocolHelper.TYPE_UNIT_UPDATE_FILE_TRANSFER:
+                if(totalPackage < 0){
+                    Log.d(ZWCC,"已经取消升级或者未开始升级 总包数为0");
+                    break;
+                }
                 byte transferIndex = content[0];
                 if (transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED) {
                     //1kb已经传完开始下一个1kb
@@ -563,7 +567,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     handlePacketLost(transferIndex+1);
                     //send1KBPackageFromIndex(transferIndex+1);
                 } else if (transferIndex == 0x65) {
-                    handlePacketLost(0);;
+                    handlePacketLost(0);
                     /**
                      #define ERR_NOT_0x21    100  //C 第1个数据包不是0x21（更新软件准备).
                      #define ERR_NOT_SEQ_0    101  //C 等待流水号为0的数据包，收到的数据包流水号不为0。
@@ -859,7 +863,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             retryTimer.cancel();
         }
         if (pkgHandler != null) {
-            pkgHandler.removeCallbacksAndMessages(null);
+            resetTask();
+            totalPackage = -1;
         }
     }
 
@@ -904,7 +909,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                     Log.d(ZWCC, " 已发送流水号 = " + i );
                     //Test
                     try {
-                        Thread.sleep(30);
+                        Thread.sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

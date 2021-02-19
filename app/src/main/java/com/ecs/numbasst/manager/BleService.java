@@ -76,6 +76,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private static final int RETRY_TIMEOUT = 20 * 1000;
     private static final int RETRY_TIMES = 3;
 
+
+    private static final int UDP_RETRY_TIMEOUT = 4 * 1000;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private String mBluetoothDeviceAddress;
@@ -93,6 +95,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     private boolean inDebugging;
 
     private CountDownTimer retryTimer;
+    private CountDownTimer udpTimer;
     int times = 0;
     private List<byte[]> updateList;
 
@@ -153,6 +156,9 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     public void formatDownloadReply(byte[] data){
         if (data==null || data.length<3){
             return ;
+        }
+        if (udpTimer != null) {
+            udpTimer.cancel();
         }
 
         byte type = data[0];
@@ -263,11 +269,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     @Override
     public void connectWifi(String name) {
 
-
-
     }
-
-
 
 
     @Override
@@ -832,23 +834,24 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     @Override
     public void downloadDataRequest(Date startTime, Date endTime) {
-//        byte[] order = protocolHelper.createOrderDownloadRequest(startTime, endTime);
-//        writeDataWithRetry(order);
         byte[] order = protocolHelper.createOrderDownloadAllFilesRequest();
-        UdpClientHelper.getInstance().sendMsg(order);
+        //UdpClientHelper.getInstance().sendMsg(order);
+        sendUdpWithRetry(order);
     }
 
     @Override
     public void downloadOneDayData(int index, Date date) {
        // downloadDate = date;
         byte[] order = protocolHelper.createOrderDownloadOneDayData(index,date);
-        UdpClientHelper.getInstance().sendMsg(order);
+        //UdpClientHelper.getInstance().sendMsg(order);
+        sendUdpWithRetry(order);
     }
 
     @Override
     public void stopDownload() {
         byte[] order = protocolHelper.createOrderDownloadStop(0);
-        UdpClientHelper.getInstance().sendMsg(order);
+        //UdpClientHelper.getInstance().sendMsg(order);
+        sendUdpWithRetry(order);
     }
 
 
@@ -1021,6 +1024,30 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
         }
+    }
+
+
+    private void sendUdpWithRetry(byte[] data) {
+        if (udpTimer != null) {
+            udpTimer.cancel();
+        }
+        UdpClientHelper.getInstance().sendMsg(data);
+        times = 0;
+        udpTimer = new CountDownTimer(UDP_RETRY_TIMEOUT * RETRY_TIMES + 1000, UDP_RETRY_TIMEOUT) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                if(times!=0){
+                    Log.d(ZWCC, "重新尝试udp通讯");
+                    UdpClientHelper.getInstance().sendMsg(data);
+                }
+                times ++;
+            }
+            @Override
+            public void onFinish() {
+                //3次重试失败
+                Log.d(ZWCC, "UDP多次尝试通讯失败");
+            }
+        }.start();
     }
 
     private void writeDataWithRetry(byte[] data) {

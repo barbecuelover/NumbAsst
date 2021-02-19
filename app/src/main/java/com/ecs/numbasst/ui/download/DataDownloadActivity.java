@@ -151,6 +151,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     public void onDownload(DownloadMsg msg) {
         int state = msg.getMsgType();
         if (state == DownloadMsg.DOWNLOAD_ALL_FILES) {
+            isDownloadingListenWifi = false;
             resetList();
             allFiles = msg.getFiles();
             if (allFiles == null || allFiles.size() == 0) {
@@ -220,7 +221,9 @@ public class DataDownloadActivity extends BaseActionBarActivity {
             isDownloadingListenWifi = false;
             hideProgressBar();
             resetList();
-
+            if (mWifiManager!=null){
+                mWifiManager.disconnect();
+            }
             //6.关闭WIFI
             if (manager.isConnected()) {
                 manager.closeWifi();
@@ -333,7 +336,6 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         //3.查询文件数量
         manager.downloadDataRequest(startDate, endDate);
         //开始UDP协议后， 理论上就不用监听 WIFI状态了 说明WIFI已经连接上了
-        isDownloadingListenWifi = false;
         showProgressBar();
     }
 
@@ -430,7 +432,10 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                 if (tarSSID.equals(ssid)){
                     //证明当前连接的设备就是要连接的设备。即已完成连接。
                     Log.d(ZWCC,"WIFI 早已连接指定网络不需要进行连接 = "+name);
-                    return true;
+                    updateState("WIFI 早已连接指定网络");
+                   // showToast("WIFI 早已连接指定网络");
+                    WifiUtils.wifiConnect(DataDownloadActivity.this,mWifiManager,networkCallback,name,password);
+                    return false;
                 }
             }
             //连接指定wifi
@@ -520,7 +525,6 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                     }
                 }
             } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
-
 
                 //监听wifi连接状态
                 NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);

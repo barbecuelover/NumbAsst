@@ -212,12 +212,7 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
         }
     }
 
-    @Override
-    public void replyDownloadConfirm(boolean download) {
-        if (bleService != null) {
-            bleService.replyDownloadConfirm(download);
-        }
-    }
+
 
     @Override
     public void downloadOneDayData(int index,Date date){
@@ -235,7 +230,6 @@ public class BleServiceManager implements SppInterface, IState,ICarNumber,IUpdat
 
 
     ///6.传感器校准
-
     @Override
     public void adjustSensor(int type, int pressure) {
         if (bleService != null) {

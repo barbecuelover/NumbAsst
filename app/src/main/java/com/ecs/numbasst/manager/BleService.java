@@ -839,12 +839,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     }
 
     @Override
-    public void replyDownloadConfirm(boolean download) {
-        byte[] order = protocolHelper.createOrderReplyDownloadConfirm(download);
-        writeDataWithRetry(order);
-    }
-
-    @Override
     public void downloadOneDayData(int index, Date date) {
        // downloadDate = date;
         byte[] order = protocolHelper.createOrderDownloadOneDayData(index,date);

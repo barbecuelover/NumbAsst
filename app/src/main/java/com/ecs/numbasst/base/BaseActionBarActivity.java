@@ -26,7 +26,7 @@ import org.greenrobot.eventbus.ThreadMode;
  */
 public abstract class BaseActionBarActivity extends BaseActivity {
 
-    private final static int loadingTimeOut = 10 * 1000;
+    private final static int loadingTimeOut = 12 * 1000;
     public TopActionBar actionBar;
     ProgressBar progressBar;
     public BleServiceManager manager;

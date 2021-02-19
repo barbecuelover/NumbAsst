@@ -11,6 +11,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -73,6 +74,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     private TextView tvFilesPercent;
     WifiManager mWifiManager;
     private WifiBroadcastReceiver wifiBroadcastReceiver;
+    private Handler downLoadHandler;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +103,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     @Override
     protected void initData() {
         mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        downLoadHandler = new Handler();
         wifiBroadcastReceiver = new  WifiBroadcastReceiver();
         dateFormat = new SimpleDateFormat("yyy-MM-dd", Locale.getDefault());
         nameFormat = new SimpleDateFormat("yyyMMdd", Locale.getDefault());
@@ -529,9 +533,15 @@ public class DataDownloadActivity extends BaseActionBarActivity {
                     updateState("\n 连接状态：wifi已连接，wifi名称：" + ssid);
                     String  shouldSSID = "\""+wifiName+"\"";
                     if (isDownloadingListenWifi && shouldSSID.equals(ssid)){
-                        //3.
-                        updateState("\nWifi已连接，开始查询文件列表" );
-                        testUdp();
+                        //3.由于手持设备WIFI 发出广播后过一段时间才会是真正的链接上了。所以加了点延迟
+                        downLoadHandler.removeCallbacksAndMessages(null);
+                        downLoadHandler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateState("\nWifi已连接，开始查询文件列表" );
+                                testUdp();
+                            }
+                        },3000);
                     }
 
                 } else if (NetworkInfo.State.CONNECTING == info.getState()) {//正在连接

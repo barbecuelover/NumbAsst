@@ -28,8 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
-import com.ecs.numbasst.base.util.SharePreUtil;
-import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.msg.ConnectionMsg;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -46,7 +44,8 @@ public class DevicesScanActivity extends BaseActionBarActivity {
     private static final long CONNECT_TIME_OUT = 12 * 1000;
 
     private BluetoothAdapter mBluetoothAdapter;
-    private Handler mHandler;
+    private Handler mScanHandler;
+    private Handler mConnectHandler;
     private DeviceListAdapter adapter;
     private RecyclerView recyclerViewDeviceList;
     private List<BleDeviceInfo> deviceList = new ArrayList<>();
@@ -55,10 +54,10 @@ public class DevicesScanActivity extends BaseActionBarActivity {
     private ImageButton btnRefresh;
     private BluetoothLeScanner mLeScanner;
     private boolean mScanning;
-    private SharePreUtil sharePreUtil;
-    private String preConnectedDeviceMac;
+//    private SharePreUtil sharePreUtil;
+//    private String preConnectedDeviceMac;
 
-    private BleServiceManager manager;
+//    private BleServiceManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +82,7 @@ public class DevicesScanActivity extends BaseActionBarActivity {
         }
         deviceList.clear();
         BluetoothDevice bluetoothDevice = manager.getConnectedDevice();
-        if (bluetoothDevice != null && !preConnectedDeviceMac.equals("")) {
+        if (bluetoothDevice != null ) {
             BleDeviceInfo connectedDevice = new BleDeviceInfo(bluetoothDevice.getAddress(), bluetoothDevice.getName());
             connectedDevice.setStatus(DeviceListAdapter.STATUS_CONNECTED);
             deviceList.add(connectedDevice);
@@ -108,11 +107,12 @@ public class DevicesScanActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
-        manager = BleServiceManager.getInstance();
-        sharePreUtil = new SharePreUtil(this, SharePreUtil.CONNECTED_DEVICE);
-        preConnectedDeviceMac = sharePreUtil.getValue(SharePreUtil.DEVICE_MAC, "");
-        Log.d(TAG, "initData: preConnectedDeviceMac=" + preConnectedDeviceMac);
-        mHandler = new Handler();
+//        manager = BleServiceManager.getInstance();
+//        sharePreUtil = new SharePreUtil(this, SharePreUtil.CONNECTED_DEVICE);
+//        preConnectedDeviceMac = sharePreUtil.getValue(SharePreUtil.DEVICE_MAC, "");
+//        Log.d(TAG, "initData: preConnectedDeviceMac=" + preConnectedDeviceMac);
+        mScanHandler = new Handler();
+        mConnectHandler = new Handler();
         adapter = new DeviceListAdapter(deviceList);
         adapter.setHasStableIds(true);
         recyclerViewDeviceList.setAdapter(adapter);
@@ -153,21 +153,25 @@ public class DevicesScanActivity extends BaseActionBarActivity {
 
 
     private void handleDisconnection(String reason) {
-        showToast(reason);
+        Log.d("zwcc","handleDisconnection = " +reason);
         for (BleDeviceInfo deviceInfo : deviceList) {
             deviceInfo.resetStatus();
         }
         resetConnectionStatus();
-        preConnectedDeviceMac = "";
-        sharePreUtil.setValue(SharePreUtil.DEVICE_MAC, "");
+//        preConnectedDeviceMac = "";
+//        sharePreUtil.setValue(SharePreUtil.DEVICE_MAC, "");
+
+
+
     }
 
     private void handleConnectionSucceed(String mac) {
+        Log.d("zwcc","handleConnectionSucceed = " +mac);
 //        if (!mac.equals(sharePreUtil.getValue(SharePreUtil.DEVICE_MAC,""))){
 //            sharePreUtil.setValue(SharePreUtil.DEVICE_MAC,mac);
 //        }
-        sharePreUtil.setValue(SharePreUtil.DEVICE_MAC, mac);
-        preConnectedDeviceMac = mac;
+//        sharePreUtil.setValue(SharePreUtil.DEVICE_MAC, mac);
+//        preConnectedDeviceMac = mac;
         for (int i = 0; i < deviceList.size(); i++) {
             BleDeviceInfo device = deviceList.get(i);
             if (device.getAddress().equals(mac)) {
@@ -183,9 +187,12 @@ public class DevicesScanActivity extends BaseActionBarActivity {
 
     private void resetConnectionStatus() {
         adapter.notifyDataSetChanged();
-        //mHandler.removeCallbacksAndMessages(null);
-        if (!mScanning) {
-            hideProgressBar();
+        mConnectHandler.removeCallbacksAndMessages(null);
+        hideProgressBar();
+        if (mScanning) {
+            mScanHandler.removeCallbacksAndMessages(null);
+            mScanning = false;
+            mLeScanner.stopScan(scanCallback);
         }
     }
 
@@ -222,10 +229,10 @@ public class DevicesScanActivity extends BaseActionBarActivity {
                 }
                 BleDeviceInfo bleDeviceInfo = new BleDeviceInfo(device.getAddress(), device.getName());
                 //如果扫描到上次连接过的设备，则自动连接
-                if (device.getAddress().equals(preConnectedDeviceMac)) {
-                    bleDeviceInfo.setStatus(DeviceListAdapter.STATUS_CONNECTING);
-                    manager.connect(device.getAddress());
-                }
+//                if (device.getAddress().equals(preConnectedDeviceMac)) {
+//                    bleDeviceInfo.setStatus(DeviceListAdapter.STATUS_CONNECTING);
+//                    manager.connect(device.getAddress());
+//                }
                 deviceList.add(bleDeviceInfo);
                 adapter.notifyDataSetChanged();
                 updateDeviceCountView();
@@ -237,7 +244,7 @@ public class DevicesScanActivity extends BaseActionBarActivity {
         if (enable) {
             showProgressBar();
             // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
+            mScanHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mScanning = false;
@@ -268,12 +275,13 @@ public class DevicesScanActivity extends BaseActionBarActivity {
                 device.setStatus(DeviceListAdapter.STATUS_CONNECTING);
                 adapter.notifyDataSetChanged();
                 showProgressBar();
-                mHandler.postDelayed(new Runnable() {
+                mConnectHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         hideProgressBar();
                         device.resetStatus();
                         adapter.notifyDataSetChanged();
+                        Log.d("zwcc","postDelayed showConnectDialog");
                     }
                 }, CONNECT_TIME_OUT);
             }
@@ -286,7 +294,7 @@ public class DevicesScanActivity extends BaseActionBarActivity {
             public void onClick(DialogInterface dialog, int which) {
                 manager.disconnect();
                 showProgressBar();
-                mHandler.postDelayed(new Runnable() {
+                mConnectHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         hideProgressBar();
@@ -315,8 +323,8 @@ public class DevicesScanActivity extends BaseActionBarActivity {
     protected void onPause() {
         super.onPause();
         scanLeDevice(false);
-        if (mHandler != null) {
-            mHandler.removeCallbacksAndMessages(null);
+        if (mScanHandler != null) {
+            mScanHandler.removeCallbacksAndMessages(null);
         }
         adapter.clear();
     }

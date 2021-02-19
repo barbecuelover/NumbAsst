@@ -2,17 +2,20 @@ package com.ecs.numbasst.base;
 
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.Handler;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.manager.BleServiceManager;
 import com.ecs.numbasst.manager.msg.CrcErrorMsg;
 import com.ecs.numbasst.manager.msg.ErrorMsg;
 import com.ecs.numbasst.manager.msg.RetryMsg;
 import com.ecs.numbasst.view.TopActionBar;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -23,9 +26,12 @@ import org.greenrobot.eventbus.ThreadMode;
  */
 public abstract class BaseActionBarActivity extends BaseActivity {
 
+    private final static int loadingTimeOut = 10 * 1000;
     public TopActionBar actionBar;
     ProgressBar progressBar;
     public BleServiceManager manager;
+    public Handler loadingHandler;
+    private Runnable runnable;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,6 +43,14 @@ public abstract class BaseActionBarActivity extends BaseActivity {
         actionBar.setOnClickRefreshListener(this);
         progressBar = findViewById(R.id.progress_bar_status);
         EventBus.getDefault().register(this);
+        loadingHandler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                progressBar.setVisibility(View.GONE);
+            }
+        };
+
     }
 
 
@@ -72,32 +86,36 @@ public abstract class BaseActionBarActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         manager.cancelAction();
+        loadingHandler.removeCallbacksAndMessages(null);
         EventBus.getDefault().unregister(this);
     }
 
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        if (id == actionBar.getViewBackID()){
+        if (id == actionBar.getViewBackID()) {
             finish();
-        }else if (id == actionBar.getViewRefreshID()){
+        } else if (id == actionBar.getViewRefreshID()) {
             onRefreshAll();
         }
     }
 
-    public  abstract void onRefreshAll();
+    public abstract void onRefreshAll();
     //public abstract void retryFailed();
 
-    public boolean inProgressing(){
-        return  progressBar.getVisibility() == View.VISIBLE;
+    public boolean inProgressing() {
+        return progressBar.getVisibility() == View.VISIBLE;
     }
 
-    public void showProgressBar(){
+    public void showProgressBar() {
         progressBar.setVisibility(View.VISIBLE);
+        loadingHandler.removeCallbacksAndMessages(null);
+        loadingHandler.postDelayed(runnable, loadingTimeOut);
     }
 
-    public void hideProgressBar(){
+    public void hideProgressBar() {
         progressBar.setVisibility(View.GONE);
+        loadingHandler.removeCallbacksAndMessages(null);
     }
 
 }

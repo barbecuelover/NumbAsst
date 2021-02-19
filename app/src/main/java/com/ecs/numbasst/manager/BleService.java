@@ -611,7 +611,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         executorService.execute(new Runnable() {
             @Override
             public void run() {
-                Log.d(ZWCC,"收到丢包指令 ,加入中断旧任务 ");
+                Log.d(ZWCC,"中断旧任务 ");
             }
         });
 
@@ -680,16 +680,16 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             }
         }
         // Previously connected device.  Try to reconnect.
-        if (address != null && address.equals(mBluetoothDeviceAddress)
-                && mBluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
-            if (mBluetoothGatt.connect()) {
-                mConnectionState = STATE_CONNECTING;
-            } else {
-                EventBus.getDefault().post(new ConnectionMsg("RemoteException，连接失败！"));
-            }
-            return;
-        }
+//        if (address != null && address.equals(mBluetoothDeviceAddress)
+//                && mBluetoothGatt != null) {
+//            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
+//            if (mBluetoothGatt.connect()) {
+//                mConnectionState = STATE_CONNECTING;
+//            } else {
+//                EventBus.getDefault().post(new ConnectionMsg("RemoteException，连接失败！"));
+//            }
+//            return;
+//        }
 
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {

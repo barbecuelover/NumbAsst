@@ -745,13 +745,13 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     @Override
     public void getDeviceState(int unit,int type) {
         byte[] order = protocolHelper.createOrderGetDeviceStatus(unit,type);
-        writeDataWithRetry(order);
+        writeData(order);
     }
 
     @Override
     public void getDeviceVersion(int unitType) {
         byte[] order = protocolHelper.createOrderVersionInfo(unitType);
-        writeDataWithRetry(order);
+        writeData(order);
     }
 
     @Override
@@ -914,7 +914,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 }
                 Log.d(ZWCC, " send1KBPackage  currentPkg = " + curUpdatePackage);
                 //每个1kb 发送完成后等待200ms如果没收到服务器指令说明出现丢最后一个包的情况。发送63包，再等待如果还没收到服务器指令则升级失败。
-                for (int i=0;i<10;i++){
+                for (int i=0;i<50;i++){
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
@@ -932,7 +932,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 writeData(updateList.get(updateList.size()-1));
                 Log.d(ZWCC, " 出现丢最后一包 ,重新发送最后一包");
 
-                for (int i=0;i<10;i++){
+                for (int i=0;i<50;i++){
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {

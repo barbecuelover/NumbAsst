@@ -316,6 +316,7 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         } else if (id == R.id.btn_download_data) {
             //prepareDownloadData();
             //testUdp();
+            resetUI();
             showDialog("数据下载","是否要下载 " + tvStartTime.getText() + "到"+tvEndTime.getText()+"之间的文件？","是","否", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -329,6 +330,14 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     @Override
     public void onRefreshAll() {
 
+    }
+
+    private void  resetUI(){
+        progressBarFiles.setProgress(0);
+        progressBarDownload.setProgress(0);
+        tvProgressPercent.setText("0%");
+        tvFilesPercent.setText("0/0");
+        tvStatus.setText("下载状态");
     }
 
 

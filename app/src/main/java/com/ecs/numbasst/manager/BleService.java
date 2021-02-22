@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaScannerConnection;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
@@ -230,6 +231,11 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 Log.d(ZWCC,"返回一文件传输完成 ："+ downloadDate.toString() );
                 if (udpFileUtils!=null){
                     udpFileUtils.close();
+                    try {
+                        MediaScannerConnection.scanFile(BleService.this,new String[]{udpFileUtils.getPath()},null,null);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
                 //通知主机文件传输完毕。
                 byte[] order= protocolHelper.createOrderDownloadFileCompleted(0,downloadDate,udpReceivedTotalPkg);

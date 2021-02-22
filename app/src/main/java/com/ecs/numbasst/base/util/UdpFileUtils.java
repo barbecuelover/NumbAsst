@@ -17,7 +17,7 @@ public class UdpFileUtils {
     private OutputStream out;
     File file;
     byte[] buff = new byte[1024];
-
+    String filePath = "";
     public UdpFileUtils(String fileName) {
         if (fileName != null && !fileName.equals("")) {
 
@@ -35,6 +35,7 @@ public class UdpFileUtils {
             }
 
             String path = dirs + name + ".dat";
+            filePath = path;
             file = new File(path);
             Log.d("zwcc","创建文件 path = " +path);
             try {
@@ -52,6 +53,11 @@ public class UdpFileUtils {
         }
 
     }
+
+    public String getPath(){
+        return filePath;
+    }
+
 
     public void writeBytesToFile(byte[] content) throws IOException {
         InputStream is = new ByteArrayInputStream(content);

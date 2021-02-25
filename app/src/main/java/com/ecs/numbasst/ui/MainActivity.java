@@ -175,10 +175,10 @@ public class MainActivity extends BaseActivity {
                 ,Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE
                         ,Manifest.permission.ACCESS_NETWORK_STATE,Manifest.permission.CHANGE_NETWORK_STATE}, REQUEST_ENABLE_WRITE_FILE);
             }else {
-                DataKeeper.init();
+                DataKeeper.init(MainActivity.this);
             }
         }else {
-            DataKeeper.init();
+            DataKeeper.init(MainActivity.this);
         }
     }
 
@@ -197,7 +197,7 @@ public class MainActivity extends BaseActivity {
         if (requestCode == REQUEST_ENABLE_WRITE_FILE && resultCode == Activity.RESULT_CANCELED) {
             finish();
         }else if(requestCode == REQUEST_ENABLE_WRITE_FILE && resultCode == Activity.RESULT_OK){
-            DataKeeper.init();
+            DataKeeper.init(MainActivity.this);
         }
         if (requestCode == REQUEST_ENABLE_WIFI && resultCode == Activity.RESULT_CANCELED) {
             finish();

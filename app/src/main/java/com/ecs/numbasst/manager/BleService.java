@@ -152,6 +152,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         formatterDay=new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
 
         mWifiManager = (WifiManager)this.getSystemService(Context.WIFI_SERVICE);
+
+
+
+
     }
 
     public void formatDownloadReply(byte[] data){
@@ -328,6 +332,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 if (gatt.getDevice().getAddress().equals(connectedDeviceAddress)) {
                     mConnectionState = STATE_DISCONNECTED;
                     connectedDeviceAddress = null;
+
+                    close();
 
                     ConnectionMsg state = new ConnectionMsg();
                     state.setState(ConnectionMsg.DISCONNECTED);
@@ -557,6 +563,10 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 if (transferIndex == ProtocolHelper.STATE_UPDATE_FILE_TRANSFER_1KB_COMPLETED) {
                     //1kb已经传完开始下一个1kb
                     curUpdatePackage++;
+
+//                    Log.d("zwccc","收到1K完成 curUpdatePackage =" +curUpdatePackage);
+                    Log.d("zwcc","收到1K完成 curUpdatePackage =" +curUpdatePackage);
+
                     int progress = (int)(curUpdatePackage *100 / totalPackage);
 
                     pkgMsg.setProgress(progress);
@@ -566,8 +576,13 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                         //传输完成
                         resetTask();
                         updateUnitCompletedResult(unitType, ProtocolHelper.STATE_SUCCEED);
-                    } else {
+                    } else if (curUpdatePackage < totalPackage){
                         sendWhole1KBPackage();
+                    }
+
+                    if (curUpdatePackage > totalPackage){
+                        resetTask();
+                        updateUnitCompletedResult(unitType, ProtocolHelper.STATE_FAILED);
                     }
 
                 } else if (transferIndex >= 0 && transferIndex < 63) {
@@ -698,6 +713,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 //            }
 //            return;
 //        }
+
 
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {

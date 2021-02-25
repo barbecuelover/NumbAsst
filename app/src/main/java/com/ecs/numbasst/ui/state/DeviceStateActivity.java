@@ -2,8 +2,10 @@ package com.ecs.numbasst.ui.state;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.ecs.numbasst.R;
@@ -19,6 +21,7 @@ import com.ecs.numbasst.ui.state.entity.BatteryInfo;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
 import com.ecs.numbasst.ui.state.entity.PipePressInfo;
 import com.ecs.numbasst.ui.state.entity.StateInfo;
+import com.ecs.numbasst.ui.state.entity.StoreInfo;
 import com.ecs.numbasst.ui.state.entity.TCUInfo;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -56,6 +59,9 @@ public class DeviceStateActivity extends BaseActionBarActivity {
 
     private ExecutorService executor;
     Runnable getStateTask;
+    private ImageButton ibStateRefreshStore;
+    private TextView tvStateStoreUsed;
+    private TextView tvStateStoreLeft;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +99,9 @@ public class DeviceStateActivity extends BaseActionBarActivity {
         tvStateSignalStrength1 =   findViewById(R.id.tv_state_signal_strength_1);
         tvStateSignalStrength2 =   findViewById(R.id.tv_state_signal_strength_2);
         btnErrorDetails = findViewById(R.id.btn_state_car_error_details);
+        ibStateRefreshStore = findViewById(R.id.ib_state_store_refresh);
+        tvStateStoreUsed = findViewById(R.id.tv_state_store_capacity_used);
+        tvStateStoreLeft= findViewById(R.id.tv_state_store_capacity_left);
     }
 
     @Override
@@ -119,6 +128,9 @@ public class DeviceStateActivity extends BaseActionBarActivity {
 
                         Thread.sleep(100);
                         manager.getDeviceID();
+                        Thread.sleep(100);
+                        manager.getDeviceState(ProtocolHelper.TYPE_DEVICE_STORE_STATUS,ProtocolHelper.DEVICE_STATUS_DATA_STORE);
+
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -164,6 +176,14 @@ public class DeviceStateActivity extends BaseActionBarActivity {
                     tvStateErrorContent.setText("故障");
                     tvStateErrorContent.setBackgroundColor(getResources().getColor(R.color.red));
                 }
+            }else if (info instanceof StoreInfo){
+                StoreInfo storeInfo = (StoreInfo)info;
+                LinearLayout.LayoutParams  paramsUsed = ( LinearLayout.LayoutParams )tvStateStoreUsed.getLayoutParams();
+                int total = storeInfo.getUsedSpace() + storeInfo.getFreeSpace();
+                paramsUsed.weight = storeInfo.getUsedSpace();
+                tvStateStoreUsed.setText(storeInfo.getUsedSpace() * 100 / total+"%");
+                LinearLayout.LayoutParams  paramsLeft = ( LinearLayout.LayoutParams )tvStateStoreLeft.getLayoutParams();
+                paramsLeft.weight = storeInfo.getFreeSpace();
             }
         }
     }
@@ -201,6 +221,7 @@ public class DeviceStateActivity extends BaseActionBarActivity {
         ibStateBatteryRefresh.setOnClickListener(this);
         ibStateTcuRefresh.setOnClickListener(this);
         btnErrorDetails.setOnClickListener(this);
+        ibStateRefreshStore.setOnClickListener(this);
     }
 
 
@@ -246,6 +267,11 @@ public class DeviceStateActivity extends BaseActionBarActivity {
             }
         }else if (id == R.id.btn_state_car_error_details){
             goActivity(ErrorDetailsActivity.class);
+        }else if (id == R.id.ib_state_store_refresh){
+            if (checkConnection()){
+                manager.getDeviceState(ProtocolHelper.TYPE_DEVICE_STORE_STATUS,ProtocolHelper.DEVICE_STATUS_DATA_STORE);
+                showProgressBar();
+            }
         }
     }
 

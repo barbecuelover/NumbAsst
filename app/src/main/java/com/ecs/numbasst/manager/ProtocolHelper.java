@@ -58,6 +58,7 @@ public class ProtocolHelper {
     public final static byte ADJUST_POINT_DEFAULT = 0x05;
     public final static byte ADJUST_ERROR = 0x06;
 
+    //升级所用的 每个单元对应的号，注意和 查询状态所用 不对应
     public final static byte UNIT_STORE = 0x01;
     public final static byte UNIT_MAIN_CONTROL = 0x02;
     public final static byte UNIT_INDICATE = 0x03;

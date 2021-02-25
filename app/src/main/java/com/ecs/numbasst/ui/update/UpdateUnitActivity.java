@@ -233,6 +233,8 @@ public class UpdateUnitActivity extends BaseActionBarActivity {
         int unitType = spinnerUnit.getSelectedItemPosition() + 1;
         showProgressBar();
         unitStatus.setText("更新 " + spinnerUnit.getSelectedItem().toString() + " 请求中...");
+        progressBarProcess.setProgress(0);
+        tvProcess.setText( "0%");
         BleServiceManager.getInstance().updateUnitRequest(unitType, file);
         //BleServiceManager.getInstance().updateUnitRequest(unitType , dataFile);
     }

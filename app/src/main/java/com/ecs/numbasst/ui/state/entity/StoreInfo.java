@@ -21,6 +21,13 @@ public class StoreInfo extends StateInfo {
         }
     }
 
+    public byte getUsedSpace() {
+        return usedSpace;
+    }
+
+    public byte getFreeSpace() {
+        return freeSpace;
+    }
 
     @NonNull
     @Override

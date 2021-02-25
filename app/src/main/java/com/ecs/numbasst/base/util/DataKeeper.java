@@ -23,7 +23,10 @@ import java.io.IOException;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.MediaScannerConnection;
 import android.os.Environment;
+
+import com.ecs.numbasst.manager.BleService;
 
 /**数据存储工具类
  * @must 
@@ -56,7 +59,7 @@ public class DataKeeper {
 	private DataKeeper() {}
 
 	//获取context，获取存档数据库引用
-	public static void init() {
+	public static void init(Context context) {
 		Log.i(TAG, "init fileRootPath = " + fileRootPath);
 		//判断SD卡存在
 		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -89,6 +92,13 @@ public class DataKeeper {
 				if(!file.exists()) {
 					file.mkdir();
 				}
+				//Android8.1手持设备有BUG ，创建完文件 USB 连接PC会没有显示，所以要通知系统去刷新媒体库。
+				try {
+					MediaScannerConnection.scanFile(context,new String[]{unitPath,unit_store,unit_display,unit_main_control,downloadPath},null,null);
+				}catch (Exception e){
+					e.printStackTrace();
+				}
+
 			}
 		}
 	}

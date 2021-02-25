@@ -21,6 +21,7 @@
 
 
     <ProgressBar
+        android:translationZ="10dp"
         android:id="@+id/progress_bar_status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

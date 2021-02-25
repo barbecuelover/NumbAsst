@@ -84,7 +84,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Vi
             holder.tvStatus.setText("已连接");
         }else if (device.getStatus() == STATUS_CONNECTING){
             holder.tvStatus.setVisibility(View.VISIBLE);
-            holder.tvStatus.setText("正在连接...");
+            holder.tvStatus.setText("配对中...");
         }
         else {
             holder.tvStatus.setVisibility(View.GONE);

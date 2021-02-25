@@ -1,6 +1,7 @@
 package com.ecs.numbasst.ui.state;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -106,17 +107,12 @@ public class DeviceStateActivity extends BaseActionBarActivity {
 
     @Override
     protected void initData() {
-
-
         executor = Executors.newSingleThreadExecutor();
         getStateTask = new Runnable() {
             @Override
             public void run() {
                 try {
                     if(manager!=null){
-                        Thread.sleep(100);
-                        manager.getCarNumber();
-
                         Thread.sleep(100);
                         manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_PIPE_PRESS);
                         Thread.sleep(100);
@@ -125,12 +121,8 @@ public class DeviceStateActivity extends BaseActionBarActivity {
                         manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
                         Thread.sleep(100);
                         manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_TCU);
-
-                        Thread.sleep(100);
-                        manager.getDeviceID();
                         Thread.sleep(100);
                         manager.getDeviceState(ProtocolHelper.TYPE_DEVICE_STORE_STATUS,ProtocolHelper.DEVICE_STATUS_DATA_STORE);
-
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -181,9 +173,11 @@ public class DeviceStateActivity extends BaseActionBarActivity {
                 LinearLayout.LayoutParams  paramsUsed = ( LinearLayout.LayoutParams )tvStateStoreUsed.getLayoutParams();
                 int total = storeInfo.getUsedSpace() + storeInfo.getFreeSpace();
                 paramsUsed.weight = storeInfo.getUsedSpace();
+                tvStateStoreUsed.setLayoutParams(paramsUsed);
                 tvStateStoreUsed.setText(storeInfo.getUsedSpace() * 100 / total+"%");
                 LinearLayout.LayoutParams  paramsLeft = ( LinearLayout.LayoutParams )tvStateStoreLeft.getLayoutParams();
                 paramsLeft.weight = storeInfo.getFreeSpace();
+                tvStateStoreLeft.setLayoutParams(paramsLeft);
             }
         }
     }
@@ -276,6 +270,12 @@ public class DeviceStateActivity extends BaseActionBarActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        //onRefreshAll();
+    }
+
+    @Override
     public void onRefreshAll() {
         if (checkConnection()){
             refreshAllstate();
@@ -285,6 +285,13 @@ public class DeviceStateActivity extends BaseActionBarActivity {
 
     private void refreshAllstate() {
         showProgressBar();
+        manager.getCarNumber();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        manager.getDeviceID();
         executor.execute(getStateTask);
     }
 
@@ -292,13 +299,13 @@ public class DeviceStateActivity extends BaseActionBarActivity {
         if (manager.isConnected()){
           return true;
         }else {
-            updateDeviceStatus("请检查设备连接");
+            showToast("请检查设备连接");
         }
         return false;
     }
 
     private void updateDeviceStatus(String msg) {
-        showToast(msg);
+        Log.d("zwcc",""+msg);
         hideProgressBar();
     }
 

@@ -146,15 +146,16 @@ public class SensorAdjustingActivity extends BaseActionBarActivity {
                 changeState(getString(R.string.check_device_connection));
                 return;
             }
+            String temp = etSensorAdjustMeasureContent.getText().toString();
+            int pressure = Integer.valueOf(temp);
             if (id == R.id.btn_sensor_zero){
                 manager.adjustSensor(ProtocolHelper.ADJUST_POINT_ZERO,0);
             }else if (id == R.id.btn_sensor_high){
-                manager.adjustSensor(ProtocolHelper.ADJUST_POINT_HIGH,0);
+                manager.adjustSensor(ProtocolHelper.ADJUST_POINT_HIGH,pressure);
             }else if (id == R.id.btn_sensor_default){
-                manager.adjustSensor(ProtocolHelper.ADJUST_POINT_DEFAULT,0);
+                manager.adjustSensor(ProtocolHelper.ADJUST_POINT_DEFAULT,pressure);
             }else if (id == R.id.btn_sensor_save){
-                String temp = etSensorAdjustMeasureContent.getText().toString();
-                int pressure = Integer.valueOf(temp);
+
                 manager.adjustSensor(ProtocolHelper.ADJUST_SAVE,pressure);
             }else if (id == R.id.btn_sensor_quit){
                 manager.adjustSensor(ProtocolHelper.ADJUST_QUIT,0);

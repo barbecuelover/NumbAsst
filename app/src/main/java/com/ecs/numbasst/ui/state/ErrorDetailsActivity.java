@@ -3,10 +3,12 @@ package com.ecs.numbasst.ui.state;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.ProtocolHelper;
 import com.ecs.numbasst.manager.msg.StateMsg;
 import com.ecs.numbasst.ui.state.entity.ErrorInfo;
@@ -52,6 +54,9 @@ public class ErrorDetailsActivity extends BaseActionBarActivity {
                 //显示错误
                 ErrorInfo errorInfo = (ErrorInfo)info;
                 adapter.addAll(errorInfo.getErrorInfoList());
+                for (String e :errorInfo.getErrorInfoList()){
+                    Log.d("zwcc","故障："+ e);
+                }
             }
         }
     }
@@ -60,6 +65,14 @@ public class ErrorDetailsActivity extends BaseActionBarActivity {
     protected void initData() {
         errorList = new ArrayList<>();
         adapter = new ErrorListAdapter(errorList);
+        listViewError.setLayoutManager(new LinearLayoutManager(this,RecyclerView.VERTICAL,false));
+        listViewError.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        onRefreshAll();
     }
 
     @Override
@@ -80,7 +93,6 @@ public class ErrorDetailsActivity extends BaseActionBarActivity {
         }
         manager.getMainControlState(ProtocolHelper.DEVICE_STATUS_FAULT_DIAGNOSIS);
         showProgressBar();
-        showToast("查询故障中..");
     }
 
 }

@@ -145,7 +145,13 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             @Override
             public void onReceived(byte[] data) {
                 Log.d(ZWCC,"UDP  onReceived ");
-                formatDownloadReply(data);
+                try {
+                    formatDownloadReply(data);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
             }
         };
         UdpClientHelper.getInstance().startReceivedMsgListener(callBack);
@@ -608,6 +614,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 Log.d(ZWCC,"收到升级完成指令");
                 UnitUpdateMsg updateCompleteMsg =  new UnitUpdateMsg();
                 updateCompleteMsg.setUnitType(content[0]);
+                //updateCompleteMsg.setUnitType(unitType);
                 if ( content[1] == ProtocolHelper.STATE_SUCCEED){
                     updateCompleteMsg.setState(UnitUpdateMsg.UPDATE_COMPLETED);
                 }else {
@@ -1073,27 +1080,31 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     }
 
     private void writeDataWithRetry(byte[] data) {
-        if (retryTimer != null) {
-            retryTimer.cancel();
-        }
-        writeData(data);
-        times = 0;
-        retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES + 1000, RETRY_TIMEOUT) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                if(times!=0){
-                    Log.d(ZWCC, "重新尝试 通讯");
-                    writeData(data);
+        try {
+            if (retryTimer != null) {
+                retryTimer.cancel();
+            }
+            writeData(data);
+            times = 0;
+            retryTimer = new CountDownTimer(RETRY_TIMEOUT * RETRY_TIMES + 1000, RETRY_TIMEOUT) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    if(times!=0){
+                        Log.d(ZWCC, "重新尝试 通讯");
+                        writeData(data);
+                    }
+                    times ++;
                 }
-                times ++;
-            }
 
-            @Override
-            public void onFinish() {
-                //3次重试失败
-                EventBus.getDefault().post(new RetryMsg());
-            }
-        }.start();
+                @Override
+                public void onFinish() {
+                    //3次重试失败
+                    EventBus.getDefault().post(new RetryMsg());
+                }
+            }.start();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 

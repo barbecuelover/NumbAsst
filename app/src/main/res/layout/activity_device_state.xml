@@ -67,7 +67,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="1809"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -120,7 +120,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="1809"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -171,10 +171,9 @@
         <TextView
             android:id="@+id/tv_state_car_pipe_press_1"
             app:layout_constrainedWidth="true"
-
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="596kPa"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -189,7 +188,7 @@
             android:id="@+id/tv_state_car_pipe_press_2"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="580kPa"
+            android:text=" ****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -337,7 +336,7 @@
                 android:layout_height="30dp"
                 android:layout_width="0dp"
                 android:layout_weight="7"
-                android:text="70%"
+                android:text="****"
                 android:background="@color/red"
                 android:textSize="14sp"
                 android:gravity="center_vertical"
@@ -420,7 +419,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="0%"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -450,7 +449,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="5V"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -465,7 +464,7 @@
             android:id="@+id/tv_state_battery_v_2"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="5V"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -497,7 +496,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="100mA"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -528,7 +527,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text="4.5V"
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -605,7 +604,7 @@
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:text=""
+            android:text="****"
             android:background="@color/gray_cc"
             android:textSize="14sp"
             android:gravity="center_vertical"
@@ -643,7 +642,7 @@
             app:layout_constraintStart_toStartOf="@+id/gl_v1"
             app:layout_constraintEnd_toStartOf="@+id/tv_state_work_state_2"
             app:layout_constraintTop_toTopOf="@+id/tv_state_tcu_work_state_title"
-
+            android:text="****"
             />
 
         <TextView
@@ -652,6 +651,7 @@
             android:layout_height="30dp"
             android:background="@color/gray_cc"
             android:textSize="14sp"
+            android:text="****"
             android:gravity="center_vertical"
             app:layout_constraintStart_toEndOf="@+id/tv_state_work_state_1"
             app:layout_constraintEnd_toEndOf="@+id/gl_v2"
@@ -689,7 +689,7 @@
             app:layout_constraintStart_toStartOf="@+id/gl_v1"
             app:layout_constraintEnd_toStartOf="@+id/tv_state_signal_strength_2"
             app:layout_constraintTop_toTopOf="@+id/tv_state_signal_strength_title"
-
+            android:text="****"
             />
 
         <TextView
@@ -702,7 +702,7 @@
             app:layout_constraintStart_toEndOf="@+id/tv_state_signal_strength_1"
             app:layout_constraintEnd_toEndOf="@+id/gl_v2"
             app:layout_constraintTop_toTopOf="@+id/tv_state_signal_strength_1"
-
+            android:text="****"
             />
 
         <View

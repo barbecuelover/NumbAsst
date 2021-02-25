@@ -115,6 +115,7 @@ public class NumberActivity extends BaseActionBarActivity {
                 }
                 String carNumber = etNewNumber.getText().toString().trim();
                 manager.setCarNumber(carNumber);
+                tvNumberStatus.setText("");
                 showProgressBar();
             }
         } else if (id == R.id.ib_number_logo_out) {

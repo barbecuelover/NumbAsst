@@ -144,7 +144,7 @@ public class ProtocolHelper {
      */
     public byte[] createOrderSetCarNumber(String number) {
         // AA , msg类型, msg长度
-        byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, 0x011};
+        byte[] head = {HEAD_SEND, TYPE_NUMBER_SET, 0x05};
         //先将 车号转换成16进制字符串
         //消息内容
         byte[] carNumber = ByteUtils.number5ToNumberByte(number);

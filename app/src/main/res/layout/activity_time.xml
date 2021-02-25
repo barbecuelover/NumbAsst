@@ -146,7 +146,7 @@
         android:textSize="18sp"
         android:layout_marginHorizontal="12dp"
         android:textColor="@color/black"
-        android:text="2021-1-15 15:20:28"
+        android:text="1970-1-1 00:00:00"
         android:paddingStart="8dp"
         android:gravity="center_vertical"
         android:background="@drawable/shape_edit_text_border"

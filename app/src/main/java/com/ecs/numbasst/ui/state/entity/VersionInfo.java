@@ -30,7 +30,7 @@ public class VersionInfo extends StateInfo {
             this.vAA = data[2];
             this.vBB = data[3];
             this.vCC = data[4];
-            version = "V"+String.valueOf(vAA) + "." + String.valueOf(vBB) +"." +String.valueOf(vCC);
+            version = "V"+String.valueOf(vAA) + "." + String.format("%02d",vBB)+"." +String.format("%02d",vCC);
         }
     }
 

@@ -125,6 +125,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
     DownloadMsg downloadProgressMsg;
 
     UdpFileUtils udpFileUtils;
+    volatile String  deviceID = "";
 
     DateFormat formatterDay;
     WifiManager mWifiManager;
@@ -159,9 +160,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
         mWifiManager = (WifiManager)this.getSystemService(Context.WIFI_SERVICE);
 
-
-
-
     }
 
     public void formatDownloadReply(byte[] data){
@@ -190,7 +188,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
             downloadDate = protocolHelper.formatDownloadDayDateInfo(data);
 
-            String name = formatterDay.format(downloadDate) ;
+            String name = deviceID +"_"+ formatterDay.format(downloadDate);
             Log.d(ZWCC,"日期文件名称 name = " +name);
             udpFileUtils = new UdpFileUtils(name);
 
@@ -538,6 +536,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 String id = protocolHelper.formatGetDeviceID(content);
                 DeviceIDMsg getIDMsg = new DeviceIDMsg(DeviceIDMsg.GET_DEVICE_ID);
                 getIDMsg.setDeviceID(id);
+                deviceID = id;
                 EventBus.getDefault().post(getIDMsg);
                 break;
             //标定传感器返回信息
@@ -1108,7 +1107,7 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
 
     private void writeData(byte[] data) {
         if (mWriteCharacteristic != null &&
-                data != null) {
+                data != null && mBluetoothGatt!=null) {
             Log.d(ZWCC, "writeData :" + ByteUtils.bytesToString16(data));
             mWriteCharacteristic.setValue(data);
             //mBluetoothLeService.writeC

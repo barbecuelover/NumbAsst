@@ -83,6 +83,8 @@ public class ErrorInfo extends StateInfo {
                 errorInfo = "复位超限";
                 break;
             case 4:
+                errorInfo = "排风功能异常";
+                break;
             case 5:
             case 6:
             case 7:

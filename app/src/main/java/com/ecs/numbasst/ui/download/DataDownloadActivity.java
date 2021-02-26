@@ -146,6 +146,14 @@ public class DataDownloadActivity extends BaseActionBarActivity {
         registerReceiver(wifiBroadcastReceiver,filter);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //下载的文件 名称中用到了设备ID，并且下载协议中并没有携带任何ID信息，所以只能在操作前先去确定设备ID，然后在创建文件
+        if (manager.isConnected()) {
+            manager.getDeviceID();
+        }
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDownload(DownloadMsg msg) {

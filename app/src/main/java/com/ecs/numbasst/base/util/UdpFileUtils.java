@@ -22,7 +22,7 @@ public class UdpFileUtils {
         if (fileName != null && !fileName.equals("")) {
 
             String name = fileName.trim();
-            String dirs = DataKeeper.downloadPath + "ID_" + name + "/";
+            String dirs = DataKeeper.downloadPath + name + "/";
 
             Log.d("zwcc","创建文件夹 dirs = " +dirs);
             file = new File(DataKeeper.downloadPath);

@@ -95,6 +95,12 @@ public class MainActivity extends BaseActivity {
         btnVersion = findViewById(R.id.view_version_info);
         btnSetTime = findViewById(R.id.view_set_time);
         btnWifi = findViewById(R.id.view_wifi);
+
+        //进入菜单界面，将焦点放置在第一条上。
+        btnDiscovery.setFocusable(true);
+        btnDiscovery.setFocusableInTouchMode(true);
+        btnDiscovery.requestFocus();
+        btnDiscovery.requestFocusFromTouch();
     }
 
     @Override

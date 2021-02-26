@@ -629,7 +629,7 @@ public class ProtocolHelper {
     }
 
     public byte[] formatDownload1KBPackage(byte[] data){
-        Log.d(TAG,"formatDownload1KBPackage DATA.size = " + data.length);
+        //Log.d(TAG,"formatDownload1KBPackage DATA.size = " + data.length);
         byte[] content = new byte[1024];
         System.arraycopy(data, 12, content, 0, content.length);
         return content;

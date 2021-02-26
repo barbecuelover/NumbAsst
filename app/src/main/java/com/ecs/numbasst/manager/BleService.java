@@ -204,8 +204,8 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
         }else if (type == ProtocolHelper.TYPE_WIFI_RECEIVED_DATA_1KB){//传输
             //收到传输1kb
             long pkgIndex  = protocolHelper.formatDownloadPackageIndex(data);
-            Log.d(ZWCC,"总包数："+udpTotalPkg+" 目前已记录包号为："+ pkgNumber +"收到数据包号为：" +pkgIndex );
-            if (pkgIndex == (pkgNumber + 1 )){
+            //Log.d(ZWCC,"总包数："+udpTotalPkg+" 目前已记录包号为："+ pkgNumber +"收到数据包号为：" +pkgIndex );
+            if (pkgIndex == (udpReceivedTotalPkg + 1 )){
                 byte[]  content = protocolHelper.formatDownload1KBPackage(data);
                 pkgNumber ++;
                 udpReceivedTotalPkg++;
@@ -215,7 +215,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
                 downloadProgressMsg.setCurrent(udpReceivedTotalPkg);
                 downloadProgressMsg.setTotalSize(udpTotalPkg);
                 EventBus.getDefault().post(downloadProgressMsg);
-                Log.d(ZWCC,"发送更新UI消息");
                 //将数据写入文件 ：
                 try {
                     if (udpFileUtils!=null){
@@ -231,7 +230,6 @@ public class BleService extends Service implements SppInterface, IDebugging, ICa
             //如果收到1000包则 发送应答 D2 ,包号从零开始计数
             if (pkgNumber == 1000){
                 Log.d(ZWCC," 1000PKG全部完成");
-
                 pkgNumber = 0;
                 byte[] order= protocolHelper.createOrderDownload1000Done(0,downloadDate,udpReceivedTotalPkg);
                 UdpClientHelper.getInstance().sendMsg(order);

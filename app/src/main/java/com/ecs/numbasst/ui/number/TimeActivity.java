@@ -33,7 +33,8 @@ public class TimeActivity extends BaseActionBarActivity {
     private TextView tvSetTimeState;
     private TextView tvGetTime;
     private Button btnGetTime;
-
+    DateFormat formatterDay;
+    DateFormat formatterHour;
 //    private DialogDatePicker datePickerSelect;
     //private TimePickerDialog timePickerDialog;
 
@@ -65,8 +66,8 @@ public class TimeActivity extends BaseActionBarActivity {
     @Override
     protected void initData() {
         Calendar calendar = Calendar.getInstance();
-        DateFormat formatterDay = new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault());
-        DateFormat formatterHour = new SimpleDateFormat("HH:mm:ss",Locale.getDefault());
+        formatterDay = new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault());
+        formatterHour = new SimpleDateFormat("HH:mm:ss",Locale.getDefault());
         formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
 
 //        datePickerSelect = new DialogDatePicker(this, new DialogDatePicker.OnDateSelectCallBack() {
@@ -225,6 +226,8 @@ public class TimeActivity extends BaseActionBarActivity {
                 return;
             }
             Date date = new Date();
+            tvSetTimeYearSelect.setText(formatterDay.format(date.getTime()));
+            tvSetTimeHourSelect.setText(formatterHour.format(date.getTime()));
             manager.setTime(date);
             showProgressBar();
         } else if (id == R.id.btn_set_time) {

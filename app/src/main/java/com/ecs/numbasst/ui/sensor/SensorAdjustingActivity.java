@@ -147,7 +147,12 @@ public class SensorAdjustingActivity extends BaseActionBarActivity {
                 return;
             }
             String temp = etSensorAdjustMeasureContent.getText().toString();
-            int pressure = Integer.valueOf(temp);
+            int pressure;
+            if (temp.equals("")){
+                pressure = 0;
+            }else {
+                pressure = Integer.valueOf(temp);
+            }
             if (id == R.id.btn_sensor_zero){
                 manager.adjustSensor(ProtocolHelper.ADJUST_POINT_ZERO,0);
             }else if (id == R.id.btn_sensor_high){

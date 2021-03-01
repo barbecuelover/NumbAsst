@@ -142,6 +142,11 @@ public class WifiDebugActivity extends BaseActionBarActivity {
         } else if (id == R.id.btn_connect_wifi) {
             //手机 连接 主机上的WIFI
             String wifiName = tvWifiDebugName.getText().toString().trim();
+            if (wifiName.equals("")){
+                updateState("请先获取WIFI名称！");
+                return;
+            }
+
             //manager.connectWifi(wifiName);
             updateState("开始建立连接");
 

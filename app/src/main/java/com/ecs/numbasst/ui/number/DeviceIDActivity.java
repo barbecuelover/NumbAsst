@@ -84,8 +84,14 @@ public class DeviceIDActivity extends BaseActionBarActivity {
                     updateStatus(getString(R.string.check_device_connection));
                     return;
                 }
-                manager.setDeviceID(dID);
-                showProgressBar();
+                int number = Integer.parseInt(dID);
+                if(number > 0xffff){
+                    showToast("ID不合法");
+                    updateStatus("ID不合法");
+                }else {
+                    manager.setDeviceID(dID);
+                    showProgressBar();
+                }
             }
         }
     }

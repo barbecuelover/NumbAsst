@@ -41,7 +41,7 @@ public class ErrorListAdapter extends RecyclerView.Adapter<ErrorListAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String errorStr = errorList.get(position);
-        holder.tvNumber.setText(String.valueOf(position));
+        holder.tvNumber.setText(String.valueOf(position+1));
         holder.tvErrorStr.setText(errorStr);
     }
 

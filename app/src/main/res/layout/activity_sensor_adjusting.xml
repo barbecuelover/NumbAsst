@@ -55,7 +55,7 @@
     <TextView
         android:id="@+id/tv_sensor_adjust_car_pipe1_press"
         android:textSize="18sp"
-        android:text="596kPa"
+        android:text="***kPa"
         android:textColor="@color/green"
         android:gravity="center"
         android:layout_marginHorizontal="12dp"
@@ -84,7 +84,7 @@
         android:id="@+id/tv_sensor_adjust_car_pipe2_press"
         app:layout_constraintStart_toStartOf="@+id/gl_v1"
         android:textSize="18sp"
-        android:text="596kPa"
+        android:text="***kPa"
         android:textColor="@color/green"
         android:gravity="center"
         android:layout_marginHorizontal="12dp"

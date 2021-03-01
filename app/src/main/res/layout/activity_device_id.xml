@@ -73,7 +73,7 @@
         android:layout_marginTop="8dp"
         android:selectAllOnFocus="true"
         android:inputType="number"
-        android:text="82345"
+        android:text=""
         android:maxLength="5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

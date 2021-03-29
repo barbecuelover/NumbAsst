@@ -1,5 +1,6 @@
 package com.ecs.numbasst.ui.number;
 
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,7 +15,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 
-public class DeviceIDActivity extends BaseActionBarActivity {
+public class DeviceIDActivity extends BaseActionBarActivity implements View.OnKeyListener{
 
     private TextView tvCurrentDeviceId;
     private ImageButton ibGetDeviceIdRefresh;
@@ -61,6 +62,7 @@ public class DeviceIDActivity extends BaseActionBarActivity {
     protected void initEvent() {
         ibGetDeviceIdRefresh.setOnClickListener(this);
         btnSetDeviceId.setOnClickListener(this);
+        etNewDeviceId.setOnKeyListener(this);
     }
 
     @Override
@@ -104,6 +106,25 @@ public class DeviceIDActivity extends BaseActionBarActivity {
     private void updateStatus(String msg) {
         tvDeviceIdStatus.setText(msg);
         hideProgressBar();
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v == etNewDeviceId){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    etNewDeviceId.clearFocus();
+                    btnSetDeviceId.requestFocus();
+                    intercept = true;
+                }else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
+                    etNewDeviceId.clearFocus();
+                    ibGetDeviceIdRefresh.requestFocus();
+                    intercept = true;
+                }
+            }
+        }
+        return intercept;
     }
 
 }

@@ -26,9 +26,9 @@ import java.util.Locale;
 public class TimeActivity extends BaseActionBarActivity {
 
 
-    private TextView tvSetTimeYearSelect;
+    private Button tvSetTimeYearSelect;
     private Button btnSetTimeDefault;
-    private TextView tvSetTimeHourSelect;
+    private Button tvSetTimeHourSelect;
     private Button btnSetTime;
     private TextView tvSetTimeState;
     private TextView tvGetTime;

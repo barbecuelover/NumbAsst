@@ -1,6 +1,7 @@
 package com.ecs.numbasst.ui.number;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,7 +15,7 @@ import com.ecs.numbasst.manager.msg.CarNumberMsg;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class NumberActivity extends BaseActionBarActivity {
+public class NumberActivity extends BaseActionBarActivity implements View.OnKeyListener{
 
     ImageButton btnRefresh;
     ImageButton btnNumberLogout;
@@ -81,6 +82,7 @@ public class NumberActivity extends BaseActionBarActivity {
         btnRefresh.setOnClickListener(this);
         btnSetCarNumber.setOnClickListener(this);
         btnNumberLogout.setOnClickListener(this);
+        etNewNumber.setOnKeyListener(this);
 //        btnTimeDay.setOnClickListener(this);
 //        btnTimeHour.setOnClickListener(this);
     }
@@ -142,4 +144,22 @@ public class NumberActivity extends BaseActionBarActivity {
         hideProgressBar();
     }
 
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v == etNewNumber){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    etNewNumber.clearFocus();
+                    btnSetCarNumber.requestFocus();
+                    intercept = true;
+                }else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
+                    etNewNumber.clearFocus();
+                    btnRefresh.requestFocus();
+                    intercept = true;
+                }
+            }
+        }
+        return intercept;
+    }
 }

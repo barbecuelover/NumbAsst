@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.ecs.numbasst.base.manager.ActivityCollector;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.manager.BleServiceManager;
 
 public abstract class BaseActivity extends AppCompatActivity implements View.OnClickListener{
@@ -51,6 +53,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         initData();
         initEvent();
     }
+
 
     /**
      * 初始化布局

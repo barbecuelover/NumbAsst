@@ -1,6 +1,7 @@
 package com.ecs.numbasst.ui.debug;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,7 +15,7 @@ import com.ecs.numbasst.manager.msg.DebuggingMsg;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class DebugActivity extends BaseActionBarActivity {
+public class DebugActivity extends BaseActionBarActivity implements View.OnKeyListener{
 
     private TextView tvDebugLog;
     private Button btnDebugEnable;
@@ -61,6 +62,7 @@ public class DebugActivity extends BaseActionBarActivity {
         btnDebugStop.setOnClickListener(this);
         btnDebugLogClear.setOnClickListener(this);
         btnDebugSend.setOnClickListener(this);
+        etDebugSendContent.setOnKeyListener(this);
 
     }
 
@@ -113,4 +115,24 @@ public class DebugActivity extends BaseActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v == etDebugSendContent){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    etDebugSendContent.clearFocus();
+                    btnDebugSend.requestFocus();
+                    intercept = true;
+                }else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
+                    etDebugSendContent.clearFocus();
+                    btnDebugEnable.requestFocus();
+                    intercept = true;
+                }
+            }
+        }
+        return intercept;
+    }
+
 }

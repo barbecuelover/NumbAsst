@@ -5,6 +5,10 @@ import android.os.Bundle;
 
 import androidx.annotation.StringRes;
 
+import android.text.Editable;
+import android.text.method.KeyListener;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,9 +19,10 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActivity;
+import com.ecs.numbasst.base.util.Log;
 import com.ecs.numbasst.ui.MainActivity;
 
-public class LoginActivity extends BaseActivity {
+public class LoginActivity extends BaseActivity implements View.OnKeyListener {
 
     private LoginViewModel loginViewModel;
     private EditText usernameEditText;
@@ -43,6 +48,8 @@ public class LoginActivity extends BaseActivity {
         loginButton = findViewById(R.id.login);
         loadingProgressBar = findViewById(R.id.loading);
         imgHeader = findViewById(R.id.iv_login_header);
+
+
 
         Glide.with(this).load(R.drawable.img_login_header).into(imgHeader);
     }
@@ -102,7 +109,8 @@ public class LoginActivity extends BaseActivity {
             }
         });
 
-
+        usernameEditText.setOnKeyListener(this);
+        passwordEditText.setOnKeyListener(this);
 
 
 /*        TextWatcher afterTextChangedListener = new TextWatcher() {
@@ -160,5 +168,33 @@ public class LoginActivity extends BaseActivity {
     @Override
     public void onClick(View v) {
 
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v == usernameEditText){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    usernameEditText.clearFocus();
+                    passwordEditText.requestFocus();
+                    intercept =  true;
+                }
+            }else if(v == passwordEditText){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    passwordEditText.clearFocus();
+                    loginButton.requestFocus();
+                    intercept =  true;
+                }else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
+                    passwordEditText.clearFocus();
+                    usernameEditText.requestFocus();
+                    intercept =  true;
+                }
+
+            }
+        }
+
+        Log.d("zwcc","keyCode = " +keyCode);
+        return intercept;
     }
 }

@@ -47,7 +47,7 @@
         android:layout_height="48dp"/>
 
 
-    <TextView
+    <Button
         android:id="@+id/tv_set_time_year_select"
         android:textSize="18sp"
         android:layout_marginHorizontal="6dp"
@@ -91,7 +91,7 @@
         android:layout_height="48dp"/>
 
 
-    <TextView
+    <Button
         android:id="@+id/tv_set_time_hour_select"
         android:textSize="18sp"
         android:layout_marginHorizontal="6dp"

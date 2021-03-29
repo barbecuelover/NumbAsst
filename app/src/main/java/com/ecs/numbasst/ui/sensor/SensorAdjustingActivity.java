@@ -3,6 +3,7 @@ package com.ecs.numbasst.ui.sensor;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,7 +20,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SensorAdjustingActivity extends BaseActionBarActivity {
+public class SensorAdjustingActivity extends BaseActionBarActivity implements View.OnKeyListener{
 
     private TextView tvCarPipe1Press;
     private TextView tvCarPipe2Press;
@@ -96,6 +97,8 @@ public class SensorAdjustingActivity extends BaseActionBarActivity {
         btnSensorSave.setOnClickListener(this);
         btnSensorQuit.setOnClickListener(this);
         btnSensorDefault.setOnClickListener(this);
+        etSensorAdjustMeasureContent.setOnKeyListener(this);
+        btnSensorDefault.setOnKeyListener(this);
     }
 
 
@@ -204,5 +207,28 @@ public class SensorAdjustingActivity extends BaseActionBarActivity {
         hideProgressBar();
     }
 
-
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v == etSensorAdjustMeasureContent){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    etSensorAdjustMeasureContent.clearFocus();
+                    btnSensorSave.requestFocus();
+                    intercept = true;
+                }else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
+                    etSensorAdjustMeasureContent.clearFocus();
+                    btnSensorDefault.requestFocus();
+                    intercept = true;
+                }
+            }else if (v == btnSensorDefault){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    btnSensorDefault.clearFocus();
+                    etSensorAdjustMeasureContent.requestFocus();
+                    intercept = true;
+                }
+            }
+        }
+        return intercept;
+    }
 }

@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -36,7 +37,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DevicesScanActivity extends BaseActionBarActivity {
+public class DevicesScanActivity extends BaseActionBarActivity implements View.OnKeyListener{
 
     private static final int REQUEST_ENABLE_BT = 1;
     // Stops scanning after 10 seconds.
@@ -65,6 +66,7 @@ public class DevicesScanActivity extends BaseActionBarActivity {
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         checkNeeded();
+        actionBar.setBackOnKeyListener(this);
     }
 
 
@@ -366,4 +368,18 @@ public class DevicesScanActivity extends BaseActionBarActivity {
         tvDeviceCount.setText(count);
     }
 
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v.getId() == actionBar.getViewBackID()){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    actionBar.clearBackFocus();
+                    btnRefresh.requestFocus();
+                    intercept = true;
+                }
+            }
+        }
+        return intercept;
+    }
 }

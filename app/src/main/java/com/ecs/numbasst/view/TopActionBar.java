@@ -59,4 +59,18 @@ public class TopActionBar extends FrameLayout {
     public int getViewRefreshID(){
         return btnRefresh.getId();
     }
+
+    public void clearBackFocus(){
+        btnBack.clearFocus();
+    }
+
+    public void requestBackFocus(){
+        btnBack.requestFocus();
+    }
+
+    public void setBackOnKeyListener(OnKeyListener listener){
+        btnBack.setOnKeyListener(listener);
+    }
+
+
 }

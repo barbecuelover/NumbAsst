@@ -10,6 +10,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -25,7 +26,7 @@ import com.ecs.numbasst.manager.msg.WifiMsg;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class WifiDebugActivity extends BaseActionBarActivity {
+public class WifiDebugActivity extends BaseActionBarActivity implements View.OnKeyListener{
 
     private String ZWCC = "zwcc";
     private TextView tvWifiDebugName;
@@ -40,6 +41,7 @@ public class WifiDebugActivity extends BaseActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        actionBar.setBackOnKeyListener(this);
     }
 
     @Override
@@ -101,6 +103,7 @@ public class WifiDebugActivity extends BaseActionBarActivity {
     @Override
     protected void initEvent() {
         ibGetWifiNameRefresh.setOnClickListener(this);
+        ibGetWifiNameRefresh.setOnKeyListener(this);
         btnOpenWifi.setOnClickListener(this);
         btnConnectWifi.setOnClickListener(this);
         btnCloseWifi.setOnClickListener(this);
@@ -274,5 +277,25 @@ public class WifiDebugActivity extends BaseActionBarActivity {
         }
     }
 
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        boolean intercept = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN){
+            if (v.getId() == actionBar.getViewBackID()){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    actionBar.clearBackFocus();
+                    ibGetWifiNameRefresh.requestFocus();
+                    intercept = true;
+                }
+            }else if (v == ibGetWifiNameRefresh){
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+                    ibGetWifiNameRefresh.clearFocus();
+                    btnOpenWifi.requestFocus();
+                    intercept = true;
+                }
 
+            }
+        }
+        return intercept;
+    }
 }

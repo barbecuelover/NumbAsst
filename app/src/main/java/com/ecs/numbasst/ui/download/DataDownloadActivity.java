@@ -46,8 +46,8 @@ public class DataDownloadActivity extends BaseActionBarActivity {
     private final static int START_TIME = 1;
     private final static int END_TIME = 2;
 
-    private TextView tvStartTime;
-    private TextView tvEndTime;
+    private Button tvStartTime;
+    private Button tvEndTime;
     private Button btnDownload;
 
     private ProgressBar progressBarDownload;

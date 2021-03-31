@@ -1,17 +1,15 @@
 package com.ecs.numbasst.ui.number;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.bigkoo.pickerview.builder.TimePickerBuilder;
-import com.bigkoo.pickerview.listener.OnTimeSelectListener;
-import com.bigkoo.pickerview.view.TimePickerView;
 import com.ecs.numbasst.R;
 import com.ecs.numbasst.base.BaseActionBarActivity;
 import com.ecs.numbasst.manager.msg.TimeMsg;
+import com.ecs.numbasst.view.DialogDatePicker;
+import com.ecs.numbasst.view.DialogTimePicker;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -35,12 +33,11 @@ public class TimeActivity extends BaseActionBarActivity {
     private Button btnGetTime;
     DateFormat formatterDay;
     DateFormat formatterHour;
-//    private DialogDatePicker datePickerSelect;
-    //private TimePickerDialog timePickerDialog;
+    private DialogDatePicker datePickerSelect;
+    private DialogTimePicker timePickerSelect;
 
-    TimePickerView datePickerSelect;
-    TimePickerView timePickerDialog;
     DateFormat formatter;
+    private final int YEAR_TIME = 0X100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,118 +67,29 @@ public class TimeActivity extends BaseActionBarActivity {
         formatterHour = new SimpleDateFormat("HH:mm:ss",Locale.getDefault());
         formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
 
-//        datePickerSelect = new DialogDatePicker(this, new DialogDatePicker.OnDateSelectCallBack() {
-//            @Override
-//            public void onDateSelected(int flag, int year, int month, int day, long time, String dateString) {
-//                switch (flag) {
-//                    case DAY_TIME:
-//                        tvSetTimeYearSelect.setText(dateString);
-//                        break;
-//                }
-//            }
-//        });
 
-        datePickerSelect = new TimePickerBuilder(this, new OnTimeSelectListener() {
+        datePickerSelect = new DialogDatePicker(this, new DialogDatePicker.OnDateSelectCallBack() {
             @Override
-            public void onTimeSelect(Date date, View v) {
-                String dy =formatterDay.format(date);
-                tvSetTimeYearSelect.setText(dy);
-
+            public void onDateSelected(int flag, int year, int month, int day, long time, String dateString) {
+                switch (flag) {
+                    case YEAR_TIME:
+                        tvSetTimeYearSelect.setText(dateString);
+                        break;
+                }
             }
-        }).    setType(new boolean[]{true , true, true,false, false, false})//分别对应年月日时分秒，默认全部显示
-                .setCancelText("取消")//取消按钮文字
-                .setSubmitText("确定")//确认按钮文字
-                .setTitleSize(18)//标题文字大小
-                .setTitleText("")//标题文字
-                .setOutSideCancelable(true)//点击屏幕，点在控件外部范围时，是否取消显示
-                .isCyclic(true)//是否循环滚动
-                .setTitleColor(Color.BLACK)//标题文字颜色
-                .setSubmitColor(Color.BLACK)//确定按钮文字颜色
-                .setCancelColor(Color.BLACK)//取消按钮文字颜色
-                .setTitleBgColor(0xFFFFFFFF)//标题背景颜色 Night mode
-                .setBgColor(0xFFFFFFFF)//滚轮背景颜色 Night mode
-                .setLabel("年","月","日","时","分","秒")
-                .isDialog(true)//是否显示为对话框样式
-                .build();
+        });
 
-
-//        datePickerSelect = new TimePickerBuilder(this, new OnTimeSelectListener() {
-//            @Override
-//            public void onTimeSelect(Date date, View v) {//选中事件回调
-//                String dy = formatterDay.format(date);
-//                tvSetTimeYearSelect.setText(dy);
-//            }
-//        })
-//
-//                .setLayoutRes(R.layout.view_time_picker, new CustomListener() {
-//
-//                    @Override
-//                    public void customLayout(View v) {
-//                        final TextView tvSubmit = (TextView) v.findViewById(R.id.tv_finish);
-//                        ImageView ivCancel = (ImageView) v.findViewById(R.id.iv_cancel);
-//                        tvSubmit.setOnClickListener(new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View v) {
-//                                datePickerSelect.returnData();
-//                                datePickerSelect.dismiss();
-//                            }
-//                        });
-//                        ivCancel.setOnClickListener(new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View v) {
-//                                datePickerSelect.dismiss();
-//                            }
-//                        });
-//                    }
-//                })
-//                .setContentTextSize(18)
-//                .setType(new boolean[]{true, true, true, false, false, false})
-//                .setLabel("年", "月", "日", "时", "分", "秒")
-//                .setLineSpacingMultiplier(1.2f)
-//                .setTextXOffset(0, 0, 0, 40, 0, -40)
-//                .isCenterLabel(false) //是否只显示中间选中项的label文字，false则每项item全部都带有label。
-//                .setDividerColor(0xFF24AD9D)
-//                .build();
-
-
-        //时间选择器
-        timePickerDialog = new TimePickerBuilder(this, new OnTimeSelectListener() {
+        timePickerSelect =  new DialogTimePicker(this, new DialogTimePicker.OnTimeSelectCallBack() {
             @Override
-            public void onTimeSelect(Date date, View v) {
-                String hour = formatterHour.format(date);
-                tvSetTimeHourSelect.setText(hour);
+            public void onTimeSelected(int hour, int minute, int second) {
+                Calendar c = Calendar.getInstance();
+                c.set(Calendar.HOUR_OF_DAY, hour);
+                c.set(Calendar.MINUTE,minute);
+                c.set(Calendar.SECOND,second);
+                c.getTime();
+                tvSetTimeHourSelect.setText(formatterHour.format(c.getTime()));
             }
-        }).setType(new boolean[]{false, false, false, true, true, true})//分别对应年月日时分秒，默认全部显示
-                .setCancelText("取消")//取消按钮文字
-                .setSubmitText("确定")//确认按钮文字
-                .setTitleSize(18)//标题文字大小
-                .setTitleText("")//标题文字
-                .setOutSideCancelable(true)//点击屏幕，点在控件外部范围时，是否取消显示
-                .isCyclic(true)//是否循环滚动
-                .setDate(calendar)
-                .setTitleColor(Color.BLACK)//标题文字颜色
-                .setSubmitColor(Color.BLACK)//确定按钮文字颜色
-                .setCancelColor(Color.BLACK)//取消按钮文字颜色
-                .setTitleBgColor(0xFFFFFFFF)//标题背景颜色 Night mode
-                .setBgColor(0xFFFFFFFF)//滚轮背景颜色 Night mode
-                .setLabel("年", "月", "日", "时", "分", "秒")
-                .isDialog(true)//是否显示为对话框样式
-                .build();
-
-
-//        timePickerDialog = new TimePickerDialog(TimeActivity.this, AlertDialog.THEME_HOLO_LIGHT,new TimePickerDialog.OnTimeSetListener() {
-//            @Override
-//            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-//                Calendar c = Calendar.getInstance();
-//                c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-//                c.set(Calendar.MINUTE,minute);
-//                c.getTime();
-//                tvSetTimeHourSelect.setText(formatterHour.format(c.getTime()));
-//            }
-//        },calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE),true);
-
-        tvSetTimeYearSelect.setText(formatterDay.format(calendar.getTime()));
-        tvSetTimeHourSelect.setText(formatterHour.format(calendar.getTime()));
+        });
 
     }
 
@@ -256,10 +164,9 @@ public class TimeActivity extends BaseActionBarActivity {
             showProgressBar();
 
         } else if (id == R.id.tv_set_time_hour_select) {
-            //timePickerDialog.show();
-            timePickerDialog.show();
+            timePickerSelect.show("时分秒");
         } else if (id == R.id.tv_set_time_year_select) {
-            datePickerSelect.show();
+            datePickerSelect.showDatePickView("年月日", YEAR_TIME);
         }
     }
 

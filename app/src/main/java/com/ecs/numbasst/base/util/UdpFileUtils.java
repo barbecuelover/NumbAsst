@@ -34,7 +34,7 @@ public class UdpFileUtils {
                 file.mkdir();
             }
 
-            String path = dirs + name + ".dat";
+            String path = dirs + name + ".lw";
             filePath = path;
             file = new File(path);
             Log.d("zwcc","创建文件 path = " +path);
